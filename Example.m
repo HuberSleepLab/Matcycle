@@ -55,7 +55,7 @@ BurstThresholds(2).truePeak = 1;
 BurstThresholds(2).flankConsistency = .5;
 BurstThresholds(2).ampConsistency = .5;
 
-Bands.Theta = Theta;
+Bands.Theta = Theta; % format like this so it can loop through fieldnames to find relevant bands
 
 Keep_Points = ones(1, nPoints); % set to 0 any points that contain artifacts or just wish to ignore.
 
@@ -72,7 +72,7 @@ plotBursts(Signal, fs, Peaks, BurstPeakIDs_Clean, BT)
 AllBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
 
 
-%%
+%% get burst properties
 
 
 
@@ -80,6 +80,10 @@ AllBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_P
 
 
 
+
+
+
+previewBursts(EEG, 'EEG', AllBursts, Peaks, 'Type')
 
 
 
