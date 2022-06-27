@@ -34,7 +34,7 @@ Bands.ThetaAlpha = [6 10];
 Bands.Alpha = [8 12];
 
 
-Repeats = 20;
+Repeats = 1000;
 
 NBursts = zeros(1, Repeats);
 periods = [];
