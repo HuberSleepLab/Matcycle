@@ -1,5 +1,4 @@
-function [FinalBursts, FinalPeaks] = getAllBursts(EEG, FiltEEG, ...
-    BurstThreshold1, BurstThreshold2, IsoPeak_Thresholds, Min_Peaks, Bands, Keep_Points)
+function FinalBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
 % From EEG data, finds all the bursts in each channel.
 % EEG is an EEGLAB structure.
 % FiltEEG is an EEGLAB structure with multiple entries for each filtered
@@ -46,9 +45,6 @@ BandLabels = fieldnames(Bands);
 parfor Indx_C = 1:nChan % get bursts for every component
 
     % stupid parfor problems
-    BT1 = BurstThreshold1; % recall for parallel stuff
-    BT2 = BurstThreshold2;
-    IT = IsoPeak_Thresholds;
     EEG2 = EEG;
     FiltEEG2 = FiltEEG;
     B = Bands;
@@ -85,32 +81,25 @@ parfor Indx_C = 1:nChan % get bursts for every component
             % remove edge peaks
             Peaks([1, end]) = [];
 
-            % select peaks for bursts
-            BT1.period = 1./Band;
-            [Bursts, ~] = findBursts(Peaks, BT1, Min_Peaks, Keep_Points);
-            CBursts = catStruct(CBursts, Bursts);
+            for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
+                BT = BurstThresholds(Indx_BT);
+                BT.period = 1./Band; % add period threshold
 
-            BT2.period = 1./Band;
-            [Bursts, ~] = findBursts(Peaks, BT2, Min_Peaks, Keep_Points);
-            CBursts = catStruct(CBursts, Bursts);
+                % remove thresholds that are empty
+                BT = removeEmptyFields(BT);
 
+                % find bursts
+                [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
 
-            % get isolated peaks
-            IT.periodNeg = 1./Band; % rely on trough rather than neighbors
-            [~, IsoPeakIDs] = findBursts(Peaks, IT, 1, Keep_Points);
-            IsoPeaks = Peaks(IsoPeakIDs);
-
-            CPeaks = catStruct(CPeaks, IsoPeaks);
+                % save to collective structure
+                CBursts = catStruct(CBursts, Bursts);
+            end
         end
     end
 
     % remove duplicates and add to general structure
     CBursts = removeOverlapBursts(CBursts, Min_Peaks);
     AllBursts{Indx_C} = CBursts;
-
-    CPeaks = removeOverlapPeaks(CPeaks);
-    CPeaks = removePeaksinBursts(CPeaks, CBursts);
-    AllPeaks{Indx_C} = CPeaks;
 
     disp(['Finished ', num2str(Indx_C)])
 end

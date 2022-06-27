@@ -11,6 +11,8 @@
 Filename_EEG = ''; % should be a MAT file containing and EEGLAB structure.
 Filepath_EEG = '';
 
+% add subfolders of the current repo
+addpath(genpath(extractBefore(mfilename('fullpath'), 'Example')))
 
 %% Filter the EEG data
 
@@ -34,25 +36,24 @@ FiltEEG.data = lpfilt(FiltEEG.data, fs, Theta(2));
 Min_Peaks = 3; % minimum number of cycles per burst
 
 % Burst Thresholds for finding very clean bursts
-Clean_BT = struct();
-Clean_BT.isProminent = 1;
-Clean_BT.periodConsistency = .7;
-Clean_BT.periodMeanConsistency = .7;
-Clean_BT.truePeak = 1;
-Clean_BT.efficiencyAdj = .6;
-Clean_BT.flankConsistency = .5;
-Clean_BT.ampConsistency = .25;
+BurstThresholds = struct();
+BurstThresholds(1).isProminent = 1;
+BurstThresholds(1).periodConsistency = .7;
+BurstThresholds(1).periodMeanConsistency = .7;
+BurstThresholds(1).truePeak = 1;
+BurstThresholds(1).efficiencyAdj = .6;
+BurstThresholds(1).flankConsistency = .5;
+BurstThresholds(1).ampConsistency = .25;
 
 % Burst thresholds for finding bursts with less monotonicity, but compensates
 % with more strict thresholds for everything else
-Dirty_BT = struct();
-Dirty_BT.monotonicity = .8;
-Dirty_BT.periodConsistency = .6;
-Dirty_BT.periodMeanConsistency = .6;
-Dirty_BT.efficiency = .8;
-Dirty_BT.truePeak = 1;
-Dirty_BT.flankConsistency = .5;
-Dirty_BT.ampConsistency = .5;
+BurstThresholds(2).monotonicity = .8;
+BurstThresholds(2).periodConsistency = .6;
+BurstThresholds(2).periodMeanConsistency = .6;
+BurstThresholds(2).efficiency = .8;
+BurstThresholds(2).truePeak = 1;
+BurstThresholds(2).flankConsistency = .5;
+BurstThresholds(2).ampConsistency = .5;
 
 Bands.Theta = Theta;
 
@@ -63,12 +64,12 @@ Signal = EEG.data(1, :);
 fSignal = FiltEEG.data(1, :);
 Peaks = peakDetection(Signal, fSignal);
 Peaks = peakProperties(Signal, Peaks, fs);
-[~, BurstPeakIDs_Clean] = findBursts(Peaks, Clean_BT, Min_Peaks, Keep_Points);
-plotBursts(Signal, fs, Peaks, BurstPeakIDs_Clean, Clean_BT)
+BT = removeEmptyFields(BurstThresholds(1));
+[~, BurstPeakIDs_Clean] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
+plotBursts(Signal, fs, Peaks, BurstPeakIDs_Clean, BT)
 
 % get bursts in all data
-[AllBursts, AllPeaks] = getAllBursts(EEG, FiltEEG, ...
-    Clean_BT, Dirty_BT, IsoPeak_Thresholds, Min_Peaks, Bands, Keep_Points);
+AllBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
 
 
 %%
