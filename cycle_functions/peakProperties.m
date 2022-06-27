@@ -73,7 +73,6 @@ for n = 2:numel(Peaks)-1
     % look at adjacent cycles for this; I am trying just within
     % oscillation.
     Peaks(n).flankConsistency = min(rise_amp/decay_amp, decay_amp/rise_amp);
-
 end
 
 

@@ -35,7 +35,7 @@ end
 Peaks = peakAdjustment(DZC, UZC, Wave);
 
 % final adjustment to positive peaks to make sure they are the largest
-% point between midpoints.
+% point between midpoints. % TODO also for negative??
 for n = 1:numel(Peaks)-1
     [~, PosPeakID] = max(Wave(Peaks(n).MidUpID:Peaks(n+1).MidDownID));
     PosPeakID = PosPeakID + Peaks(n).MidUpID - 1;

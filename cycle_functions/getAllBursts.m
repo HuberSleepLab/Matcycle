@@ -27,7 +27,7 @@ function FinalBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Ba
 
 % do both positive and negative signal
 Signs = [1 -1];
-Fields = {'Band', 'Channel', 'Sign'};
+Fields = {'Band', 'Channel', 'Sign', 'BT'};
 
 fs = EEG.srate;
 
@@ -54,7 +54,6 @@ parfor Indx_C = 1:nChan % get bursts for every component
     % gather all the bursts and peaks for a single component from all
     % the bands
     CBursts = struct();
-    CPeaks = struct();
 
     for Indx_B = 1:numel(BandLabels)
         Band = B.(BandLabels{Indx_B});
@@ -64,24 +63,25 @@ parfor Indx_C = 1:nChan % get bursts for every component
             Signal = Chan*Signs(Indx_S);
             fSignal = fChan*Signs(Indx_S);
 
-            % assemble meta info to save for each peak
-            Labels = [BandLabels(Indx_B), Indx_C, Signs(Indx_S)];
-
-            % find all peaks in a given band
-            Peaks = peakDetection(Signal, fSignal);
-            Peaks = peakProperties(Signal, Peaks, fs);
-
-            % assign labels to peaks
-            for n = 1:numel(Peaks)
-                for Indx_F = 1:numel(Fields)
-                    Peaks(n).(Fields{Indx_F}) = Labels{Indx_F};
-                end
-            end
-
             % remove edge peaks
             Peaks([1, end]) = [];
 
             for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
+
+                % assemble meta info to save for each peak
+                Labels = [BandLabels(Indx_B), Indx_C, Signs(Indx_S), Indx_BT];
+
+                % find all peaks in a given band
+                Peaks = peakDetection(Signal, fSignal);
+                Peaks = peakProperties(Signal, Peaks, fs);
+
+                % assign labels to peaks
+                for n = 1:numel(Peaks)
+                    for Indx_F = 1:numel(Fields)
+                        Peaks(n).(Fields{Indx_F}) = Labels{Indx_F};
+                    end
+                end
+
                 BT = BurstThresholds(Indx_BT);
                 BT.period = 1./Band; % add period threshold
 

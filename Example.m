@@ -45,7 +45,7 @@ BurstThresholds(1).efficiencyAdj = .6;
 BurstThresholds(1).flankConsistency = .5;
 BurstThresholds(1).ampConsistency = .25;
 
-% Burst thresholds for finding bursts with less monotonicity, but compensates
+% Burst thresholds for notched waves, but compensates
 % with more strict thresholds for everything else
 BurstThresholds(2).monotonicity = .8;
 BurstThresholds(2).periodConsistency = .6;
