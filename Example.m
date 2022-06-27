@@ -73,17 +73,20 @@ AllBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_P
 
 
 %% get burst properties
+MinCoherence = .75;
 
+% assemble bursts across channels based on coherence
+Bursts = aggregateBursts(AllBursts, EEG, MinCoherence);
 
+% get properties of the main channel
+Bursts = burstPeakProperties(Bursts, EEG);
+Bursts = meanBurstPeakProperties(Bursts); % does the mean of the main peak's properties
 
+% classify the bursts by shape
+Bursts = classifyBursts(Bursts);
 
-
-
-
-
-
-
-previewBursts(EEG, 'EEG', AllBursts, Peaks, 'Type')
+YGap = 20; % distance between EEG channels. 20 is good for high density
+previewBursts(EEG, YGap, AllBursts, Peaks, 'Type')
 
 
 

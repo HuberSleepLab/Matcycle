@@ -1,4 +1,4 @@
-function previewBursts(EEG, Type, Bursts, Peaks, ColorCode)
+function previewBursts(EEG, YGap, Bursts, Peaks, ColorCode)
 % function to view bursts in the EEG
 % Type is either 'ICA' or 'EEG', and will appropriately plot the bursts
 % over the channels or the components, accordingly.
@@ -11,14 +11,6 @@ t = linspace(0, EEG.pnts/EEG.srate, EEG.pnts);
 Data = EEG.data;
 DimsD = size(Data);
 
-switch Type
-    case 'EEG'
-        YGap = 20;
-    case 'ICA'
-        YGap = 15;
-    otherwise
-        YGap = 4.5*mean(std(Data, 0, 2), 'omitnan');
-end
 Y = YGap*DimsD(1):-YGap:0;
 Y(end) = [];
 
