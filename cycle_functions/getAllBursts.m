@@ -24,81 +24,18 @@ function FinalBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Ba
 % TODO: maybe BurstThreshold only 1 entry, and then can loop through
 % different dimentions.
 
-
-% do both positive and negative signal
-Signs = [1 -1];
-Fields = {'Band', 'Channel', 'Sign', 'BT'};
-
-fs = EEG.srate;
-
-% other parameters
 nChan = size(EEG.data, 1);
-
 
 % initialize spots to put data
 AllBursts = cell([1, nChan]);
-AllPeaks = AllBursts;
 
-BandLabels = fieldnames(Bands);
-
-% for Indx_C = 1:nChan % get bursts for every component % DEBUG
-parfor Indx_C = 1:nChan % get bursts for every component
-
-    % stupid parfor problems
-    EEG2 = EEG;
-    FiltEEG2 = FiltEEG;
-    B = Bands;
-
-    Chan = EEG2.data(Indx_C, :);
-
-    % gather all the bursts and peaks for a single component from all
-    % the bands
-    CBursts = struct();
-
-    for Indx_B = 1:numel(BandLabels)
-        Band = B.(BandLabels{Indx_B});
-        fChan = FiltEEG2(Indx_B).data(Indx_C, :);
-
-        for Indx_S = 1:numel(Signs)
-            Signal = Chan*Signs(Indx_S);
-            fSignal = fChan*Signs(Indx_S);
-
-            for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
-
-                % assemble meta info to save for each peak
-                Labels = [BandLabels(Indx_B), Indx_C, Signs(Indx_S), Indx_BT];
-
-                % find all peaks in a given band
-                Peaks = peakDetection(Signal, fSignal);
-                Peaks = peakProperties(Signal, Peaks, fs);
-
-                % assign labels to peaks
-                for n = 1:numel(Peaks)
-                    for Indx_F = 1:numel(Fields)
-                        Peaks(n).(Fields{Indx_F}) = Labels{Indx_F};
-                    end
-                end
-
-                BT = BurstThresholds(Indx_BT);
-                BT.period = 1./Band; % add period threshold
-
-                % remove thresholds that are empty
-                BT = removeEmptyFields(BT);
-
-                % find bursts
-                [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
-
-                % save to collective structure
-                CBursts = catStruct(CBursts, Bursts);
-            end
-        end
+if nChan == 1
+    AllBursts{1} = loopChannels(1, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+else
+    % for Indx_C = 1:nChan % get bursts for every component % DEBUG
+    parfor Indx_C = 1:nChan % get bursts for every component
+        AllBursts{Indx_C} = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
     end
-
-    % remove duplicates and add to general structure
-    CBursts = removeOverlapBursts(CBursts, Min_Peaks);
-    AllBursts{Indx_C} = CBursts;
-
-    disp(['Finished ', num2str(Indx_C)])
 end
 
 % save to single structure
@@ -107,6 +44,70 @@ for Indx_C = 1:nChan
     if isempty(AllBursts{Indx_C})
         continue
     end
-    
+
     FinalBursts = catStruct(FinalBursts, AllBursts{Indx_C});
+end
+end
+
+
+
+function CBursts = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
+
+
+% do both positive and negative signal
+Signs = [1 -1];
+Fields = {'Band', 'Channel', 'Sign', 'BT'};
+
+BandLabels = fieldnames(Bands);
+Chan = EEG.data(Indx_C, :);
+fs = EEG.srate;
+
+% gather all the bursts and peaks for a single component from all
+% the bands
+CBursts = struct();
+
+for Indx_B = 1:numel(BandLabels)
+    Band = Bands.(BandLabels{Indx_B});
+    fChan = FiltEEG(Indx_B).data(Indx_C, :);
+
+    for Indx_S = 1:numel(Signs)
+        Signal = Chan*Signs(Indx_S);
+        fSignal = fChan*Signs(Indx_S);
+
+        for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
+
+            % assemble meta info to save for each peak
+            Labels = [BandLabels(Indx_B), Indx_C, Signs(Indx_S), Indx_BT];
+
+            % find all peaks in a given band
+            Peaks = peakDetection(Signal, fSignal);
+            Peaks = peakProperties(Signal, Peaks, fs);
+
+            % assign labels to peaks
+            for n = 1:numel(Peaks)
+                for Indx_F = 1:numel(Fields)
+                    Peaks(n).(Fields{Indx_F}) = Labels{Indx_F};
+                end
+            end
+
+            BT = BurstThresholds(Indx_BT);
+            BT.period = 1./Band; % add period threshold
+
+            % remove thresholds that are empty
+            BT = removeEmptyFields(BT);
+
+            % find bursts
+            [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
+
+            % save to collective structure
+            CBursts = catStruct(CBursts, Bursts);
+        end
+    end
+end
+
+% remove duplicates and add to general structure
+CBursts = removeOverlapBursts(CBursts, Min_Peaks);
+
+disp(['Finished ', num2str(Indx_C)])
+
 end

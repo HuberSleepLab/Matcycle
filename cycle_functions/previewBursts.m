@@ -6,7 +6,8 @@ function previewBursts(EEG, YGap, Bursts, ColorCode)
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-t = linspace(0, EEG.pnts/EEG.srate, EEG.pnts);
+[nCh, nPnts] = size(EEG.data);
+t = linspace(0, nPnts/EEG.srate, nPnts);
 
 Data = EEG.data;
 DimsD = size(Data);
