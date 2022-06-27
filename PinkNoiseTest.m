@@ -2,6 +2,9 @@ close all
 clear
 clc
 
+
+addpath(genpath(extractBefore(mfilename('fullpath'), 'PinkNoiseTest')))
+
 fs = 250;
 Minutes = 10;
 nPoints = fs*60*Minutes;
