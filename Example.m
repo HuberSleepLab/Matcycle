@@ -8,8 +8,8 @@
 %% Establish parameters
 
 % pick a clean EEG file
-Filename_EEG = ''; % should be a MAT file containing and EEGLAB structure.
-Filepath_EEG = '';
+Filename_EEG = 'P15_Music_Session2_Clean.mat'; % should be a MAT file containing and EEGLAB structure.
+Filepath_EEG = 'E:\Data\Preprocessed\Clean\Waves\Music';
 
 % add subfolders of the current repo
 addpath(genpath(extractBefore(mfilename('fullpath'), 'Example')))
@@ -18,7 +18,7 @@ addpath(genpath(extractBefore(mfilename('fullpath'), 'Example')))
 
 % frequency band of interest (could loop through more than one pair; should
 % not be too broad).
-Theta = [8 12];
+Alpha = [8 12];
 
 load(fullfile(Filepath_EEG, Filename_EEG), 'EEG')
 fs = EEG.srate;
@@ -27,8 +27,8 @@ fs = EEG.srate;
 FiltEEG = EEG;
 
 % filter all the data
-FiltEEG.data = hpfilt(FiltEEG.data, fs, Theta(1));
-FiltEEG.data = lpfilt(FiltEEG.data, fs, Theta(2));
+FiltEEG.data = hpfilt(FiltEEG.data, fs, Alpha(1));
+FiltEEG.data = lpfilt(FiltEEG.data, fs, Alpha(2));
 
 
 %% Get bursts for each channel
@@ -55,7 +55,7 @@ BurstThresholds(2).truePeak = 1;
 BurstThresholds(2).flankConsistency = .5;
 BurstThresholds(2).ampConsistency = .5;
 
-Bands.Theta = Theta; % format like this so it can loop through fieldnames to find relevant bands
+Bands.Alpha = Alpha; % format like this so it can loop through fieldnames to find relevant bands
 
 Keep_Points = ones(1, nPoints); % set to 0 any points that contain artifacts or just wish to ignore.
 
@@ -86,7 +86,7 @@ Bursts = meanBurstPeakProperties(Bursts); % does the mean of the main peak's pro
 Bursts = classifyBursts(Bursts);
 
 YGap = 20; % distance between EEG channels. 20 is good for high density
-previewBursts(EEG, YGap, AllBursts, Peaks, 'Type')
+previewBursts(EEG, YGap, Bursts, 'BT')
 
 
 

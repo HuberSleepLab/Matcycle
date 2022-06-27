@@ -126,6 +126,10 @@ for n = 2:numel(Peaks)-1
         Peaks(n).prominence = Peaks(n).amplitude;
     end
 end
+
+% remove edge peaks that are empty
+Peaks([1 end]) = [];
+
 end
 
 

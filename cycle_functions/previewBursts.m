@@ -1,4 +1,4 @@
-function previewBursts(EEG, YGap, Bursts, Peaks, ColorCode)
+function previewBursts(EEG, YGap, Bursts, ColorCode)
 % function to view bursts in the EEG
 % Type is either 'ICA' or 'EEG', and will appropriately plot the bursts
 % over the channels or the components, accordingly.
@@ -38,7 +38,9 @@ else
         Groups = unique([Bursts.(ColorCode)]);
     end
 
-    if numel(Groups) <= 20
+      if numel(Groups) <= 8
+        Colors = getColors(numel(Groups));
+elseif numel(Groups) <= 20
         Colors = jet(numel(Groups));
     else
         Colors = rand(numel(Groups), 3);
@@ -58,20 +60,14 @@ for Indx_B = 1:numel(Bursts)
         End = B.End;
     end
 
-    switch Type
-        case 'EEG'
-            Ch = B.Channel;
-            if isfield(B, 'involved_ch')
-                AllCh = B.involved_ch;
-            elseif isfield(B, 'Coh_Burst_Channels')
-                AllCh = B.Coh_Burst_Channels;
-            else
-                AllCh = [];
-            end
-        case 'ICA'
-            Ch = B.Component;
-        otherwise
-            error("invalid tpe")
+
+    Ch = B.Channel;
+    if isfield(B, 'involved_ch')
+        AllCh = B.involved_ch;
+    elseif isfield(B, 'Coh_Burst_Channels')
+        AllCh = B.Coh_Burst_Channels;
+    else
+        AllCh = [];
     end
 
     Ch(Ch>DimsD(1)) = [];
@@ -93,25 +89,5 @@ for Indx_B = 1:numel(Bursts)
     plot(t(Start:End), Burst', 'Color', [C, .5], 'LineWidth', 2);
 end
 
-
-if ~isempty(Peaks)
-
-    switch Type
-        case 'EEG'
-            Ch = [Peaks.Channels];
-            AllCh = unique(Ch);
-        case 'ICA'
-            Ch = [Peaks.Component];
-            AllCh = unique(Ch);
-        otherwise
-            error("invalid tpe")
-    end
-
-    for Indx_Ch = 1:numel(AllCh)
-        Points = [Peaks(Ch==AllCh(Indx_Ch)).NegPeakID];
-        scatter(t(Points), Data(AllCh(Indx_Ch), Points), ...
-            'MarkerEdgeColor','k', 'MarkerFaceColor', 'w', 'LineWidth',1.5)
-    end
-end
 
 xlim(Bursts(1).Start/EEG.srate+[0 20])

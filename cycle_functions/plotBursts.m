@@ -73,7 +73,6 @@ title('Frequency')
 Colors = getColors([1, 3], '', 'red');
 plot(t([Peaks.NegPeakID]), 1./[Peaks.periodPos], 'o-', 'Color', Colors(1, :))
 plot(t([Peaks.NegPeakID]), 1./[Peaks.periodNeg], 'o-', 'Color', Colors(2, :))
-plot(t([Peaks.NegPeakID]), 1./[Peaks.periodPeakPos], 'o-', 'Color', Colors(3, :))
 
 if isfield(Peak_Thresholds, 'period')
     Peak_Thresholds.period = sort(Peak_Thresholds.period);

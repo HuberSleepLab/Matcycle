@@ -63,9 +63,6 @@ parfor Indx_C = 1:nChan % get bursts for every component
             Signal = Chan*Signs(Indx_S);
             fSignal = fChan*Signs(Indx_S);
 
-            % remove edge peaks
-            Peaks([1, end]) = [];
-
             for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
 
                 % assemble meta info to save for each peak
@@ -106,8 +103,10 @@ end
 
 % save to single structure
 FinalBursts = struct();
-FinalPeaks = struct();
 for Indx_C = 1:nChan
+    if isempty(AllBursts{Indx_C})
+        continue
+    end
+    
     FinalBursts = catStruct(FinalBursts, AllBursts{Indx_C});
-    FinalPeaks = catStruct(FinalPeaks, AllPeaks{Indx_C});
 end

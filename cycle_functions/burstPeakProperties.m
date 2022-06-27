@@ -25,14 +25,7 @@ for Indx_B = 1:numel(Bursts)
     Bursts(Indx_B).periodPeakPos = (rise_period+decay_period)/fs;
 
     % trough-peak symmetry
-    [Bursts(Indx_B).tpsym, trough_period, peak_period] = ...
-        getTPSYM(B.MidDownID, B.MidUpID, B.NextMidDownID);
-
-    % Peak period
-    Bursts(Indx_B).periodPos = 2*peak_period/fs;
-
-    % trough period
-    Bursts(Indx_B).periodNeg = 2*trough_period/fs;
+    Bursts(Indx_B).tpsym = getTPSYM(B.MidDownID, B.MidUpID, B.NextMidDownID);
 
     % get degree of roundedness of the peak
     Bursts(Indx_B).roundinessNeg = getRoundiness(Wave, B.MidDownID, B.NegPeakID, ...
@@ -59,13 +52,12 @@ drsym = decay_periods./(decay_periods+rise_periods);
 end
 
 
-function [tpsym, trough_period, peak_period] = getTPSYM(MidDownID, MidUpID, NextMidDownID)
+function tpsym = getTPSYM(MidDownID, MidUpID, NextMidDownID)
 % trough-peak symmetry (fraction of negative peaks' Midpoint and
 % previous' positive peak.
 trough_period = MidUpID - MidDownID;
 peak_period = NextMidDownID - MidUpID;
 tpsym = trough_period./(trough_period+peak_period);
-
 end
 
 

@@ -27,4 +27,4 @@ Filter = designfilt(type,'PassbandFrequency', PassFrq, 'StopbandFrequency',...
     'SampleRate', srate, 'DesignMethod', method);
 
 save(Filepath, 'Filter')
-freqz(Filter,2^14,srate) % DEBUG
+% freqz(Filter,2^14,srate) % DEBUG
