@@ -37,7 +37,7 @@ Bands.ThetaAlpha = [6 10];
 Bands.Alpha = [8 12];
 
 
-Repeats = 1000;
+Repeats = 130;
 
 NBursts = zeros(1, Repeats);
 periods = [];
@@ -92,6 +92,7 @@ for Indx_R = 1:Repeats
         % count bursts
         FiltEEG(Indx_F).data(Indx_R, :) = fSignal;
     end
+    disp(['Finished R',num2str(Indx_R)])
 end
 
 FinalBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
