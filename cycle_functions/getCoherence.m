@@ -12,17 +12,25 @@ MinPoints = fs*Window + 1; % should be at least 2 seconds of data
 
 [nCh, nPnts] = size(Data);
 
-% zero pad the data if its too short
+% mirror signal if too short
 if nPnts < MinPoints
-    zData = zeros(nCh, MinPoints);
-    Start = (MinPoints-nPnts)/2;
-    Range = round(Start:(Start+nPnts-1));
-    zData(:, Range) = Data;
 
-    zRef = zeros(1, MinPoints);
-    zRef(Range) = Ref;
+    % concatenate data to itself, flipping each time to avoid jumps, until
+    % correct length
+    zData = [];
+    fData = Data;
 
-    nPnts = MinPoints;
+    zRef = [];
+    fRef = [];
+    while size(zData, 2) < MinPoints
+        zData = cat(2, zData, fData);
+        fData = flip(fData, 2);
+
+        zRef = cat(2, zRef, fRef);
+        fRef = flip(fRef, 2);
+    end
+    error()
+
 else
     zData = Data;
     zRef = Ref;
@@ -39,29 +47,3 @@ end
 
 
 
-% MinPoints = fs*2 + 1; % should be at least 2 seconds of data
-%
-% [nCh, nPnts] = size(Data);
-%
-% % zero pad the data if its too short
-% if nPnts < MinPoints
-%     zData = zeros(nCh, MinPoints);
-%     Start = (MinPoints-nPnts)/2;
-%     Range = round(Start:(Start+nPnts-1));
-%     zData(:, Range) = Data;
-%
-%     zRef = zeros(1, MinPoints);
-%     zRef(Range) = Ref;
-%
-%     nPnts = MinPoints;
-% else
-%     zData = Data;
-%     zRef = Ref;
-% end
-%
-% % get coherence for each channel
-% Coherence = zeros(freqRes*fs/2+1, nCh);
-% for Indx_Ch = 1:nCh
-%     [Coherence(:, Indx_Ch), Freq] = mscohere(zRef, zData(Indx_Ch, :), ...
-%         hanning(fs), fs/2, freqRes*fs, fs);
-% end
