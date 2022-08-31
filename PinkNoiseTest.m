@@ -1,4 +1,4 @@
-close all
+% close all
 clear
 clc
 
@@ -9,35 +9,44 @@ fs = 250;
 Minutes = 10;
 nPoints = fs*60*Minutes;
 
-Min_Peaks = 3; % minimum number of cycles per burst
+Min_Peaks = 4; % minimum number of cycles per burst
 
-% Burst Thresholds for finding very clean bursts
-BurstThresholds = struct();
-BurstThresholds(1).isProminent = 1;
-BurstThresholds(1).periodConsistency = .7;
-BurstThresholds(1).periodMeanConsistency = .7;
-BurstThresholds(1).truePeak = 1;
-BurstThresholds(1).efficiencyAdj = .6;
-BurstThresholds(1).flankConsistency = .5;
-BurstThresholds(1).ampConsistency = .25;
+% % Burst Thresholds for finding very clean bursts
+% BT = struct();
+% BT(1).isProminent = 1;
+% BT(1).periodConsistency = .7;
+% BT(1).periodMeanConsistency = .7;
+% BT(1).truePeak = 1;
+% BT(1).efficiencyAdj = .6;
+% BT(1).flankConsistency = .5;
+% BT(1).ampConsistency = .25;
+% 
+% % Burst thresholds for notched waves, but compensates
+% % with more strict thresholds for everything else
+% BT(2).monotonicity = .8;
+% BT(2).periodConsistency = .6;
+% BT(2).periodMeanConsistency = .6;
+% BT(2).efficiency = .8;
+% BT(2).truePeak = 1;
+% BT(2).flankConsistency = .5;
+% BT(2).ampConsistency = .5;
 
-% Burst thresholds for notched waves, but compensates
-% with more strict thresholds for everything else
-BurstThresholds(2).monotonicity = .8;
-BurstThresholds(2).periodConsistency = .6;
-BurstThresholds(2).periodMeanConsistency = .6;
-BurstThresholds(2).efficiency = .8;
-BurstThresholds(2).truePeak = 1;
-BurstThresholds(2).flankConsistency = .5;
-BurstThresholds(2).ampConsistency = .5;
+BT = struct();
+BT.monotonicity = .6;
+BT.periodConsistency = .6;
+BT.periodMeanConsistency = .6;
+BT.efficiency = .6;
+BT.truePeak = 1;
+BT.flankConsistency = .5;
+BT.ampConsistency = .6;
 
 Bands.ThetaLow = [2 6];
 Bands.Theta = [4 8];
 Bands.ThetaAlpha = [6 10];
 Bands.Alpha = [8 12];
+Bands.AlphaHigh = [10 14];
 
-
-Repeats = 1000;
+Repeats = 100;
 
 NBursts = zeros(1, Repeats);
 periods = [];
@@ -95,7 +104,7 @@ for Indx_R = 1:Repeats
     disp(['Finished R',num2str(Indx_R)])
 end
 
-FinalBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+FinalBursts = getAllBursts(EEG, FiltEEG, BT, Min_Peaks, Bands, Keep_Points);
 
 T = tabulate([FinalBursts.Channel]);
 periods = cat(2, periods, FinalBursts.period);
@@ -110,7 +119,7 @@ figure('Units','normalized', 'Position',[0 0 1 .5])
 subplot(1, 3, 1)
 Distribution = T(:, 2);
 histogram(Distribution)
-title(['Number of Bursts Mean: ', num2str(numel(FinalBursts)/Repeats), '; 5%: ', num2str(quantile(Distribution, .95))])
+title(['Number of Bursts: ', num2str(numel(FinalBursts)/Repeats), ' per ', num2str(Minutes), 'min; 5%: ', num2str(quantile(Distribution, .95))])
 
 subplot(1, 3, 2)
 histogram(1./periods)
