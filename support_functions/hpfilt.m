@@ -1,7 +1,7 @@
-function filtData = hpfilt(Data, fs, PassFrq)
-% filters data optimally when around 3-20 Hz. 
+function filtData = hpfilt(Data, fs, PassFrq, StopFrq)
+% filters data optimally when around 3-20 Hz.
 % part of Matcycle 2022 by Sophia Snipes. Filter by Sven Leach.
-% 
+%
 % method = 'cheby2';
 % type = 'highpassiir';
 % srate = fs;
@@ -14,7 +14,11 @@ method = 'equiripple';
 % FIR filter HP equiripple
 type = 'highpassfir';
 srate        = fs;
-StopFrq      = PassFrq-1;
+
+if ~exist('StopFrq', 'var') || isempty(StopFrq)
+    StopFrq      = PassFrq-1;
+end
+
 PassRipple   = 0.04;
 StopAtten    = 40;
 
