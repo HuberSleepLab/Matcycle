@@ -21,7 +21,7 @@ if nPnts < MinPoints
     fData = Data;
 
     zRef = [];
-    fRef = [];
+    fRef = Ref;
     while size(zData, 2) < MinPoints
         zData = cat(2, zData, fData);
         fData = flip(fData, 2);
@@ -29,8 +29,6 @@ if nPnts < MinPoints
         zRef = cat(2, zRef, fRef);
         fRef = flip(fRef, 2);
     end
-    error()
-
 else
     zData = Data;
     zRef = Ref;
