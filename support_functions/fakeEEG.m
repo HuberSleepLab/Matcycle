@@ -53,6 +53,6 @@ EEG.filename = 'null';
 EEG.trials = 1;
 EEG.xmin = 0;
 EEG.xmax = EEG.pnts/EEG.srate;
-EEG.times = linspace(0, EEG.max, EEG.pnts);
+EEG.times = linspace(0, EEG.xmax, EEG.pnts);
 EEG.chanlocs = [];
 EEG.event = [];
