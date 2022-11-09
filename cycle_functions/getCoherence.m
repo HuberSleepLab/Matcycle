@@ -41,7 +41,7 @@ end
 
 % [Coherence, Freq] = mscohere(zRef', zData', window, noverlap, nfft, fs);
 
-[Coherence, Freq] = mscohere(zRef', zData', hanning(fs), fs/2, freqRes*fs, fs);
+[Coherence, Freq] = mscohere(zRef', zData', hanning(fs), fs/2, freqRes*fs, fs); % TOCHECK??? can freq res be lower than duration?
 
 
 

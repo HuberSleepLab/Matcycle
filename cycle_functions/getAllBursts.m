@@ -32,7 +32,7 @@ AllBursts = cell([1, nChan]);
 if nChan == 1
     AllBursts{1} = loopChannels(1, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
 else
-%             for Indx_C = 1:nChan % get bursts for every component % DEBUG
+    %             for Indx_C = 1:nChan % get bursts for every component % DEBUG
     parfor Indx_C = 1:nChan % get bursts for every component
         AllBursts{Indx_C} = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
     end
@@ -98,6 +98,8 @@ for Indx_B = 1:numel(BandLabels)
 
             % find bursts
             [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
+
+            disp([BandLabels{Indx_B}])
 
             % save to collective structure
             CBursts = catStruct(CBursts, Bursts);
