@@ -26,7 +26,7 @@ AllBursts = AllBursts(Order);
 Starts = [AllBursts.Start];
 Ends = [AllBursts.End];
 nBursts = numel(Starts);
-RM = false(nBursts); % keep track of bursts that have been aggregated
+RM = false(nBursts, 1); % keep track of bursts that have been aggregated
 Indexes = 1:nBursts;
 Bursts = struct();
 
@@ -119,8 +119,8 @@ for Indx_B = 1:nBursts
     end
     NewB.Coh_Burst_Peaks = Coh_Peaks; % for travelling eventually?
 
-    NewB.All_Start = min([NewB.Coh_Burst_Starts, B.Start]);
-    NewB.All_End = max([NewB.Coh_Burst_Ends, B.End]);
+    NewB.All_Start = min([NewB.Coh_Burst_Starts, NewB.Start]);
+    NewB.All_End = max([NewB.Coh_Burst_Ends, NewB.End]);
 
     % how many channels involved in burst
     NewB.globality_bursts = numel(unique(NewB.Coh_Burst_Channels))./nCh;
