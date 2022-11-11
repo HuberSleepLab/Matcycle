@@ -59,7 +59,10 @@ for Indx_B = 1:nBursts
     Ends_O(Ends_O>End_Edge) = End_Edge;
     Overlap_Durations = Ends_O - Starts_O;
 
-    Overlap(Overlap_Durations < Threshold_Durations) = [];
+    Remove_Overlaps = Overlap_Durations < Threshold_Durations;
+    Overlap(Remove_Overlaps) = [];
+    Starts_O(Remove_Overlaps) = [];
+    Ends_O(Remove_Overlaps) = [];
 
     if isempty(Overlap)
         RM(Indx_B) = true; % no longer considered a burst
@@ -67,12 +70,39 @@ for Indx_B = 1:nBursts
     end
 
     % determine if its the same burst based on frequency
-    Freq = AllBursts(Indx_B).Frequency;
-    FreqRange = [Freq-MinFreqRange, Freq+MinFreqRange];
+    %     Freq = AllBursts(Indx_B).Frequency;
+    %     FreqRange = [Freq-MinFreqRange, Freq+MinFreqRange];
+    %     Freqs_Overlap = [AllBursts(Overlap).Frequency];
+    %     Coh_Bursts = Overlap(Freqs_Overlap>=FreqRange(1) & Freqs_Overlap<=FreqRange(2));
 
-    Freqs_Overlap = [AllBursts(Overlap).Frequency];
+    Coh_Bursts = [];
+    for Indx_O = 1:numel(Overlap)
+        Ref_Peaks = AllBursts(Indx_B).Loc; % get location of all peaks in reference burst
 
-    Coh_Bursts = Overlap(Freqs_Overlap>=FreqRange(1) & Freqs_Overlap<=FreqRange(2));
+        % identify in reference the peaks that overlap with other burst
+        Start_Overlap = max(AllBursts(Indx_B).Start, Starts_O(Indx_O));
+        End_Overlap = min(AllBursts(Indx_B).End, Ends_O(Indx_O));
+        Overlap_RefPeaks = Ref_Peaks>=Start_Overlap && Ref_Peaks<=End_Overlap;
+
+        % identify in reference the mean frequency of the overlapping segment
+        Freq = 1/mean(AllBursts(Indx_B).period(Overlap_RefPeaks));
+        FreqRange =  [Freq-MinFreqRange, Freq+MinFreqRange];
+
+        % identify overlapping peaks in other burst
+        Other_Peaks = AllBursts(Overlap(Indx_O)).Loc;
+        Overlap_OtherPeaks = Other_Peaks>=Start_Overlap && Other_Peaks<=End_Overlap;
+
+        % get frequency of overlapping segment in other burst
+        Freq_Overlap = 1/mean(AllBursts(Overlap(Indx_O).period(Overlap_OtherPeaks)));
+
+        % if frequency of overlapping burst is within range, keep
+        if Freq_Overlap >= FreqRange(1) && Freq_Overlap <=FreqRange(2)
+            Coh_Bursts = cat(2, Coh_Bursts, Overlap(Indx_O));
+        end
+
+    end
+
+
 
 
     % if there are no channels coherent, same as not having overlap
