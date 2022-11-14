@@ -49,7 +49,7 @@ for Indx_B = 1:nBursts
     end
 
     %%% only consider bursts that overlap > 50%
-    
+
     % get the duration of each burst
     Starts_O_temp = Starts(Overlap);
     Ends_O_temp = Ends(Overlap);
@@ -95,11 +95,10 @@ for Indx_B = 1:nBursts
         Overlap_OtherPeaks = Other_Peaks>=Start_Overlap & Other_Peaks<=End_Overlap;
 
         % get frequency of overlapping segment in other burst
-        try
-        Freq_Overlap = 1/mean(AllBursts(Overlap(Indx_O)).period(Overlap_OtherPeaks));
-        catch
-            a=1
-            continue
+        if numel(AllBursts(Overlap(Indx_O)).period)==1 % when there's only 4 peaks, somehow there's sometimes only 1 period value
+            Freq_Overlap = 1/mean(diff(AllBursts(Overlap(Indx_O)).NegPeakID)/fs);
+        else
+            Freq_Overlap = 1/mean(AllBursts(Overlap(Indx_O)).period(Overlap_OtherPeaks));
         end
 
         % if frequency of overlapping burst is within range, keep
@@ -116,7 +115,7 @@ for Indx_B = 1:nBursts
 
     % include reference burst in list
     Coh_Bursts = cat(2, Coh_Bursts, Indx_B);
-    
+
     % remove from list of possible bursts all overlapping coherent
     RM(Coh_Bursts) = true;
 
