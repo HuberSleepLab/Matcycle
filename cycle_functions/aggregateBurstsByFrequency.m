@@ -37,7 +37,7 @@ for Indx_B = 1:nBursts
     Start_Edge = Starts(Indx_B);
     End_Edge = Ends(Indx_B);
 
-    % get all the smaller bursts that overlap with this large burst
+    %%% get all the smaller bursts that overlap with this large burst
     Overlap_Starts = Starts >= Start_Edge & Starts < End_Edge & Indexes > Indx_B;
     Overlap_Ends = Ends > Start_Edge & Ends <= End_Edge & Indexes > Indx_B;
     Overlap = find(Overlap_Starts | Overlap_Ends);
@@ -48,62 +48,65 @@ for Indx_B = 1:nBursts
         continue
     end
 
-    % only consider an overlap > 50%
-    Starts_O = [AllBursts(Overlap).Start];
-    Ends_O = [AllBursts(Overlap).End];
-    Whole_Durations = Ends_O - Starts_O;
+    %%% only consider bursts that overlap > 50%
+    
+    % get the duration of each burst
+    Starts_O_temp = Starts(Overlap);
+    Ends_O_temp = Ends(Overlap);
+    Total_Durations = Ends_O_temp - Starts_O_temp;
 
-    Threshold_Durations = round(Whole_Durations*.5);
+    % identify how much of that burst is needed to reach 50%
+    Threshold_Durations = round(Total_Durations*.5); % 50% duration for each burst
 
-    Starts_O(Starts_O<Start_Edge) = Start_Edge;
-    Ends_O(Ends_O>End_Edge) = End_Edge;
-    Overlap_Durations = Ends_O - Starts_O;
+    % get the amount of time that overlaps with reference
+    Starts_O_temp(Starts_O_temp<Start_Edge) = Start_Edge;
+    Ends_O_temp(Ends_O_temp>End_Edge) = End_Edge;
+    Overlap_Durations = Ends_O_temp - Starts_O_temp;
 
+    % remove bursts that don't overlap enough
     Remove_Overlaps = Overlap_Durations < Threshold_Durations;
     Overlap(Remove_Overlaps) = [];
-    Starts_O(Remove_Overlaps) = [];
-    Ends_O(Remove_Overlaps) = [];
+    Starts_O = Starts(Overlap);
+    Ends_O = Ends(Overlap);
 
     if isempty(Overlap)
         RM(Indx_B) = true; % no longer considered a burst
         continue
     end
 
-    % determine if its the same burst based on frequency
-    %     Freq = AllBursts(Indx_B).Frequency;
-    %     FreqRange = [Freq-MinFreqRange, Freq+MinFreqRange];
-    %     Freqs_Overlap = [AllBursts(Overlap).Frequency];
-    %     Coh_Bursts = Overlap(Freqs_Overlap>=FreqRange(1) & Freqs_Overlap<=FreqRange(2));
+
+    %%% aggregate bursts based on frequency
 
     Coh_Bursts = [];
     for Indx_O = 1:numel(Overlap)
-        Ref_Peaks = AllBursts(Indx_B).Loc; % get location of all peaks in reference burst
+        Ref_Peaks = AllBursts(Indx_B).NegPeakID; % get location of all peaks in reference burst
 
         % identify in reference the peaks that overlap with other burst
         Start_Overlap = max(AllBursts(Indx_B).Start, Starts_O(Indx_O));
         End_Overlap = min(AllBursts(Indx_B).End, Ends_O(Indx_O));
-        Overlap_RefPeaks = Ref_Peaks>=Start_Overlap && Ref_Peaks<=End_Overlap;
+        Overlap_RefPeaks = Ref_Peaks>=Start_Overlap & Ref_Peaks<=End_Overlap;
 
         % identify in reference the mean frequency of the overlapping segment
         Freq = 1/mean(AllBursts(Indx_B).period(Overlap_RefPeaks));
         FreqRange =  [Freq-MinFreqRange, Freq+MinFreqRange];
 
         % identify overlapping peaks in other burst
-        Other_Peaks = AllBursts(Overlap(Indx_O)).Loc;
-        Overlap_OtherPeaks = Other_Peaks>=Start_Overlap && Other_Peaks<=End_Overlap;
+        Other_Peaks = AllBursts(Overlap(Indx_O)).NegPeakID;
+        Overlap_OtherPeaks = Other_Peaks>=Start_Overlap & Other_Peaks<=End_Overlap;
 
         % get frequency of overlapping segment in other burst
-        Freq_Overlap = 1/mean(AllBursts(Overlap(Indx_O).period(Overlap_OtherPeaks)));
+        try
+        Freq_Overlap = 1/mean(AllBursts(Overlap(Indx_O)).period(Overlap_OtherPeaks));
+        catch
+            a=1
+            continue
+        end
 
         % if frequency of overlapping burst is within range, keep
         if Freq_Overlap >= FreqRange(1) && Freq_Overlap <=FreqRange(2)
             Coh_Bursts = cat(2, Coh_Bursts, Overlap(Indx_O));
         end
-
     end
-
-
-
 
     % if there are no channels coherent, same as not having overlap
     if numel(Coh_Bursts)<1
@@ -111,10 +114,15 @@ for Indx_B = 1:nBursts
         continue
     end
 
+    % include reference burst in list
+    Coh_Bursts = cat(2, Coh_Bursts, Indx_B);
+    
     % remove from list of possible bursts all overlapping coherent
     RM(Coh_Bursts) = true;
 
+
     %%% assemble new burst's info
+
     NewB = AllBursts(Indx_B);
     NewB.Coh_Burst_Channels = [AllBursts(Coh_Bursts).Channel];
     NewB.Coh_Burst_Starts = [AllBursts(Coh_Bursts).Start];
@@ -131,7 +139,7 @@ for Indx_B = 1:nBursts
         Coh_Peaks(Indx_C).NegPeakID = AllBursts(Coh_Bursts(Indx_C)).NegPeakID;
         Coh_Peaks(Indx_C).PosPeakID = AllBursts(Coh_Bursts(Indx_C)).PosPeakID;
     end
-    NewB.Coh_Burst_Peaks = Coh_Peaks; % for travelling eventually?
+    NewB.Coh_Burst_Peaks = Coh_Peaks;
 
     NewB.All_Start = min([NewB.Coh_Burst_Starts, NewB.Start]);
     NewB.All_End = max([NewB.Coh_Burst_Ends, NewB.End]);
@@ -142,7 +150,7 @@ for Indx_B = 1:nBursts
     Bursts = catStruct(Bursts, NewB);
 end
 
-% reodrer by start time
+% reorder by start time
 Starts = [Bursts.Start];
 [~, SortedOrder] = sort(Starts, 'ascend');
 Bursts = Bursts(SortedOrder);
