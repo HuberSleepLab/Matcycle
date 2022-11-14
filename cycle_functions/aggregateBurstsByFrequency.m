@@ -87,7 +87,12 @@ for Indx_B = 1:nBursts
         Overlap_RefPeaks = Ref_Peaks>=Start_Overlap & Ref_Peaks<=End_Overlap;
 
         % identify in reference the mean frequency of the overlapping segment
-        Freq = 1/mean(AllBursts(Indx_B).period(Overlap_RefPeaks));
+        if numel(AllBursts(Indx_B).period)==1 % when there's only 4 peaks, somehow there's sometimes only 1 period value
+            Freq = 1/mean(diff(AllBursts(Indx_B).NegPeakID)/fs);
+        else
+            Freq = 1/mean(AllBursts(Indx_B).period(Overlap_RefPeaks));
+        end
+
         FreqRange =  [Freq-MinFreqRange, Freq+MinFreqRange];
 
         % identify overlapping peaks in other burst
