@@ -53,6 +53,13 @@ end
 
 function CBursts = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
 
+% handle min peaks when variable for each BT
+if isempty(Min_Peaks) && isfield(BurstThresholds, 'Min_Peaks')
+    Min_Peaks = [BurstThresholds.Min_Peaks];
+    BurstThresholds = rmfield(BurstThresholds, 'Min_Peaks');
+else
+    Min_Peaks = repmat(Min_Peaks, numel(BurstThresholds), 1);
+end
 
 % do both positive and negative signal
 Signs = [1 -1];
@@ -97,7 +104,7 @@ for Indx_B = 1:numel(BandLabels)
             BT = removeEmptyFields(BT);
 
             % find bursts
-            [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
+            [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks(Indx_BT), Keep_Points);
 
             disp([BandLabels{Indx_B}])
 
@@ -108,6 +115,7 @@ for Indx_B = 1:numel(BandLabels)
 end
 
 % remove duplicates and add to general structure
+Min_Peaks = min(Min_Peaks);
 CBursts = removeOverlapBursts(CBursts, Min_Peaks);
 
 disp(['Finished ', num2str(Indx_C)])
