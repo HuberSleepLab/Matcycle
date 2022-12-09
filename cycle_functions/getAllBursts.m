@@ -63,7 +63,7 @@ end
 
 % do both positive and negative signal
 Signs = [1 -1];
-Fields = {'Band', 'Channel', 'Sign', 'BT'};
+Fields = {'Band', 'Channel', 'Channel_Label', 'Sign', 'BT'};
 
 BandLabels = fieldnames(Bands);
 Chan = EEG.data(Indx_C, :);
@@ -84,7 +84,7 @@ for Indx_B = 1:numel(BandLabels)
         for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
 
             % assemble meta info to save for each peak
-            Labels = [BandLabels(Indx_B), Indx_C, Signs(Indx_S), Indx_BT];
+            Labels = [BandLabels(Indx_B), Indx_C, labels2indexes(Indx_C, EEG.chanlocs), Signs(Indx_S), Indx_BT];
 
             % find all peaks in a given band
             Peaks = peakDetection(Signal, fSignal);
