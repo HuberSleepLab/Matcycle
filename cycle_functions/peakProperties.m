@@ -110,7 +110,9 @@ for n = 2:numel(Peaks)-1
         A3 = 0;
     end
 
-    Peaks(n).ampConsistency = min([A1/A2, A2/A3, A2/A1, A3/A2]);
+    A = mean([A1, A3]); % use mean so that if ramps, its not inconsistent amp
+    Peaks(n).ampConsistency = min([A/A2, A2/A]);
+%     Peaks(n).ampConsistency = min([A1/A2, A2/A3, A2/A1, A3/A2]);
 
     % count number of extra negative peak and next peak
     halfWave = Wave(Peaks(n).MidUpID:Peaks(n).NextMidDownID);
