@@ -32,7 +32,7 @@ AllBursts = cell([1, nChan]);
 if nChan == 1
     AllBursts{1} = loopChannels(1, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
 else
-    %             for Indx_C = 1:nChan % get bursts for every component % DEBUG
+%                 for Indx_C = 1:nChan % get bursts for every component % DEBUG
     parfor Indx_C = 1:nChan % get bursts for every component
         AllBursts{Indx_C} = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
     end
@@ -59,7 +59,7 @@ if isempty(Min_Peaks) && isfield(BurstThresholds, 'Min_Peaks')
     BurstThresholds = rmfield(BurstThresholds, 'Min_Peaks');
 else
     Min_Peaks = repmat(Min_Peaks, numel(BurstThresholds), 1);
-end
+end 
 
 % do both positive and negative signal
 Signs = [1 -1];
@@ -84,7 +84,7 @@ for Indx_B = 1:numel(BandLabels)
         for Indx_BT = 1:numel(BurstThresholds) % loop through combination of thresholds
 
             % assemble meta info to save for each peak
-            Labels = [BandLabels(Indx_B), Indx_C, labels2indexes(Indx_C, EEG.chanlocs), Signs(Indx_S), Indx_BT];
+            Labels = [BandLabels(Indx_B), Indx_C, indexes2labels(Indx_C, EEG.chanlocs), Signs(Indx_S), Indx_BT];
 
             % find all peaks in a given band
             Peaks = peakDetection(Signal, fSignal);
