@@ -138,9 +138,12 @@ for Indx_B = 1:nBursts
 
     % special info
     NewB.Coh_Burst_amplitude = zeros(1, numel(Coh_Bursts));
+    NewB.Coh_Burst_amplitude_sum = zeros(1, numel(Coh_Bursts));
     Coh_Peaks = struct();
     for Indx_C = 1:numel(Coh_Bursts)
         NewB.Coh_Burst_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
+         NewB.Coh_Burst_amplitude_sum(Indx_C) = sum(AllBursts(Coh_Bursts(Indx_C)).amplitude);
+
         Coh_Peaks(Indx_C).NegPeakID = AllBursts(Coh_Bursts(Indx_C)).NegPeakID;
         Coh_Peaks(Indx_C).PosPeakID = AllBursts(Coh_Bursts(Indx_C)).PosPeakID;
     end
