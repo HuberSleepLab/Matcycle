@@ -15,7 +15,7 @@ for Indx_B = 1:numel(Bursts)
 
     B = Bursts(Indx_B);
 
-    % get average amplitude for each group
+    % get sum amplitude for each group
     Amplitudes = zeros(1, numel(Groups));
     for Indx_G = 1:numel(Groups)
         IDs = ismember(B.Coh_Burst_Channel_Labels, ChannelGroups.(Groups{Indx_G}));
@@ -28,7 +28,7 @@ for Indx_B = 1:numel(Bursts)
         Group = bilaterality(Amplitudes(1), Amplitudes(2));
     
     else
-        Percentages = Amplitudes/sum(B.Coh_Burst_amplitude_sum);
+        Percentages = Amplitudes/sum(B.Sum_Coh_Burst_amplitude);
         if all(Amplitudes==0) % if burst is not in any of the groups
             Group = 'none';
         elseif exist("MinPercent", 'var') && ~isempty(MinPercent) && ~any(Percentages>MinPercent)   % if there's a minimum, make sure at least one group surpasses it
