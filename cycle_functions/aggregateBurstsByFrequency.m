@@ -129,6 +129,7 @@ for Indx_B = 1:nBursts
 
     NewB = AllBursts(Indx_B);
     NewB.Coh_Burst_Channels = [AllBursts(Coh_Bursts).Channel];
+    NewB.Coh_Burst_Channel_Labels = [AllBursts(Coh_Bursts).Channel_Label];
     NewB.Coh_Burst_Starts = [AllBursts(Coh_Bursts).Start];
     NewB.Coh_Burst_Ends = [AllBursts(Coh_Bursts).End];
     NewB.Coh_Burst_nPeaks = [AllBursts(Coh_Bursts).nPeaks];
@@ -139,7 +140,7 @@ for Indx_B = 1:nBursts
     NewB.Coh_Burst_amplitude = zeros(1, numel(Coh_Bursts));
     Coh_Peaks = struct();
     for Indx_C = 1:numel(Coh_Bursts)
-        NewB.Coh_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
+        NewB.Coh_Burst_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
         Coh_Peaks(Indx_C).NegPeakID = AllBursts(Coh_Bursts(Indx_C)).NegPeakID;
         Coh_Peaks(Indx_C).PosPeakID = AllBursts(Coh_Bursts(Indx_C)).PosPeakID;
     end

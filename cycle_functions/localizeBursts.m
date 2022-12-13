@@ -16,9 +16,9 @@ for Indx_B = 1:numel(Bursts)
     % get average amplitude for each group
     Amplitudes = zeros(1, numel(Groups));
     for Indx_G = 1:numel(Groups)
-        IDs = ismember(B.Coh_Channel_Label, ChannelGroups.(Groups{Indx_G}));
+        IDs = ismember(B.Coh_Burst_Channel_Labels, ChannelGroups.(Groups{Indx_G}));
 
-        Amplitudes(Indx_G) = mean(B.Coh_Mean_amplitude(IDs));
+        Amplitudes(Indx_G) = mean(B.Coh_Burst_amplitude(IDs));
     end
 
     % categorize
@@ -29,7 +29,7 @@ for Indx_B = 1:numel(Bursts)
         Group = Groups(MaxID);
     end
 
-    Bursts(Indx_B) = Group;
+    Bursts(Indx_B).Group = Group;
 end
 end
 
