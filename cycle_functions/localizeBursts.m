@@ -28,16 +28,17 @@ for Indx_B = 1:numel(Bursts)
         Group = bilaterality(Amplitudes(1), Amplitudes(2));
     
     else
-        Percentages = Amplitudes/sum(B.Sum_Coh_Burst_amplitude);
+        Percentages = Amplitudes/B.Sum_Coh_Burst_amplitude_sum;
         if all(Amplitudes==0) % if burst is not in any of the groups
             Group = 'none';
         elseif exist("MinPercent", 'var') && ~isempty(MinPercent) && ~any(Percentages>MinPercent)   % if there's a minimum, make sure at least one group surpasses it
             Group = 'global';
         else % pick group with largest amplitudes
             [~, MaxID] = max(Amplitudes);
-            Group = Groups(MaxID);
+            Group = Groups{MaxID};
         end
     end
+
 
     % assign
     Bursts(Indx_B).(Fieldname) = Group;
