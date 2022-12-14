@@ -13,9 +13,7 @@ for Indx_B = 1:numel(Bursts)
     B = Bursts(Indx_B);
     for Indx_F = 1:numel(Fields)
         PeakData = B.(Fields{Indx_F});
-        if strcmp(Fields{Indx_F}, 'Coh_Burst_amplitude_sum')
-            Bursts(Indx_B).Sum_Coh_Burst_amplitude = sum(PeakData); % proxy of power; summing amplitudes of peaks instead of average
-        elseif numel(PeakData) == numel(B.PeakIDs)
+if numel(PeakData) == numel(B.PeakIDs)
             Bursts(Indx_B).(['Mean_', Fields{Indx_F}]) = mean(PeakData);
         elseif strcmp(Fields{Indx_F}, 'period') && numel(PeakData)==1
             Bursts(Indx_B).(['Mean_', Fields{Indx_F}]) = PeakData;
