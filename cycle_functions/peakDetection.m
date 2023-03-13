@@ -10,26 +10,7 @@ function Peaks = peakDetection(Wave, fWave)
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-signData = sign(fWave);
-
-% fix rare issue where slope is exactly 0
-signData(signData == 0) = 1;
-% -2 indicates when the sign goes from 1 to -1
-DZC = find(diff(signData) < 0);
-UZC = find(diff(signData) > 0);
-
-UZC = UZC + 1;
-
-% Check for earlier initial UZC than DZC
-if UZC(1) <= DZC(1)
-    UZC(1)=[];
-end
-
-% in case the last DZC does not have a corresponding UZC then delete it
-if length(DZC) ~= length(UZC)
-    DZC(end)=[];
-end
-
+[DZC, UZC] = getZC(fWave);
 
 %%% Find peaks and troughs between zero crossings
 Peaks = peakAdjustment(DZC, UZC, Wave);
