@@ -29,8 +29,10 @@ nChan = size(EEG.data, 1);
 % initialize spots to put data
 AllBursts = cell([1, nChan]);
 
-if nChan == 1
-    AllBursts{1} = loopChannels(1, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+if nChan < 6
+    for Indx_C = 1:nChan 
+    AllBursts{Indx_C} = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+    end
 else
     %             for Indx_C = 1:nChan % get bursts for every component % DEBUG
     parfor Indx_C = 1:nChan % get bursts for every component
