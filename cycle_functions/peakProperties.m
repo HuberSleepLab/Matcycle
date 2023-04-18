@@ -57,13 +57,13 @@ for n = 2:numel(Peaks)-1
         Peaks(n).ampRamp = 0; % magic case of exactly the same
     end
 
-    % efficiency; indication of how much the signal goes in the "wrong"
+    % efficiency in amplitude; indication of how much the signal goes in the "wrong"
     % direction. 0 means the signal went in the opposite direction it
     % should have for the whole amplitude. It basically doubled back. Also
     % includes part when signal "overshoots".
 
     % monotonicity (degree to which both flanks go in the correct
-    % direction)
+    % direction) in time
     [Peaks(n).efficiency, Peaks(n).monotonicity, Peaks(n).monDecay, Peaks(n).monRise] = ...
         flankInfo(Wave, P.PrevPosPeakID, P.NegPeakID, P.PosPeakID);
 
