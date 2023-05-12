@@ -15,12 +15,12 @@ Basically, you need to have:
 
 Order in which to use functions.
 
-1) Filter the clean EEG data into narrow bands.
-2) Run "getAllBursts()" to identify all the bursts in the data in all the channels separately. Runs burst detection for each frequency band, on the signal and negative signal, and for the different sets of burst thresholds. 
-3) Run "meanFreq()": just gets the average frequency for each burst, could have included it earlier, but oh well.
-4) Run "aggregateBurstsByFrequency()": if you have a sufficient number of channels, this will find bursts that overlap in time and have the same frequency, and consider them the same burst.
+1. Filter the clean EEG data into narrow bands.
+2. Run "getAllBursts()" to identify all the bursts in the data in all the channels separately. Runs burst detection for each frequency band, on the signal and negative signal, and for the different sets of burst thresholds. 
+3. Run "meanFreq()": just gets the average frequency for each burst, could have included it earlier, but oh well.
+4. Run "aggregateBurstsByFrequency()": if you have a sufficient number of channels, this will find bursts that overlap in time and have the same frequency, and consider them the same burst.
 
 Optionally, run also:
-5) Run "burstPeakProperties()" gets properties of the cycle shapes, for later classification.
-6) Run "meanBurstPeakProperties()": quite simply, averages the properties of all the cycles, so that there's just one value per burst
-7) Run "classifyBursts()": classifies bursts based on cycle shape, into: Sn, sinusoidal;  Sq, square wave (flattish tops); Tr, triangle wave; Sw, sawtooth wave; Mu, mu wave; NM, notched mu wave; 
+5. Run "burstPeakProperties()" gets properties of the cycle shapes, for later classification.
+6. Run "meanBurstPeakProperties()": quite simply, averages the properties of all the cycles, so that there's just one value per burst
+7. Run "classifyBursts()": classifies bursts based on cycle shape, into: Sn, sinusoidal;  Sq, square wave (flattish tops); Tr, triangle wave; Sw, sawtooth wave; Mu, mu wave; NM, notched mu wave; 
