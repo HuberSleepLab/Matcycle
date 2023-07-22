@@ -1,12 +1,15 @@
 # Matcycle
  
- This is a repository of functions that detect EEG oscillation bursts based on the shape of the signal. It is a MATLAB implementation of the cycle-by-cycle analysis outlined by [Cole & Voytek, 2019](https://journals.physiology.org/doi/full/10.1152/jn.00273.2019) originally created in [python](https://github.com/bycycle-tools/bycycle).
+ This is a repository of functions that detect EEG oscillation bursts based on the shape and periodicity of the signal. It is a MATLAB implementation of the cycle-by-cycle analysis outlined by [Cole & Voytek, 2019](https://journals.physiology.org/doi/full/10.1152/jn.00273.2019) originally created in [python](https://github.com/bycycle-tools/bycycle).
 
 
 It was first used in *How and when EEG reflects changes in neuronal connectivity due to time awake*, by Snipes et al. 2023, iScience, applied in the repository [Theta_Bursts](https://github.com/snipeso/Theta_Bursts).
 
 ## How to use
-See "Example.m".
+
+![Flowchart](docs/flowchart.jpg)
+
+See [Example.m](Example.m).
 
 1. Filter clean EEG data into narrow overlapping bands
 2. Run `getAllBursts()` to get a structure with all the detected bursts in the EEG recording.
