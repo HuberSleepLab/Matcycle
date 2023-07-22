@@ -5,9 +5,13 @@
 
 It was first used in *How and when EEG reflects changes in neuronal connectivity due to time awake*, by Snipes et al. 2023, iScience, applied in the repository [Theta_Bursts](https://github.com/snipeso/Theta_Bursts).
 
-## How to use
-
+## How it works
 ![Flowchart](docs/flowchart.jpg)
+
+For more details, see [Snipes et al. (2023)](https://doi.org/10.1016/j.isci.2023.107138).
+
+
+## How to use
 
 See [Example.m](Example.m).
 
