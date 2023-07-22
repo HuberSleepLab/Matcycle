@@ -80,8 +80,8 @@ for Indx_R = 1:Repeats
     % plot(t, Signal)
 
     % filter between 2 and 40 hz
-    Signal = hpfilt(Signal, fs, 2);
-    Signal = lpfilt(Signal, fs, 40);
+    Signal = cycy_hpfilt(Signal, fs, 2);
+    Signal = cycy_lpfilt(Signal, fs, 40);
     %     hold on;plot(t, Signal)
 
     Keep_Points = ones(1, nPoints); % set to 0 any points that contain artifacts or just wish to ignore.
@@ -95,8 +95,8 @@ for Indx_R = 1:Repeats
 
     for Indx_F = 1:numel(BandNames)
         B = Bands.(BandNames{Indx_F});
-        fSignal = hpfilt(Signal, fs, B(1));
-        fSignal = lpfilt(fSignal, fs, B(2));
+        fSignal = cycy_hpfilt(Signal, fs, B(1));
+        fSignal = cycy_lpfilt(fSignal, fs, B(2));
 
         % count bursts
         FiltEEG(Indx_F).data(Indx_R, :) = fSignal;
@@ -104,7 +104,7 @@ for Indx_R = 1:Repeats
     disp(['Finished R',num2str(Indx_R)])
 end
 
-FinalBursts = getAllBursts(EEG, FiltEEG, BT, Min_Peaks, Bands, Keep_Points);
+FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BT, Min_Peaks, Bands, Keep_Points);
 
 T = tabulate([FinalBursts.Channel]);
 periods = cat(2, periods, FinalBursts.period);

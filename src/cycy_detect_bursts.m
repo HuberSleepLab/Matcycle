@@ -1,4 +1,4 @@
-function FinalBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
+function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
 % From EEG data, finds all the bursts in each channel.
 % EEG is an EEGLAB structure.
 % FiltEEG is an EEGLAB structure with multiple entries for each filtered
@@ -89,8 +89,8 @@ for Indx_B = 1:numel(BandLabels)
             Labels = [BandLabels(Indx_B), Indx_C, indexes2labels(Indx_C, EEG.chanlocs), Signs(Indx_S), Indx_BT];
 
             % find all peaks in a given band
-            Peaks = peakDetection(Signal, fSignal);
-            Peaks = peakProperties(Signal, Peaks, fs);
+            Peaks = cycy_detect_cycles(Signal, fSignal);
+            Peaks = cycy_cycle_properties(Signal, Peaks, fs);
 
             % assign labels to peaks
             for n = 1:numel(Peaks)
@@ -106,7 +106,7 @@ for Indx_B = 1:numel(BandLabels)
             BT = removeEmptyFields(BT);
 
             % find bursts
-            [Bursts, ~] = findBursts(Peaks, BT, Min_Peaks(Indx_BT), Keep_Points);
+            [Bursts, ~] = cycy_aggregate_cycles(Peaks, BT, Min_Peaks(Indx_BT), Keep_Points);
 
             disp([BandLabels{Indx_B}])
 
@@ -118,7 +118,7 @@ end
 
 % remove duplicates and add to general structure
 Min_Peaks = min(Min_Peaks);
-CBursts = removeOverlapBursts(CBursts, Min_Peaks);
+CBursts = cycy_remove_overlapping_bursts(CBursts, Min_Peaks);
 
 disp(['Finished ', num2str(Indx_C)])
 

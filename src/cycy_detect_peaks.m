@@ -1,4 +1,4 @@
-function Peaks = peakAdjustment(DZC, UZC, Wave)
+function Peaks = cycy_detect_peaks(DZC, UZC, Wave)
 % identifies new negative peaks based on midpoints in the reference
 % Part of Matcycle 2022, by Sophia Snipes.
 

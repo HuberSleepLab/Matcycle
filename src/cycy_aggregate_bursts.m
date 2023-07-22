@@ -1,4 +1,4 @@
-function Bursts = aggregateBursts(AllBursts, EEG, MinCoherence)
+function Bursts = cycy_aggregate_bursts(AllBursts, EEG, MinCoherence)
 % identifies bursts that occur at the same time that are actually coherent
 % with each other, aggregates them together. Ignores bursts where there
 % wasn't any overlap.

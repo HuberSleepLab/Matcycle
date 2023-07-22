@@ -27,8 +27,8 @@ fs = EEG.srate;
 FiltEEG = EEG;
 
 % filter all the data
-FiltEEG.data = hpfilt(FiltEEG.data, fs, Alpha(1));
-FiltEEG.data = lpfilt(FiltEEG.data, fs, Alpha(2));
+FiltEEG.data = cycy_hpfilt(FiltEEG.data, fs, Alpha(1));
+FiltEEG.data = cycy_lpfilt(FiltEEG.data, fs, Alpha(2));
 
 
 %% Get bursts for each channel
@@ -62,31 +62,31 @@ Keep_Points = ones(1, nPoints); % set to 0 any points that contain artifacts or 
 % DEBUG: use these lines to check if the thresholds are working:
 Signal = EEG.data(1, :);
 fSignal = FiltEEG.data(1, :);
-Peaks = peakDetection(Signal, fSignal);
-Peaks = peakProperties(Signal, Peaks, fs);
+Peaks = cycy_detect_cycles(Signal, fSignal);
+Peaks = cycy_cycle_properties(Signal, Peaks, fs);
 BT = removeEmptyFields(BurstThresholds(1));
-[~, BurstPeakIDs_Clean] = findBursts(Peaks, BT, Min_Peaks, Keep_Points);
-plotBursts(Signal, fs, Peaks, BurstPeakIDs_Clean, BT)
+[~, BurstPeakIDs_Clean] = cycy_aggregate_cycles(Peaks, BT, Min_Peaks, Keep_Points);
+cycy_plot_1channel_bursts(Signal, fs, Peaks, BurstPeakIDs_Clean, BT)
 
 % get bursts in all data
-AllBursts = getAllBursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+AllBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
 
 
 %% get burst properties
 MinCoherence = .75;
 
 % assemble bursts across channels based on coherence
-Bursts = aggregateBursts(AllBursts, EEG, MinCoherence);
+Bursts = cycy_aggregate_bursts(AllBursts, EEG, MinCoherence);
 
 % get properties of the main channel
-Bursts = burstPeakProperties(Bursts, EEG);
-Bursts = meanBurstPeakProperties(Bursts); % does the mean of the main peak's properties
+Bursts = cycy_burst_shape_properties(Bursts, EEG);
+Bursts = cycy_burst_averages(Bursts); % does the mean of the main peak's properties
 
 % classify the bursts by shape
-Bursts = classifyBursts(Bursts);
+Bursts = cycy_classify_bursts_shape(Bursts);
 
 YGap = 20; % distance between EEG channels. 20 is good for high density
-previewBursts(EEG, YGap, Bursts, 'BT')
+cycy_plot_all_bursts(EEG, YGap, Bursts, 'BT')
 
 
 

@@ -1,4 +1,4 @@
-function Peaks = peakDetection(Wave, fWave)
+function Peaks = cycy_detect_cycles(Wave, fWave)
 % detects peaks in signal based on zero-crossings. Wave should be only
 % loosely filtered (e.g. 3-40 Hz). The data gets further filtered just to
 % find the zero-crossings. FreqRange should be like [3 12].
@@ -13,7 +13,7 @@ function Peaks = peakDetection(Wave, fWave)
 [DZC, UZC] = getZC(fWave);
 
 %%% Find peaks and troughs between zero crossings
-Peaks = peakAdjustment(DZC, UZC, Wave);
+Peaks = cycy_detect_peaks(DZC, UZC, Wave);
 
 % final adjustment to positive peaks to make sure they are the largest
 % point between midpoints. % TODO also for negative??

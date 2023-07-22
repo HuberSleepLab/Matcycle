@@ -1,4 +1,4 @@
-function [Bursts, BurstPeakIDs, Diagnostics] = findBursts(Peaks, Peak_Thresholds, Min_Peaks, Keep_Points)
+function [Bursts, BurstPeakIDs, Diagnostics] = cycy_aggregate_cycles(Peaks, Peak_Thresholds, Min_Peaks, Keep_Points)
 % goes through all peaks found, puts them into structures according to
 % whether they make up a burst, or if they are on their own.
 % Peak_Thresholds is a struct, with fields already present in Peaks, and is

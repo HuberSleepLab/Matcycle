@@ -1,4 +1,4 @@
-function filtData = lpfilt(Data, fs, PassFrq)
+function filtData = cycy_lpfilt(Data, fs, PassFrq)
 % filters data optimally when around 3-20 Hz. 
 % part of Matcycle 2022 by Sophia Snipes. Filter by Sven Leach.
 

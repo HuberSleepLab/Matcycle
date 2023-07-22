@@ -1,4 +1,4 @@
-function [Power, Freqs] = quickPower(Data, fs, Window, Overlap)
+function [Power, Freqs] = cycy_power(Data, fs, Window, Overlap)
 % Data is a Ch x t matrix. 
 
 if ~exist("Window", 'var') || isempty(Window)

@@ -1,4 +1,4 @@
-function Bursts = removeOverlapBursts(Bursts, Min_Peaks)
+function Bursts = cycy_remove_overlapping_bursts(Bursts, Min_Peaks)
 % identifies bursts with overlap, keeps the largest intact, and chops the
 % smaller ones to be outside the large one, until there are no left. Then
 % remove all the bursts that are now too small.

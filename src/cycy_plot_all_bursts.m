@@ -1,4 +1,4 @@
-function previewBursts(EEG, YGap, Bursts, ColorCode)
+function cycy_plot_all_bursts(EEG, YGap, Bursts, ColorCode)
 % function to view bursts in the EEG
 % Type is either 'ICA' or 'EEG', and will appropriately plot the bursts
 % over the channels or the components, accordingly.
