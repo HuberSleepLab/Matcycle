@@ -5,7 +5,7 @@ function Peaks = cycy_detect_cycles(Wave, fWave)
 % Output includes all the positive peaks and negative peaks between
 % zero-crossings. Then MidDown and Up are the midpoints in amplitude
 % between consecutive peaks.
-% The output is a structure containing all peaks, based on the negative
+% The output is a struct containing all peaks, based on the negative
 % peak and following positive peak.
 
 % Part of Matcycle 2022, by Sophia Snipes.

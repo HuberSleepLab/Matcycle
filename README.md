@@ -16,7 +16,7 @@ For more details, see [Snipes et al. (2023)](https://doi.org/10.1016/j.isci.2023
 See [Example.m](Example.m).
 
 1. Filter clean EEG data into narrow overlapping bands
-2. Run `cycy_detect_bursts()` to get a structure with all the detected bursts in the EEG recording.
+2. Run `cycy_detect_bursts()` to get a struct with all the detected bursts in the EEG recording.
 3. Run `cycy_aggregate_bursts()` to aggregate bursts in different channels overlapping in time by phase coherence, or `aggregateBurstsByFrequency()` to aggregate bursts by burst frequency (recommended).
 4. Run `cycy_plot_all_bursts()` to see how well the detection went.
 

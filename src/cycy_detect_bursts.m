@@ -1,10 +1,10 @@
 function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
 % From EEG data, finds all the bursts in each channel.
-% EEG is an EEGLAB structure:
+% EEG is an EEGLAB struct:
 % (https://eeglab.org/tutorials/ConceptsGuide/Data_Structures.html#eeg-and-alleeg).
-% FiltEEG is an EEGLAB structure with multiple entries for each filtered
+% FiltEEG is an EEGLAB struct with multiple entries for each filtered
 % range.
-% BurstThreshold1 & 2 are structures that can contain different parameters
+% BurstThreshold1 & 2 are structs that can contain different parameters
 % for detecting bursts.
 % Can be:
 % - isProminent: whether peak sticks out relative to neighboring signal
@@ -16,7 +16,7 @@ function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Pea
 % - efficiencyAdj:
 % - monotonicity:
 % - flankConsistency:
-% Bands is a structure with each field a different band corresponding to
+% Bands is a struct with each field a different band corresponding to
 % the relevant bands, and the edges of that band [LowCutoff, HighCutoff].
 % Should be same number of fields as items in FiltEEG.
 
@@ -41,7 +41,7 @@ else
     end
 end
 
-% save to single structure
+% save to single struct
 FinalBursts = struct();
 for Indx_C = 1:nChan
     if isempty(AllBursts{Indx_C})
@@ -111,13 +111,13 @@ for Indx_B = 1:numel(BandLabels)
 
             disp([BandLabels{Indx_B}])
 
-            % save to collective structure
+            % save to collective struct
             CBursts = catStruct(CBursts, Bursts);
         end
     end
 end
 
-% remove duplicates and add to general structure
+% remove duplicates and add to general struct
 Min_Peaks = min(Min_Peaks);
 CBursts = cycy_remove_overlapping_bursts(CBursts, Min_Peaks);
 

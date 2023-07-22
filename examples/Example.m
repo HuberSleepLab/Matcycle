@@ -1,5 +1,5 @@
 % This script implements all of the functions in the repository, so you
-% can see how it works, from a (clean) EEG to a final burst structure.
+% can see how it works, from a (clean) EEG to a final burst struct.
 % For your data, try to make the different sections (%%) as different
 % scripts, loop through all your files and save the output of each step
 % somewhere.
@@ -8,7 +8,7 @@
 %% Establish parameters
 
 % pick a clean EEG file
-Filename_EEG = 'P15_Music_Session2_Clean.mat'; % should be a MAT file containing and EEGLAB structure.
+Filename_EEG = 'P15_Music_Session2_Clean.mat'; % should be a MAT file containing and EEGLAB struct.
 Filepath_EEG = 'E:\Data\Preprocessed\Clean\Waves\Music';
 
 % add subfolders of the current repo

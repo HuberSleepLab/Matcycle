@@ -1,5 +1,5 @@
 function [Bursts, BurstPeakIDs, Diagnostics] = cycy_aggregate_cycles(Peaks, Peak_Thresholds, Min_Peaks, Keep_Points)
-% goes through all peaks found, puts them into structures according to
+% goes through all peaks found, puts them into structs according to
 % whether they make up a burst, or if they are on their own.
 % Peak_Thresholds is a struct, with fields already present in Peaks, and is
 % a simple number that the peak's value has to be higher than. If two
@@ -15,7 +15,7 @@ function [Bursts, BurstPeakIDs, Diagnostics] = cycy_aggregate_cycles(Peaks, Peak
 % - period consistency > .7
 % maybe TODO: global burst consistency also over a certain number
 % Waves are all the other events
-% Inputs: Peaks structure, P_Thresholds is a range of periods to accept,
+% Inputs: Peaks struct, P_Thresholds is a range of periods to accept,
 % M_Threshold is for monotonicity (between 0 and 1), PC_Threshold is for
 % period consistency (between 0 and 1), and C_Threshold is number of cycles
 % in a row to consider a burst.

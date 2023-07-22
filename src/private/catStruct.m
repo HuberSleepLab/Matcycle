@@ -1,5 +1,5 @@
 function Struct = catStruct(Struct1, Struct2)
-% concatente structures, also when potentially empty.
+% concatente structs, also when potentially empty.
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
