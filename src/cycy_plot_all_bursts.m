@@ -6,7 +6,7 @@ function cycy_plot_all_bursts(EEG, YGap, Bursts, ColorCode)
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-[nCh, nPnts] = size(EEG.data);
+[~, nPnts] = size(EEG.data);
 t = linspace(0, nPnts/EEG.srate, nPnts);
 
 Data = EEG.data;
@@ -39,9 +39,9 @@ else
         Groups = unique([Bursts.(ColorCode)]);
     end
 
-      if numel(Groups) <= 8
+    if numel(Groups) <= 8
         Colors = getColors(numel(Groups));
-elseif numel(Groups) <= 20
+    elseif numel(Groups) <= 20
         Colors = jet(numel(Groups));
     else
         Colors = rand(numel(Groups), 3);

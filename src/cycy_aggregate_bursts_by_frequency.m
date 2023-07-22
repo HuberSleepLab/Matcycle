@@ -4,7 +4,6 @@ function Bursts = cycy_aggregate_bursts_by_frequency(AllBursts, EEG, MinFreqRang
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-fs = EEG.srate;
 [nCh, ~] = size(EEG.data);
 
 % reorder bursts by size so that biggest ones always get chosen as

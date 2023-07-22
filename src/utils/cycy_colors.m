@@ -1,4 +1,4 @@
-function cycy_colors(N, Order, Color)
+function Colors = cycy_colors(N, Order, Color)
 % Selects from colorblind friendly pallettes the requested colors.
 % N can be either 1 or 2 values; the first indicates the number of hues,
 % the second the number of luminance changes. if no second value is
@@ -78,16 +78,16 @@ elseif numel(N) == 2
         75, 125, 175, 225, nan;
         40, 100, 150, 200, 240;
         ]; % all the possible luminance jumps to make sure that they're nice when few
-    
+
     if N(2) <= 5
         Lum = Lum(N(2), :);
         Lum(isnan(Lum)) = [];
     else
         Lum = linspace(40, 240, N(2));
     end
-    
+
     Lum = Lum/255;
-    
+
     hsl_Colors =rgb2hsl(MainColors);
     all_hsl_Colors = repmat(hsl_Colors, 1, 1, N(2));
     all_hsl_Colors(:, 3, :) =  repmat(Lum, N(1), 1);
