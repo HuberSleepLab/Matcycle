@@ -1,6 +1,7 @@
 function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
 % From EEG data, finds all the bursts in each channel.
-% EEG is an EEGLAB structure.
+% EEG is an EEGLAB structure:
+% (https://eeglab.org/tutorials/ConceptsGuide/Data_Structures.html#eeg-and-alleeg).
 % FiltEEG is an EEGLAB structure with multiple entries for each filtered
 % range.
 % BurstThreshold1 & 2 are structures that can contain different parameters
