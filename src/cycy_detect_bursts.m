@@ -4,26 +4,23 @@ function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Pea
 % (https://eeglab.org/tutorials/ConceptsGuide/Data_Structures.html#eeg-and-alleeg).
 % FiltEEG is an EEGLAB struct with multiple entries for each filtered
 % range.
-% BurstThreshold1 & 2 are structs that can contain different parameters
+% BurstThreshold is a struct array that can contain different parameters
 % for detecting bursts.
-% Can be:
+% The fields can include:
 % - isProminent: whether peak sticks out relative to neighboring signal
 % - truePeak: whether the min value is actually the minimum in the range
 % - periodConsistency: whether the period is consistent left and right
 % - periodMeanConsistency: mean of the above
-% - ampConsistency:
-% - efficiency:
-% - efficiencyAdj:
-% - monotonicity:
-% - flankConsistency:
+% - ampConsistency: TODO
+% - efficiency: TODO
+% - efficiencyAdj: TODO
+% - monotonicity: TODO
+% - flankConsistency: TODO
 % Bands is a struct with each field a different band corresponding to
 % the relevant bands, and the edges of that band [LowCutoff, HighCutoff].
 % Should be same number of fields as items in FiltEEG.
 
 % Part of Matcycle 2022, by Sophia Snipes.
-
-% TODO: maybe BurstThreshold only 1 entry, and then can loop through
-% different dimentions.
 
 nChan = size(EEG.data, 1);
 
