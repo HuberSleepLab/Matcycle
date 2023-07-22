@@ -13,10 +13,10 @@ for Indx_B = 1:numel(Bursts)
     B = Bursts(Indx_B);
     for Indx_F = 1:numel(Fields)
         PeakData = B.(Fields{Indx_F});
-        if numel(PeakData) == numel(B.PeakIDs)
-           Bursts(Indx_B).(['Mean_', Fields{Indx_F}]) = mean(PeakData);
+if numel(PeakData) == numel(B.PeakIDs)
+            Bursts(Indx_B).(['Mean_', Fields{Indx_F}]) = mean(PeakData);
         elseif strcmp(Fields{Indx_F}, 'period') && numel(PeakData)==1
-             Bursts(Indx_B).(['Mean_', Fields{Indx_F}]) = PeakData;
+            Bursts(Indx_B).(['Mean_', Fields{Indx_F}]) = PeakData;
         end
     end
 end

@@ -70,7 +70,7 @@ for Indx_R = 1:Repeats
     S(nPoints/2+1:nPoints)=flip(S);
     S=S.*exp(j*2*pi*rand(1, nPoints));
     % figure
-    Power = abs(S);
+%     Power = abs(S);
     % plot(freqs, Power(1:L/2))
     S(1)=0;
 

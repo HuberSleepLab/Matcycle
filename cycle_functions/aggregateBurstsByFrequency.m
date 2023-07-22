@@ -12,10 +12,11 @@ fs = EEG.srate;
 
 Starts = [AllBursts.Start];
 Ends = [AllBursts.End];
+BurstID = 1:numel(AllBursts);
 Durations = Ends-Starts;
 [~, Order] = sort(Durations, 'descend'); % start from the largest
 AllBursts = AllBursts(Order);
-
+BurstID = BurstID(Order);
 
 % loops through starts, finds overlap; leaves the biggest burst intact,
 % adjusts the starts and ends of the others so they're outside the burst.
@@ -36,6 +37,12 @@ for Indx_B = 1:nBursts
 
     Start_Edge = Starts(Indx_B);
     End_Edge = Ends(Indx_B);
+
+    %     if Start_Edge <126*fs && End_Edge > 126*fs
+    %         a=1
+    %     end
+
+
 
     %%% get all the smaller bursts that overlap with this large burst
     Overlap_Starts = Starts >= Start_Edge & Starts < End_Edge & Indexes > Indx_B;
@@ -87,24 +94,29 @@ for Indx_B = 1:nBursts
         Overlap_RefPeaks = Ref_Peaks>=Start_Overlap & Ref_Peaks<=End_Overlap;
 
         % identify in reference the mean frequency of the overlapping segment
-        if numel(AllBursts(Indx_B).period)==1 % when there's only 4 peaks, somehow there's sometimes only 1 period value
-            Freq = 1/mean(diff(AllBursts(Indx_B).NegPeakID)/fs);
-        else
-            Freq = 1/mean(AllBursts(Indx_B).period(Overlap_RefPeaks));
+        Period = AllBursts(Indx_B).period;
+
+        if numel(Period) == 1 % because of stupid hack earlier, that reduces to 1 if they're all the same
+            Period = repmat(Period, 1, numel(Overlap_RefPeaks));
         end
 
-        FreqRange =  [Freq-MinFreqRange, Freq+MinFreqRange];
+        Freq = 1/mean(Period(Overlap_RefPeaks), 'omitnan');
+
+        FreqRange = [Freq-MinFreqRange, Freq+MinFreqRange];
 
         % identify overlapping peaks in other burst
         Other_Peaks = AllBursts(Overlap(Indx_O)).NegPeakID;
         Overlap_OtherPeaks = Other_Peaks>=Start_Overlap & Other_Peaks<=End_Overlap;
 
         % get frequency of overlapping segment in other burst
-        if numel(AllBursts(Overlap(Indx_O)).period)==1 % when there's only 4 peaks, somehow there's sometimes only 1 period value
-            Freq_Overlap = 1/mean(diff(AllBursts(Overlap(Indx_O)).NegPeakID)/fs);
-        else
-            Freq_Overlap = 1/mean(AllBursts(Overlap(Indx_O)).period(Overlap_OtherPeaks));
+        Period = AllBursts(Overlap(Indx_O)).period;
+
+        if numel(Period) == 1
+            Period = repmat(Period, 1, numel(Overlap_OtherPeaks));
         end
+
+        Freq_Overlap = 1/mean(Period(Overlap_OtherPeaks), 'omitnan');
+
 
         % if frequency of overlapping burst is within range, keep
         if Freq_Overlap >= FreqRange(1) && Freq_Overlap <=FreqRange(2)
@@ -128,7 +140,9 @@ for Indx_B = 1:nBursts
     %%% assemble new burst's info
 
     NewB = AllBursts(Indx_B);
+    NewB.BurstID = BurstID(Coh_Bursts);
     NewB.Coh_Burst_Channels = [AllBursts(Coh_Bursts).Channel];
+    NewB.Coh_Burst_Channel_Labels = [AllBursts(Coh_Bursts).Channel_Label];
     NewB.Coh_Burst_Starts = [AllBursts(Coh_Bursts).Start];
     NewB.Coh_Burst_Ends = [AllBursts(Coh_Bursts).End];
     NewB.Coh_Burst_nPeaks = [AllBursts(Coh_Bursts).nPeaks];
@@ -137,9 +151,12 @@ for Indx_B = 1:nBursts
 
     % special info
     NewB.Coh_Burst_amplitude = zeros(1, numel(Coh_Bursts));
+    NewB.Coh_Burst_amplitude_sum = zeros(1, numel(Coh_Bursts));
     Coh_Peaks = struct();
     for Indx_C = 1:numel(Coh_Bursts)
-        NewB.Coh_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
+        NewB.Coh_Burst_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
+        NewB.Coh_Burst_amplitude_sum(Indx_C) = sum(AllBursts(Coh_Bursts(Indx_C)).amplitude);
+
         Coh_Peaks(Indx_C).NegPeakID = AllBursts(Coh_Bursts(Indx_C)).NegPeakID;
         Coh_Peaks(Indx_C).PosPeakID = AllBursts(Coh_Bursts(Indx_C)).PosPeakID;
     end
