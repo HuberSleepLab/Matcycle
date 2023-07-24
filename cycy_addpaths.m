@@ -11,5 +11,5 @@ Subfolders(contains(Subfolders, '.')) = []; % remove all files
 Subfolders(contains(Subfolders, 'private')) = []; % remove private folder
 
 for Indx_F = 1:numel(Subfolders)
-    addpath(fullfile(CD, Subfolders{Indx_F}))
+    addpath(fullfile(CD, 'src', Subfolders{Indx_F}))
 end
