@@ -36,8 +36,8 @@ for Indx_Ch = 1:Channels
 
     % filter
     if exist('bpfilter', 'var') && ~isempty(bpfilter)
-        Signal = cycy_hpfilt(Signal, fs, bpfilter(1), hpStopfrq);
-        Signal = cycy_lpfilt(Signal, fs, bpfilter(2));
+        Signal = cycy_highpass_filter(Signal, fs, bpfilter(1), hpStopfrq);
+        Signal = cycy_lowpass_filter(Signal, fs, bpfilter(2));
 
     end
 

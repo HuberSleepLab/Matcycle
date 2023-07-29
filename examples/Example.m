@@ -43,14 +43,14 @@ BroadBand = [4 40];
 % Broadband filter
 Raw = CutEEG.data;
 t = linspace(0, nPoints/fs, nPoints);
-CutEEG.data = cycy_hpfilt(CutEEG.data, fs, BroadBand(1));
-CutEEG.data = cycy_lpfilt(CutEEG.data, fs, BroadBand(2));
+CutEEG.data = cycy_highpass_filter(CutEEG.data, fs, BroadBand(1));
+CutEEG.data = cycy_lowpass_filter(CutEEG.data, fs, BroadBand(2));
 
 FiltEEG = CutEEG;
 
 % narrowband filter in the band of interest for oscillations
-FiltEEG.data = cycy_hpfilt(FiltEEG.data, fs, NarrowBand(1));
-FiltEEG.data = cycy_lpfilt(FiltEEG.data, fs, NarrowBand(2));
+FiltEEG.data = cycy_highpass_filter(FiltEEG.data, fs, NarrowBand(1));
+FiltEEG.data = cycy_lowpass_filter(FiltEEG.data, fs, NarrowBand(2));
 
 %% plot data
 
