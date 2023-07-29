@@ -1,10 +1,13 @@
-function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)
+function FinalBursts = cycy_detect_bursts(EEGBroadband, EEGNarrowbands, NarrowbandRanges, CriteriaSets, KeepTimepoints)
 % From EEG data, finds all the bursts in each channel.
-% EEG is an EEGLAB struct:
+%
+% EEGBroadband is an EEGLAB struct:
 % (https://eeglab.org/tutorials/ConceptsGuide/Data_Structures.html#eeg-and-alleeg).
-% FiltEEG is an EEGLAB struct with multiple entries for each filtered
+%
+% EEGNarrowbands is an EEGLAB struct with multiple entries for each filtered
 % range.
-% BurstThreshold is a struct array that can contain different parameters
+%
+% CriteriaSets is a struct array that can contain different parameters
 % for detecting bursts.
 % The fields can include:
 % - isProminent: whether peak sticks out relative to neighboring signal
@@ -16,36 +19,44 @@ function FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Pea
 % - efficiencyAdj: TODO
 % - monotonicity: TODO
 % - flankConsistency: TODO
-% Bands is a struct with each field a different band corresponding to
+%
+% NarrowbandRanges is a struct with each field a different band corresponding to
 % the relevant bands, and the edges of that band [LowCutoff, HighCutoff].
 % Should be same number of fields as items in FiltEEG.
+%
+% KeepPoints (optional) is a vector the same number of timepoints as the EEG data, and
+% should be a 1 if its a clean timepoint, 0 if an artefact. Bursts will not
+% be detected where there are artefacts.
 
 % Part of Matcycle 2022, by Sophia Snipes.
+[nChannels, nTimepoints] = size(EEGBroadband.data);
 
-nChan = size(EEG.data, 1);
+if ~exist('KeepTimepoints', 'var') || isempty(KeepTimepoints)
+    KeepTimepoints = ones(1, nTimepoints);
+end
 
 % initialize spots to put data
-AllBursts = cell([1, nChan]);
+AllChannelBursts = cell([1, nChannels]);
 
-if nChan < 6
-    for Indx_C = 1:nChan 
-    AllBursts{Indx_C} = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+if nChannels < 6
+    for Indx_C = 1:nChannels 
+    AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, NarrowbandRanges, KeepTimepoints);
     end
 else
 %                 for Indx_C = 1:nChan % get bursts for every component % DEBUG
-    parfor Indx_C = 1:nChan % get bursts for every component
-        AllBursts{Indx_C} = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
+    parfor Indx_C = 1:nChannels % get bursts for every component
+        AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, Min_Peaks, NarrowbandRanges, KeepTimepoints);
     end
 end
 
 % save to single struct
 FinalBursts = struct();
-for Indx_C = 1:nChan
-    if isempty(AllBursts{Indx_C})
+for Indx_C = 1:nChannels
+    if isempty(AllChannelBursts{Indx_C})
         continue
     end
 
-    FinalBursts = catStruct(FinalBursts, AllBursts{Indx_C});
+    FinalBursts = catStruct(FinalBursts, AllChannelBursts{Indx_C});
 end
 end
 
