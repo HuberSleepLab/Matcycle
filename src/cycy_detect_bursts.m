@@ -80,7 +80,7 @@ for idxBand = 1:numel(BandLabels)
             Metadata.Sign = Sign;
             Metadata.CriteriaSetIndex = idxCriteriaSet;
 
-            BurstsSubset = cycy_add_fields_to_struct(BurstsSubset, Metadata);
+            BurstsSubset = add_fields_to_struct(BurstsSubset, Metadata);
 
             % save to collective struct
             AllBursts = catStruct(AllBursts, BurstsSubset);
