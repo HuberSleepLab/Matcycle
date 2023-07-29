@@ -10,7 +10,7 @@ PassbandRipple = 0.02;
 StopbandAttenuation = 40;
 
 if ~exist('StopbandFrequency', 'var') || isempty(StopbandFrequency)
-    StopbandFrequency = PassbandFrequency-1;
+    StopbandFrequency = PassbandFrequency+1;
 end
 
 % design filter, or load in from cache
