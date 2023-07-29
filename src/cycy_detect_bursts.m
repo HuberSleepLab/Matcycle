@@ -1,4 +1,4 @@
-function CBursts = cycy_detect_bursts(EEGBroadband, ChannelIndex, EEGNarrowbands,...
+function Bursts = cycy_detect_bursts(EEGBroadband, ChannelIndex, EEGNarrowbands,...
     NarrowbandRanges, CriteriaSets, KeepTimepoints)
 arguments
     EEGBroadband struct
@@ -39,64 +39,59 @@ end
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-
-% do burst detection on both original and inverted signal
-Signs = [1 -1];
-Fields = {'Band', 'Channel', 'Channel_Label', 'Sign', 'BT'};
+Signs = [1 -1]; % do burst detection on both original and inverted signal
 
 BandLabels = fieldnames(NarrowbandRanges);
-Chan = EEGBroadband.data(ChannelIndex, :);
-fs = EEGBroadband.srate;
+ChannelBroadband = EEGBroadband.data(ChannelIndex, :);
+SampleRate = EEGBroadband.srate;
 
 % gather all the bursts and peaks for a single component from all
 % the bands
-CBursts = struct();
+AllBursts = struct();
 
-for Indx_B = 1:numel(BandLabels)
-    Band = NarrowbandRanges.(BandLabels{Indx_B});
-    fChan = EEGNarrowbands(Indx_B).data(ChannelIndex, :);
+for idxBand = 1:numel(BandLabels)
+    Band = NarrowbandRanges.(BandLabels{idxBand});
+    ChannelNarrowband = EEGNarrowbands(idxBand).data(ChannelIndex, :);
 
-    for Indx_S = 1:numel(Signs)
-        Signal = Chan*Signs(Indx_S);
-        fSignal = fChan*Signs(Indx_S);
+    for Sign = Signs
+        SignChannelBroadband = ChannelBroadband*Sign;
+        SignChannelNarrowband = ChannelNarrowband*Sign;
 
-        for Indx_BT = 1:numel(CriteriaSets) % loop through combination of thresholds
-
-            % assemble meta info to save for each peak
-            Labels = [BandLabels(Indx_B), ChannelIndex, indexes2labels(ChannelIndex, EEGBroadband.chanlocs), Signs(Indx_S), Indx_BT];
+        for idxCriteriaSet = 1:numel(CriteriaSets) % loop through combination of thresholds
+            CriteriaSet = CriteriaSets(idxCriteriaSet);
 
             % find all peaks in a given band
-            Peaks = cycy_detect_cycles(Signal, fSignal);
-            Peaks = cycy_cycle_properties(Signal, Peaks, fs);
+            Cycles = cycy_detect_cycles(SignChannelBroadband, SignChannelNarrowband);
+            Cycles = cycy_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
-            % assign labels to peaks
-            for n = 1:numel(Peaks)
-                for Indx_F = 1:numel(Fields)
-                    Peaks(n).(Fields{Indx_F}) = Labels{Indx_F};
-                end
-            end
-
-            BT = CriteriaSets(Indx_BT);
-            BT.period = 1./Band; % add period threshold
+            CriteriaSet.period = 1./Band; % add period threshold
 
             % remove thresholds that are empty
-            BT = removeEmptyFields(BT);
+            CriteriaSet = removeEmptyFields(CriteriaSet);
 
             % find bursts
-            [Bursts, ~] = cycy_aggregate_cycles(Peaks, BT, KeepTimepoints);
+            [BurstsSubset, ~] = cycy_aggregate_cycles(Cycles, CriteriaSet, KeepTimepoints);
 
-            disp([BandLabels{Indx_B}])
+            % add metadata
+            Metadata = struct();
+            Metadata.Band = BandLabels(idxBand);
+            Metadata.ChannelIndex = ChannelIndex;
+            Metadata.ChannelIndexOriginal = indexes2labels(ChannelIndex, EEGBroadband.chanlocs);
+            Metadata.Sign = Sign;
+            Metadata.CriteriaSetIndex = idxCriteriaSet;
+
+            BurstsSubset = cycy_add_fields_to_struct(BurstsSubset, Metadata);
 
             % save to collective struct
-            CBursts = catStruct(CBursts, Bursts);
+            AllBursts = catStruct(AllBursts, BurstsSubset);
         end
     end
 end
 
 % remove duplicates and add to general struct
+Min_Peaks = [CriteriaSets.Min_Peaks];
 Min_Peaks = min(Min_Peaks);
-CBursts = cycy_remove_overlapping_bursts(CBursts, Min_Peaks);
+Bursts = cycy_remove_overlapping_bursts(AllBursts, Min_Peaks);
 
 disp(['Finished ', num2str(ChannelIndex)])
 
-end
