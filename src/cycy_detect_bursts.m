@@ -44,30 +44,19 @@ arguments
 end
 
 
-[ChannelCount, TimepointCount] = size(EEGBroadband.data);
+[ChannelCount, ~] = size(EEGBroadband.data);
 
-if ~exist('KeepTimepoints', 'var') || isempty(KeepTimepoints)
-    KeepTimepoints = ones(1, TimepointCount);
-end
-
-if ~exist('RunParallel', 'var') || ~RunParallel
-else
-    RunParallel = true;
-end
-
-RunParallel = default(RunParallel, false);
 
 % initialize spots to put data
 AllChannelBursts = cell([1, ChannelCount]);
 
 if RunParallel
-    for Indx_C = 1:ChannelCount
-        AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, NarrowbandRanges, KeepTimepoints);
-    end
-else
-    %                 for Indx_C = 1:nChan % get bursts for every component % DEBUG
     parfor Indx_C = 1:ChannelCount % get bursts for every component
         AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, Min_Peaks, NarrowbandRanges, KeepTimepoints);
+    end
+else
+    for Indx_C = 1:ChannelCount
+        AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, NarrowbandRanges, KeepTimepoints);
     end
 end
 
@@ -81,7 +70,6 @@ for Indx_C = 1:ChannelCount
     FinalBursts = catStruct(FinalBursts, AllChannelBursts{Indx_C});
 end
 end
-
 
 
 function CBursts = loopChannels(Indx_C, EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points)

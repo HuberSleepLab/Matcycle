@@ -1,20 +1,21 @@
-function FiltData = cycy_lowpass_filter(Data, SampleRate, PassbandFrequency, StopbandFrequency)
-% filters data optimally when around 3-20 Hz. 
+function FiltData = cycy_lowpass_filter(Data, SampleRate, PassbandFrequency, ...
+    StopbandFrequency, DesignMethod, PassbandRipple, StopbandAttenuation)
+% High-pass filter for EEG data. Filters data optimally when around 3-20 Hz.
+% All inputs after PassbandFrequency are optional.
 % part of Matcycle 2022 by Sophia Snipes. Filter by Sven Leach.
 
-
-% FIR filter HP equiripple
-Type = 'lowpassfir';
-DesignMethod = 'equiripple';
-PassbandRipple = 0.02;
-StopbandAttenuation = 40;
-
-if ~exist('StopbandFrequency', 'var') || isempty(StopbandFrequency)
-    StopbandFrequency = PassbandFrequency+1;
+arguments
+    Data
+    SampleRate (1, 1) {mustBePositive}
+    PassbandFrequency (1, 1) {mustBePositive}
+    StopbandFrequency (1, 1) {mustBePositive} = PassbandFrequency-1;
+    DesignMethod = 'equiripple';
+    PassbandRipple = 0.02; % TODO: check if should be 0.04 like highpass
+    StopbandAttenuation = 40;
 end
 
 % design filter, or load in from cache
-Filter = cycy_cache(@designfilt, Type, ...
+Filter = cycy_cache(@designfilt, 'lowpassfir', ...
     'PassbandFrequency', PassbandFrequency, ...
     'StopbandFrequency', StopbandFrequency, ...
     'StopbandAttenuation', StopbandAttenuation, ...
