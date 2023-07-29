@@ -5,7 +5,6 @@ function Peaks = cycy_detect_peaks(DZC, UZC, Wave)
 Peaks = struct();
 for n = 1:length(DZC)
 
-
     % find lowest point between zero crossings in filtered wave
     [NegPeakAmp, NegPeakID] = min(Wave(DZC(n):UZC(n)));
 
