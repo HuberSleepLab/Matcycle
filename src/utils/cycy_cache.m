@@ -1,6 +1,9 @@
 function Output = cycy_cache(Function, varargin)
-% runs a function, saves the output in a cache, and next time the function
-% is run, if there's something in the cache, it just uses that
+% runs a function, saves the output on disk, and next time the function
+% is run, if there's something on disk, it just uses that instead of
+% running the function again. Use for slow functions like designfilt.
+% Example: Output = cycy_cache(@sum, [1 2 3]);
+% Part of Matcycle 2022, by Sophia Snipes.
 
 % saves the cache folder in folder where this script is
 ScriptPath = mfilename('fullpath');
