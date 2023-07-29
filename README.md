@@ -43,3 +43,11 @@ Modify the example script burst thresholds, and run the lines under `%DEBUG`. It
 - **criteria set**: a set of criteria that have to all be fullfiled for cycles to be included in a burst
 - **burst**: set of consecutive cycles that match all criteria in a given criteria set in a single channel
 - **burst cluster**: set of bursts that overlap in time across multiple channels with similar frequencies
+
+
+# Coding conventions
+- function names are `snake_case`
+- Variable names are `CamelCase`
+- The path of folders should be called `ImportantDataDir`
+- The path of a file should be called `DataPath`
+- indexes should be `idxThisAndThat`
