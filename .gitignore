@@ -11,6 +11,7 @@
 *.jpg
 
 scratchpad.*
+cache/
 
 # exceptions
 !All_Sentences.csv
