@@ -1,9 +1,5 @@
 function FiltData = cycy_highpass_filter(Data, SampleRate, PassbandFrequency, ...
     StopbandFrequency, DesignMethod, PassbandRipple, StopbandAttenuation)
-% High-pass filter for EEG data. Filters data optimally when around 3-20 Hz.
-% All inputs after PassbandFrequency are optional.
-% part of Matcycle 2022 by Sophia Snipes. Filter by Sven Leach.
-
 arguments
     Data
     SampleRate (1, 1) {mustBePositive}
@@ -13,6 +9,10 @@ arguments
     PassbandRipple = 0.04;
     StopbandAttenuation = 40;
 end
+% High-pass filter for EEG data. Filters data optimally when around 3-20 Hz.
+% All inputs after PassbandFrequency are optional.
+% part of Matcycle 2022 by Sophia Snipes. Filter by Sven Leach.
+
 
 % design filter, or load in from cache
 Filter = cycy_cache(@designfilt, 'highpassfir', ...
