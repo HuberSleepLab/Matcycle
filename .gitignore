@@ -9,7 +9,8 @@
 *.svg
 *.loc
 *.jpg
-  
+
+scratchpad.*
 
 # exceptions
 !All_Sentences.csv
