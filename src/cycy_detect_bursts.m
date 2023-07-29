@@ -39,11 +39,11 @@ end
 AllChannelBursts = cell([1, nChannels]);
 
 if nChannels < 6
-    for Indx_C = 1:nChannels 
-    AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, NarrowbandRanges, KeepTimepoints);
+    for Indx_C = 1:nChannels
+        AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, NarrowbandRanges, KeepTimepoints);
     end
 else
-%                 for Indx_C = 1:nChan % get bursts for every component % DEBUG
+    %                 for Indx_C = 1:nChan % get bursts for every component % DEBUG
     parfor Indx_C = 1:nChannels % get bursts for every component
         AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, Min_Peaks, NarrowbandRanges, KeepTimepoints);
     end
@@ -70,7 +70,7 @@ if isempty(Min_Peaks) && isfield(BurstThresholds, 'Min_Peaks')
     BurstThresholds = rmfield(BurstThresholds, 'Min_Peaks');
 else
     Min_Peaks = repmat(Min_Peaks, numel(BurstThresholds), 1);
-end 
+end
 
 % do both positive and negative signal
 Signs = [1 -1];
