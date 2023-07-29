@@ -22,5 +22,5 @@ end
 PassRipple   = 0.04;
 StopAtten    = 40;
 
-HiPassFilt = cycy_getfilt(type, method, srate, PassFrq, StopFrq, PassRipple, StopAtten);
+HiPassFilt = cycy_design_or_load_filter(type, method, srate, PassFrq, StopFrq, PassRipple, StopAtten);
 filtData = filtfilt(HiPassFilt, double(Data'))';
