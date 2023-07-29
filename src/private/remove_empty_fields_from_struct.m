@@ -1,4 +1,4 @@
-function Struct = removeEmptyFields(Struct)
+function Struct = remove_empty_fields_from_struct(Struct)
 % removes empty fields
 
 Fieldnames  = fieldnames(Struct);

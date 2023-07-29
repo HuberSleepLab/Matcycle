@@ -67,7 +67,7 @@ for idxBand = 1:numel(BandLabels)
             CriteriaSet.period = 1./Band; % add period threshold
 
             % remove thresholds that are empty
-            CriteriaSet = removeEmptyFields(CriteriaSet);
+            CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 
             % find bursts
             [BurstsSubset, ~] = cycy_aggregate_cycles(Cycles, CriteriaSet, KeepTimepoints);
