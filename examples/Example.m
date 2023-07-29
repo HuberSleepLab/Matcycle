@@ -4,32 +4,86 @@
 % scripts, loop through all your files and save the output of each step
 % somewhere.
 
-
-%% Establish parameters
-
-% pick a clean EEG file
-Filename_EEG = 'P15_Music_Session2_Clean.mat'; % should be a MAT file containing and EEGLAB struct.
-Filepath_EEG = 'E:\Data\Preprocessed\Clean\Waves\Music';
-
 % add subfolders of the current repo
 addpath(genpath(extractBefore(mfilename('fullpath'), 'Example')))
+cycy_addpaths() % little function to add the src folders to path
 
-%% Filter the EEG data
+%% Load the EEG data
 
-% frequency band of interest (could loop through more than one pair; should
-% not be too broad).
-Alpha = [8 12];
+% pick a clean EEG file
+Filename_EEG = 'P15_Sleep_NightPost.mat'; % should be a MAT file containing and EEGLAB struct.
+Filepath_EEG = 'E:\Data\Preprocessed\Simple\Sleep\MAT';
 
 load(fullfile(Filepath_EEG, Filename_EEG), 'EEG')
+
+%% select data
+Channel = 2; % for now, just look at 1 channel
+Timepoints = [6700 7700]; % narrow window, just to check things
+
 fs = EEG.srate;
-[nCh, nPoints] = size(EEG.data);
+CutEEG = EEG;
+CutEEG.data = EEG.data(2, fs*6700:fs*7700);
+nPoints = numel(CutEEG.data);
 
-FiltEEG = EEG;
+%% View power
+% check out the spectrum to know frequency range of interest
 
-% filter all the data
-FiltEEG.data = cycy_hpfilt(FiltEEG.data, fs, Alpha(1));
-FiltEEG.data = cycy_lpfilt(FiltEEG.data, fs, Alpha(2));
+[Power, Freqs] = cycy_power(CutEEG.data, fs, 4, .5);
+figure
+plot(Freqs, log(Power))
+xlim([0.5 40])
 
+%% Filter data
+
+% frequencies to filter in
+NarrowBand = [12 15];
+BroadBand = [4 40];
+
+
+% Broadband filter
+Raw = CutEEG.data;
+t = linspace(0, nPoints/fs, nPoints);
+CutEEG.data = cycy_hpfilt(CutEEG.data, fs, BroadBand(1));
+CutEEG.data = cycy_lpfilt(CutEEG.data, fs, BroadBand(2));
+
+FiltEEG = CutEEG;
+
+% narrowband filter in the band of interest for oscillations
+FiltEEG.data = cycy_hpfilt(FiltEEG.data, fs, NarrowBand(1));
+FiltEEG.data = cycy_lpfilt(FiltEEG.data, fs, NarrowBand(2));
+
+%% plot data
+
+figure('Units','normalized','outerposition',[0 0 1 .5])
+hold on
+plot(t, Raw, 'LineWidth', 1.5, 'Color', [.5 .5 .5])
+plot(t, CutEEG.data, 'LineWidth', 1.5, 'Color', 'k')
+plot(t, FiltEEG.data,'r:', 'LineWidth', 1.5 )
+xlim([0 10])
+
+%% Detect bursts
+
+Keep_Points = ones(1, nPoints); % if you have information identifying noise, set values to 0
+
+% Burst Thresholds for finding very clean bursts
+BurstThresholds = struct();
+BurstThresholds.isProminent = 1;
+BurstThresholds.periodConsistency = .7;
+BurstThresholds.periodMeanConsistency = .7;
+BurstThresholds.truePeak = 1;
+BurstThresholds.efficiencyAdj = .6;
+BurstThresholds.flankConsistency = .5;
+BurstThresholds.ampConsistency = .25;
+BurstThresholds.Min_Peaks = 3;
+BurstThresholds.period = NarrowBand;
+
+Signal = EEG.data(1, :);
+fSignal = FiltEEG.data(1, :);
+Cycles = cycy_detect_cycles(Signal, fSignal);
+Cycles = cycy_cycle_properties(Signal, Cycles, fs);
+
+[~, BurstPeakIDs_Clean] = cycy_aggregate_cycles(Cycles, BurstThresholds, Keep_Points);
+cycy_plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, BurstThresholds)
 
 %% Get bursts for each channel
 
@@ -55,18 +109,18 @@ BurstThresholds(2).truePeak = 1;
 BurstThresholds(2).flankConsistency = .5;
 BurstThresholds(2).ampConsistency = .5;
 
-Bands.Alpha = Alpha; % format like this so it can loop through fieldnames to find relevant bands
+Bands.Alpha = NarrowBand; % format like this so it can loop through fieldnames to find relevant bands
 
 Keep_Points = ones(1, nPoints); % set to 0 any points that contain artifacts or just wish to ignore.
 
 % DEBUG: use these lines to check if the thresholds are working:
 Signal = EEG.data(1, :);
 fSignal = FiltEEG.data(1, :);
-Peaks = cycy_detect_cycles(Signal, fSignal);
-Peaks = cycy_cycle_properties(Signal, Peaks, fs);
+Cycles = cycy_detect_cycles(Signal, fSignal);
+Cycles = cycy_cycle_properties(Signal, Cycles, fs);
 BT = removeEmptyFields(BurstThresholds(1));
-[~, BurstPeakIDs_Clean] = cycy_aggregate_cycles(Peaks, BT, Min_Peaks, Keep_Points);
-cycy_plot_1channel_bursts(Signal, fs, Peaks, BurstPeakIDs_Clean, BT)
+[~, BurstPeakIDs_Clean] = cycy_aggregate_cycles(Cycles, BT, Min_Peaks, Keep_Points);
+cycy_plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, BT)
 
 % get bursts in all data
 AllBursts = cycy_detect_bursts(EEG, FiltEEG, BurstThresholds, Min_Peaks, Bands, Keep_Points);
