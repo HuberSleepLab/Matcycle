@@ -1,4 +1,4 @@
-function FiltData = cycy_hpfilt(Data, SampleRate, PassbandFrequency, StopbandFrequency)
+function FiltData = cycy_highpass_filter(Data, SampleRate, PassbandFrequency, StopbandFrequency)
 % High-pass filter for EEG data. Filters data optimally when around 3-20 Hz.
 % part of Matcycle 2022 by Sophia Snipes. Filter by Sven Leach.
 
@@ -21,12 +21,3 @@ Filter = cycy_cache(@designfilt, Type, ...
     'DesignMethod', DesignMethod);
 
 FiltData = filtfilt(Filter, double(Data'))'; % make sure data is double; EEGLAB sometimes gives singles
-
-
-%%% old method
-% method = 'cheby2';
-% type = 'highpassiir';
-% srate = fs;
-% StopFrq = PassFrq-1; % not perfect, but easy to understand
-% PassRipple = 0.1;
-% StopAtten = 60;
