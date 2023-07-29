@@ -5,13 +5,9 @@ function Output = cycy_cache(Function, varargin)
 % Example: Output = cycy_cache(@sum, [1 2 3]);
 % Part of Matcycle 2022, by Sophia Snipes.
 
-% saves the cache folder in folder where this script is
-ScriptPath = mfilename('fullpath');
-ScriptDir = extractBefore(ScriptPath, 'cycy_cache');
-
 StringInput = string_all_input(Function, varargin{:});
 
-CacheDir = fullfile(ScriptDir, 'cache');
+CacheDir = fullfile(cd, 'cycy_cache_dont_add_to_git'); % 
 CachePath = fullfile(CacheDir, [StringInput, '.mat']);
 
 if exist(CachePath, 'file')
@@ -47,5 +43,6 @@ for Indx_V = 1:numel(varargin)
 end
 
 StringInput = char(strjoin(StringInput, '_'));
+StringInput = replace(StringInput, '.', '-');
 
 end
