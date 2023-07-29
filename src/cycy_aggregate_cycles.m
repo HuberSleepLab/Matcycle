@@ -1,4 +1,4 @@
-function [Bursts, BurstPeakIDs, Diagnostics] = cycy_aggregate_cycles(Peaks, Peak_Thresholds, Min_Peaks, Keep_Points)
+function [Bursts, BurstPeakIDs, Diagnostics] = cycy_aggregate_cycles(Peaks, Peak_Thresholds, Keep_Points)
 % goes through all peaks found, puts them into structs according to
 % whether they make up a burst, or if they are on their own.
 % Peak_Thresholds is a struct, with fields already present in Peaks, and is
@@ -33,7 +33,7 @@ PeakFields = fieldnames(Peaks);
 
 ThresholdFields = fieldnames(Peak_Thresholds);
 ThresholdFields(~ismember(ThresholdFields, PeakFields)) = []; % in case there's extra junk in there
-
+ThresholdFields(strcmp(ThresholdFields, 'Min_Peaks')) = [];
 
 Diagnostics = struct();
 
@@ -80,7 +80,7 @@ if isfield(Peak_Thresholds, 'ampConsistency')
     Indx = find(strcmp(ThresholdFields, 'ampConsistency'));
     Unique = singleThreshold(Candidates, Indx);
     Ramp = [Peaks.ampRamp]; % whether amplitude of burst is increasing or decreasing
-    [Starts, Ends]  = getStreaks(AllCandidates, Min_Peaks);
+    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.Min_Peaks);
     for S = Starts(:)' % just make sure it's a row vector
         Edge = S-1;
 
@@ -108,7 +108,7 @@ if isfield(Peak_Thresholds, 'periodConsistency')
     Unique = singleThreshold(Candidates, Indx);
 
     % Get all the peaks adjacent to a burst that are excluded only for the period
-    [Starts, Ends]  = getStreaks(AllCandidates, Min_Peaks);
+    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.Min_Peaks);
     NewEdges = intersect(find(Unique), [Starts-1, Ends+1]);
     AllCandidates(NewEdges) = 1;
 end
@@ -122,7 +122,7 @@ for Indx_C = 1:numel(ThresholdFields)
 end
 
 %%% Get bursts that meet minimum cycle requirements
-[Starts, Ends] = getStreaks(AllCandidates, Min_Peaks);
+[Starts, Ends] = getStreaks(AllCandidates, Peak_Thresholds.Min_Peaks);
 
 if isempty(Starts) || isempty(Ends)
     Bursts = struct();
