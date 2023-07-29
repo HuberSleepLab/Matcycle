@@ -1,4 +1,5 @@
-function FinalBursts = cycy_detect_bursts(EEGBroadband, EEGNarrowbands, NarrowbandRanges, CriteriaSets, KeepTimepoints)
+function FinalBursts = cycy_detect_bursts(EEGBroadband, EEGNarrowbands, NarrowbandRanges, ...
+    CriteriaSets, RunParallel, KeepTimepoints)
 % From EEG data, finds all the bursts in each channel.
 %
 % EEGBroadband is an EEGLAB struct:
@@ -24,34 +25,55 @@ function FinalBursts = cycy_detect_bursts(EEGBroadband, EEGNarrowbands, Narrowba
 % the relevant bands, and the edges of that band [LowCutoff, HighCutoff].
 % Should be same number of fields as items in FiltEEG.
 %
-% KeepPoints (optional) is a vector the same number of timepoints as the EEG data, and
+% RunParallel is a boolean (default false), if true, runs burst detection in 
+% channels in parallel.
+%
+% KeepTimepoints (optional) is a vector the same number of timepoints as the EEG data, and
 % should be a 1 if its a clean timepoint, 0 if an artefact. Bursts will not
 % be detected where there are artefacts.
 
 % Part of Matcycle 2022, by Sophia Snipes.
-[nChannels, nTimepoints] = size(EEGBroadband.data);
 
-if ~exist('KeepTimepoints', 'var') || isempty(KeepTimepoints)
-    KeepTimepoints = ones(1, nTimepoints);
+arguments
+    EEGBroadband struct
+    EEGNarrowbands struct
+    NarrowbandRanges struct
+    CriteriaSets struct
+    RunParallel logical = false
+    KeepTimepoints = ones(1, size(EEGBroadband.data, 2));
 end
 
-% initialize spots to put data
-AllChannelBursts = cell([1, nChannels]);
 
-if nChannels < 6
-    for Indx_C = 1:nChannels
+[ChannelCount, TimepointCount] = size(EEGBroadband.data);
+
+if ~exist('KeepTimepoints', 'var') || isempty(KeepTimepoints)
+    KeepTimepoints = ones(1, TimepointCount);
+end
+
+if ~exist('RunParallel', 'var') || ~RunParallel
+else
+    RunParallel = true;
+end
+
+RunParallel = default(RunParallel, false);
+
+% initialize spots to put data
+AllChannelBursts = cell([1, ChannelCount]);
+
+if RunParallel
+    for Indx_C = 1:ChannelCount
         AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, NarrowbandRanges, KeepTimepoints);
     end
 else
     %                 for Indx_C = 1:nChan % get bursts for every component % DEBUG
-    parfor Indx_C = 1:nChannels % get bursts for every component
+    parfor Indx_C = 1:ChannelCount % get bursts for every component
         AllChannelBursts{Indx_C} = loopChannels(Indx_C, EEGBroadband, EEGNarrowbands, CriteriaSets, Min_Peaks, NarrowbandRanges, KeepTimepoints);
     end
 end
 
 % save to single struct
 FinalBursts = struct();
-for Indx_C = 1:nChannels
+for Indx_C = 1:ChannelCount
     if isempty(AllChannelBursts{Indx_C})
         continue
     end
