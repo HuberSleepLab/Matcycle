@@ -9,7 +9,7 @@ function [NegPeaks, PosPeaks] = cycy_detect_peaks(RisingEdgeZeroCrossings, ...
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-PeaksCount = size(RisingEdgeZeroCrossings, 2);
+PeaksCount = numel(RisingEdgeZeroCrossings);
 PosPeaks = nan([1, PeaksCount]);
 NegPeaks = nan([1, PeaksCount-1]);
 

@@ -5,24 +5,16 @@ function Cycles = cycy_detect_cycles(ChannelBroadband, ChannelNarrowband)
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-[RisingEdgeZeroCrossings, FallingEdgeZeroCrossings] = cycy_detect_zero_crossings(ChannelNarrowband);
+[RisingEdgeZeroCrossings, FallingEdgeZeroCrossings] = ...
+    cycy_detect_zero_crossings(ChannelNarrowband);
 
-%%% Find peaks and troughs between zero crossings
-Cycles = cycy_detect_peaks(RisingEdgeZeroCrossings, FallingEdgeZeroCrossings, ChannelBroadband);
+[NegPeaks, PosPeaks] = cycy_detect_peaks(RisingEdgeZeroCrossings, ...
+    FallingEdgeZeroCrossings, ChannelBroadband);
 
-% final adjustment to positive peaks to make sure they are the largest
-% point between midpoints. % TODO also for negative??
-for n = 1:numel(Cycles)-1
-    [~, PosPeakID] = max(ChannelBroadband(Cycles(n).MidRisingIdx:Cycles(n+1).MidFallingIdx));
-    PosPeakID = PosPeakID + Cycles(n).MidRisingIdx - 1;
-    Cycles(n).PosPeakIdx = PosPeakID;
-    Cycles(n).NextMidDownID = Cycles(n+1).MidFallingIdx;
-    if n>1
-        Cycles(n).PrevPosPeakID = Cycles(n-1).PosPeakIdx;
-    end
-end
-
-% remove last peak if it's positive peak doesn't exist:
-if Cycles(n).PosPeakIdx > numel(ChannelBroadband)
-    Cycles(end) = [];
+NegPeaksCount = numel(NegPeaks);
+Cycles = struct();
+for idxPeak = 1:NegPeaksCount
+    Cycles(idxPeak).NegPeakIdx = NegPeaks(idxPeak);
+    Cycles(idxPeak).PrevPosPeakIdx = PosPeaks(idxPeak);
+    Cycles(idxPeak).NextPosPeakIdx = PosPeaks(idxPeak+1);
 end
