@@ -167,7 +167,7 @@ for Indx_B = 1:nBursts
     % how many channels involved in burst
     NewB.globality_bursts = numel(unique(NewB.Coh_Burst_Channels))./nCh;
 
-    Bursts = catStruct(Bursts, NewB);
+    Bursts = cat_structs(Bursts, NewB);
 end
 
 % reorder by start time

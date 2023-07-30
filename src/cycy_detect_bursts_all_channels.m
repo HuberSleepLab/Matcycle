@@ -41,5 +41,5 @@ for idxChannel = 1:ChannelCount
         continue
     end
 
-    Bursts = catStruct(Bursts, AllChannelBursts{idxChannel});
+    Bursts = cat_structs(Bursts, AllChannelBursts{idxChannel});
 end

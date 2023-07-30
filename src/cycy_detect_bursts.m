@@ -83,7 +83,7 @@ for idxBand = 1:numel(BandLabels)
             BurstsSubset = add_fields_to_struct(BurstsSubset, Metadata);
 
             % save to collective struct
-            AllBursts = catStruct(AllBursts, BurstsSubset);
+            AllBursts = cat_structs(AllBursts, BurstsSubset);
         end
     end
 end
