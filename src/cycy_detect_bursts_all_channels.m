@@ -51,7 +51,7 @@ AllChannelBursts = cell([1, ChannelCount]);
 if RunParallel
     parfor Indx_C = 1:ChannelCount % get bursts for every component
         AllChannelBursts{Indx_C} = cycy_detect_bursts(Indx_C, EEGBroadband, ...
-            EEGNarrowbands, CriteriaSets, Min_Peaks, NarrowbandRanges, KeepTimepoints);
+            EEGNarrowbands, CriteriaSets, MinCyclesPerBurst, NarrowbandRanges, KeepTimepoints);
     end
 else
     for Indx_C = 1:ChannelCount

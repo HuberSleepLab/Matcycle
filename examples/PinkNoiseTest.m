@@ -9,7 +9,7 @@ fs = 250;
 Minutes = 10;
 nPoints = fs*60*Minutes;
 
-Min_Peaks = 4; % minimum number of cycles per burst
+MinCyclesPerBurst = 4; % minimum number of cycles per burst
 
 % % Burst Thresholds for finding very clean bursts
 % BT = struct();
@@ -104,7 +104,7 @@ for Indx_R = 1:Repeats
     disp(['Finished R',num2str(Indx_R)])
 end
 
-FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BT, Min_Peaks, Bands, Keep_Points);
+FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BT, MinCyclesPerBurst, Bands, Keep_Points);
 
 T = tabulate([FinalBursts.Channel]);
 periods = cat(2, periods, FinalBursts.period);

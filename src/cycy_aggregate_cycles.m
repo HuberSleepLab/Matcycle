@@ -5,7 +5,7 @@ function [Bursts, BurstPeakIDs, Diagnostics] = cycy_aggregate_cycles(Peaks, Peak
 % a simple number that the peak's value has to be higher than. If two
 % numbers are provided (like for period), then it will keep peaks within
 % the smaller and larger number.
-% Min_Peaks is the minimum number peaks in a burst.
+% MinCyclesPerBurst is the minimum number peaks in a burst.
 % Bad_Time is an array indicating when there is noise or similar, and so
 % not to count the peaks.
 % Only consider peaks with a period between certain amounts (e.g. 1./[3 12])
@@ -33,7 +33,7 @@ PeakFields = fieldnames(Peaks);
 
 ThresholdFields = fieldnames(Peak_Thresholds);
 ThresholdFields(~ismember(ThresholdFields, PeakFields)) = []; % in case there's extra junk in there
-ThresholdFields(strcmp(ThresholdFields, 'Min_Peaks')) = [];
+ThresholdFields(strcmp(ThresholdFields, 'MinCyclesPerBurst')) = [];
 
 Diagnostics = struct();
 
@@ -80,7 +80,7 @@ if isfield(Peak_Thresholds, 'ampConsistency')
     Indx = find(strcmp(ThresholdFields, 'ampConsistency'));
     Unique = singleThreshold(Candidates, Indx);
     Ramp = [Peaks.ampRamp]; % whether amplitude of burst is increasing or decreasing
-    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.Min_Peaks);
+    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.MinCyclesPerBurst);
     for S = Starts(:)' % just make sure it's a row vector
         Edge = S-1;
 
@@ -108,7 +108,7 @@ if isfield(Peak_Thresholds, 'periodConsistency')
     Unique = singleThreshold(Candidates, Indx);
 
     % Get all the peaks adjacent to a burst that are excluded only for the period
-    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.Min_Peaks);
+    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.MinCyclesPerBurst);
     NewEdges = intersect(find(Unique), [Starts-1, Ends+1]);
     AllCandidates(NewEdges) = 1;
 end
@@ -122,7 +122,7 @@ for Indx_C = 1:numel(ThresholdFields)
 end
 
 %%% Get bursts that meet minimum cycle requirements
-[Starts, Ends] = getStreaks(AllCandidates, Peak_Thresholds.Min_Peaks);
+[Starts, Ends] = getStreaks(AllCandidates, Peak_Thresholds.MinCyclesPerBurst);
 
 if isempty(Starts) || isempty(Ends)
     Bursts = struct();

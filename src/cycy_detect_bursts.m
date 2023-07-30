@@ -88,10 +88,16 @@ for idxBand = 1:numel(BandLabels)
     end
 end
 
-% remove duplicates and add to general struct
-Min_Peaks = [CriteriaSets.Min_Peaks];
-Min_Peaks = min(Min_Peaks);
-Bursts = cycy_remove_overlapping_bursts(AllBursts, Min_Peaks);
+% Here we remove duplicate burst detections, by picking a single burst from
+% those overlapping in time, detected with the different criteria.
+% We do this by selecting the longest burst among every set of overlapping 
+% ones and discarding the others.
+% Additionally, if any of the shorter bursts last more than the minimum 
+% number of cycles outside of the longest burst, then these will be 
+% cropped into their own short burst.
+MinCyclesPerBurst = [CriteriaSets.MinCyclesPerBurst];
+MinCyclesPerBurst = min(MinCyclesPerBurst);
+Bursts = cycy_remove_overlapping_bursts(AllBursts, MinCyclesPerBurst);
 
 disp(['Finished ', num2str(ChannelIndex)])
 
