@@ -1,7 +1,6 @@
 function Cycles = cycy_detect_cycles(ChannelBroadband, ChannelNarrowband)
-% detects peaks in narrowband filtered data based on zero-crossings.
-% The output is a struct containing all cycles in the channel, from a
-% midpoint between positive and negative peaks to the next.
+% detects all cycles in the channel, returned as a struct. A cycle goes
+% from positive to positive peak, and includes 1 negative peak.
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
