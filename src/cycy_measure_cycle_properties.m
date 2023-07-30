@@ -60,25 +60,25 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
 
-function Cycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 
 end
 
-function Cycle = measure_period_mean_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = measure_period_mean_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 % I dont understand this one atm (oh mean consistency across both positive
 % and negative periods)
 % not going to do this one
 end
 
-function Cycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 
 end
 
-function Cycle = count_extra_peaks(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = count_extra_peaks(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 
 end
 
-function Cycle = measure_notched_efficiency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = measure_notched_efficiency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 % calculate efficiency by taking the nearest positive peaks rather than the
 % largest positive peaks ?
 % wont do prominence
