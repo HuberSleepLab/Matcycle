@@ -62,7 +62,7 @@ for idxBand = 1:numel(BandLabels)
 
             % find all peaks in a given band
             Cycles = cycy_detect_cycles(SignChannelBroadband, SignChannelNarrowband);
-            Cycles = cycy_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
+            Cycles = cycy_measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
             CriteriaSet.period = 1./Band; % add period threshold
 

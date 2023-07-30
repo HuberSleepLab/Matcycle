@@ -1,4 +1,4 @@
-function Peaks = cycy_cycle_properties(Wave, Peaks, fs)
+function Cycles = cycy_measure_cycle_properties(ChannelBroadband, Cycles, SampleRate)
 % Identifies various ways to characterize each peak. Based on Cole 2019,
 % but relative to the negative peaks rather than positive peaks.
 % NOTE: all fieldnames should start lowercase, so I know later on that they
@@ -6,55 +6,55 @@ function Peaks = cycy_cycle_properties(Wave, Peaks, fs)
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-for n = 2:numel(Peaks)-1
-    P = Peaks(n);
-    PrevP = Peaks(n-1);
+for n = 2:numel(Cycles)-1
+    P = Cycles(n);
+    PrevP = Cycles(n-1);
 
-    NextP = Peaks(n+1);
+    NextP = Cycles(n+1);
 
-    if min(Wave(P.MidFallingIdx:P.MidRisingIdx)) < Wave(P.NegPeakIdx) ...
+    if min(ChannelBroadband(P.MidFallingIdx:P.MidRisingIdx)) < ChannelBroadband(P.NegPeakIdx) ...
             || P.NegPeakIdx == P.MidRisingIdx || P.NegPeakIdx == P.MidFallingIdx % if peak coincided with edges of zero-crossings
-        Peaks(n).truePeak = 0;
+        Cycles(n).truePeak = 0;
     else
-        Peaks(n).truePeak = 1;
+        Cycles(n).truePeak = 1;
     end
 
-    Peaks(n).voltageNeg = Wave(P.NegPeakIdx);
-    Peaks(n).voltagePos = Wave(P.PosPeakIdx);
+    Cycles(n).voltageNeg = ChannelBroadband(P.NegPeakIdx);
+    Cycles(n).voltagePos = ChannelBroadband(P.PosPeakIdx);
 
     % periods
-    Peaks(n).periodNeg = 2*(P.MidRisingIdx - P.MidFallingIdx)/fs;
-    Peaks(n).periodPos = 2*(P.NextMidDownID - P.MidRisingIdx)/fs;
+    Cycles(n).periodNeg = 2*(P.MidRisingIdx - P.MidFallingIdx)/SampleRate;
+    Cycles(n).periodPos = 2*(P.NextMidDownID - P.MidRisingIdx)/SampleRate;
 
     % Prominance as boolean on whether there are any midpoint crossings
     % between the current peak's midpoint, and the previous one's.
-    halfWave = Wave(PrevP.MidRisingIdx:P.MidFallingIdx-1);
-    nCrossingsPre = nnz(diff(sign(halfWave-Wave(P.MidFallingIdx))));
+    halfWave = ChannelBroadband(PrevP.MidRisingIdx:P.MidFallingIdx-1);
+    nCrossingsPre = nnz(diff(sign(halfWave-ChannelBroadband(P.MidFallingIdx))));
 
-    halfWave = Wave(P.MidRisingIdx+1:NextP.MidFallingIdx);
-    nCrossingsPost = nnz(diff(sign(halfWave-Wave(P.MidRisingIdx))));
+    halfWave = ChannelBroadband(P.MidRisingIdx+1:NextP.MidFallingIdx);
+    nCrossingsPost = nnz(diff(sign(halfWave-ChannelBroadband(P.MidRisingIdx))));
 
     if nCrossingsPre > 1 || nCrossingsPost > 1
         %  if nCrossingsPre > 1 && nCrossingsPost > 1
-        Peaks(n).isProminent = 0;
+        Cycles(n).isProminent = 0;
     else
-        Peaks(n).isProminent = 1;
+        Cycles(n).isProminent = 1;
     end
 
 
     % Amplitude as average between distance to positive peaks surrounding
     % this negative peak.
-    decay_amp = Wave(P.PrevPosPeakID) - Wave(P.NegPeakIdx);
-    rise_amp = Wave(P.PosPeakIdx) - Wave(P.NegPeakIdx);
-    Peaks(n).amplitude = (rise_amp + decay_amp)/2;
+    decay_amp = ChannelBroadband(P.PrevPosPeakID) - ChannelBroadband(P.NegPeakIdx);
+    rise_amp = ChannelBroadband(P.PosPeakIdx) - ChannelBroadband(P.NegPeakIdx);
+    Cycles(n).amplitude = (rise_amp + decay_amp)/2;
 
     % get direction of amplitude change
     if decay_amp > rise_amp % going down
-        Peaks(n).ampRamp = -1;
+        Cycles(n).ampRamp = -1;
     elseif decay_amp < rise_amp % going up
-        Peaks(n).ampRamp = 1;
+        Cycles(n).ampRamp = 1;
     else
-        Peaks(n).ampRamp = 0; % magic case of exactly the same
+        Cycles(n).ampRamp = 0; % magic case of exactly the same
     end
 
     % efficiency in amplitude; indication of how much the signal goes in the "wrong"
@@ -64,44 +64,44 @@ for n = 2:numel(Peaks)-1
 
     % monotonicity (degree to which both flanks go in the correct
     % direction) in time
-    [Peaks(n).efficiency, Peaks(n).monotonicity, Peaks(n).monDecay, Peaks(n).monRise] = ...
-        flankInfo(Wave, P.PrevPosPeakID, P.NegPeakIdx, P.PosPeakIdx);
+    [Cycles(n).efficiency, Cycles(n).monotonicity, Cycles(n).monDecay, Cycles(n).monRise] = ...
+        flankInfo(ChannelBroadband, P.PrevPosPeakID, P.NegPeakIdx, P.PosPeakIdx);
 
 
 
     % amplitude consistency (difference in amplitudes) NB: in Cole, they
     % look at adjacent cycles for this; I am trying just within
     % oscillation.
-    Peaks(n).flankConsistency = min(rise_amp/decay_amp, decay_amp/rise_amp);
+    Cycles(n).flankConsistency = min(rise_amp/decay_amp, decay_amp/rise_amp);
 end
 
 
 %%% comparing cycles to each other
-for n = 2:numel(Peaks)-1
+for n = 2:numel(Cycles)-1
 
     % period consistency (fraction of previous peak to next peak)
-    P1 = Peaks(n).NegPeakIdx-Peaks(n-1).NegPeakIdx;
-    P2 = Peaks(n+1).NegPeakIdx-Peaks(n).NegPeakIdx;
+    P1 = Cycles(n).NegPeakIdx-Cycles(n-1).NegPeakIdx;
+    P2 = Cycles(n+1).NegPeakIdx-Cycles(n).NegPeakIdx;
 
 
     if isempty(P1)
         P1 = 0;
     end
 
-    Peaks(n).periodConsistency = min([P1/P2, P2/P1]); % take most extreme difference
+    Cycles(n).periodConsistency = min([P1/P2, P2/P1]); % take most extreme difference
 
     % get period as distance between neighboring peaks
-    Peaks(n).period = mean([P1, P2])/fs;
+    Cycles(n).period = mean([P1, P2])/SampleRate;
 
     % mean period consistency across peaks, zero crossings, and trough
-    PP = periodConsistency(Peaks(n-1), Peaks(n), Peaks(n+1), 'periodPos');
-    PN = periodConsistency(Peaks(n-1), Peaks(n), Peaks(n+1), 'periodNeg');
-    Peaks(n).periodMeanConsistency = (PP+PN)/2;
+    PP = periodConsistency(Cycles(n-1), Cycles(n), Cycles(n+1), 'periodPos');
+    PN = periodConsistency(Cycles(n-1), Cycles(n), Cycles(n+1), 'periodNeg');
+    Cycles(n).periodMeanConsistency = (PP+PN)/2;
 
     % amplitude consistency
-    A1 = Peaks(n-1).amplitude;
-    A2 = Peaks(n).amplitude;
-    A3 = Peaks(n+1).amplitude;
+    A1 = Cycles(n-1).amplitude;
+    A2 = Cycles(n).amplitude;
+    A3 = Cycles(n+1).amplitude;
     if isempty(A1)
         A1 = 0;
     end
@@ -111,26 +111,26 @@ for n = 2:numel(Peaks)-1
     end
 
     A = mean([A1, A3]); % use mean so that if ramps, its not inconsistent amp
-    Peaks(n).ampConsistency = min([A/A2, A2/A]);
+    Cycles(n).ampConsistency = min([A/A2, A2/A]);
 %     Peaks(n).ampConsistency = min([A1/A2, A2/A3, A2/A1, A3/A2]);
 
     % count number of extra negative peak and next peak
-    halfWave = Wave(Peaks(n).MidRisingIdx:Peaks(n).NextMidDownID);
-    Peaks(n).nExtraPeaks = nnz(diff(sign(diff(halfWave))) > 1);
+    halfWave = ChannelBroadband(Cycles(n).MidRisingIdx:Cycles(n).NextMidDownID);
+    Cycles(n).nExtraPeaks = nnz(diff(sign(diff(halfWave))) > 1);
 
     % get efficiency relative to closest positive peaks. Pominence is the
     % ampplitude relative to the closest deflections
-    if Peaks(n).nExtraPeaks > 0 && ~isempty(Peaks(n-1).nExtraPeaks) && Peaks(n-1).nExtraPeaks > 0
-        [Peaks(n).prominence, Peaks(n).efficiencyAdj] = adjustPositivePeaks(Wave, ...
-            Peaks(n-1).PosPeakIdx, Peaks(n).MidFallingIdx, Peaks(n).NegPeakIdx, Peaks(n).MidRisingIdx, Peaks(n).PosPeakIdx);
+    if Cycles(n).nExtraPeaks > 0 && ~isempty(Cycles(n-1).nExtraPeaks) && Cycles(n-1).nExtraPeaks > 0
+        [Cycles(n).prominence, Cycles(n).efficiencyAdj] = adjustPositivePeaks(ChannelBroadband, ...
+            Cycles(n-1).PosPeakIdx, Cycles(n).MidFallingIdx, Cycles(n).NegPeakIdx, Cycles(n).MidRisingIdx, Cycles(n).PosPeakIdx);
     else
-        Peaks(n).efficiencyAdj = Peaks(n).efficiency;
-        Peaks(n).prominence = Peaks(n).amplitude;
+        Cycles(n).efficiencyAdj = Cycles(n).efficiency;
+        Cycles(n).prominence = Cycles(n).amplitude;
     end
 end
 
 % remove edge peaks that are empty
-Peaks([1 end]) = [];
+Cycles([1 end]) = [];
 
 end
 
