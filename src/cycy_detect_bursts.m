@@ -36,7 +36,7 @@ end
 % KeepTimepoints (optional) is a vector the same number of timepoints as the EEG data, and
 % should be a 1 if its a clean timepoint, 0 if an artefact. Bursts will not
 % be detected where there are artefacts.
-
+%
 % Part of Matcycle 2022, by Sophia Snipes.
 
 Signs = [1 -1]; % do burst detection on both original and inverted signal
