@@ -34,12 +34,8 @@ else
     end
 end
 
-% convert from cell array to single struct
+% convert from cell array to struct
 Bursts = struct();
 for idxChannel = 1:ChannelCount
-    if isempty(AllChannelBursts{idxChannel})
-        continue
-    end
-
     Bursts = cat_structs(Bursts, AllChannelBursts{idxChannel});
 end
