@@ -7,13 +7,13 @@ function Peaks = cycy_detect_cycles(Wave, fWave)
 % between consecutive peaks.
 % The output is a struct containing all peaks, based on the negative
 % peak and following positive peak.
-
+%
 % Part of Matcycle 2022, by Sophia Snipes.
 
-[DZC, UZC] = getZC(fWave);
+[FallingEdgeZeroCrossing, RisingEdgeZeroCrossing] = detect_zero_crossings(fWave);
 
 %%% Find peaks and troughs between zero crossings
-Peaks = cycy_detect_peaks(DZC, UZC, Wave);
+Peaks = cycy_detect_peaks(FallingEdgeZeroCrossing, RisingEdgeZeroCrossing, Wave);
 
 % final adjustment to positive peaks to make sure they are the largest
 % point between midpoints. % TODO also for negative??
