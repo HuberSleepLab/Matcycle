@@ -33,7 +33,6 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
-    %     CurrCycle = measure_(CurrCycle, ChannelBroadband);
 
     AugmentedCycles(idxCycle) = CurrCycle;
 end
