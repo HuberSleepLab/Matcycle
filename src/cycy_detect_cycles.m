@@ -5,7 +5,7 @@ function Cycles = cycy_detect_cycles(ChannelBroadband, ChannelNarrowband)
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-[RisingEdgeZeroCrossings, FallingEdgeZeroCrossings] = detect_zero_crossings(ChannelNarrowband);
+[RisingEdgeZeroCrossings, FallingEdgeZeroCrossings] = cycy_detect_zero_crossings(ChannelNarrowband);
 
 %%% Find peaks and troughs between zero crossings
 Cycles = cycy_detect_peaks(RisingEdgeZeroCrossings, FallingEdgeZeroCrossings, ChannelBroadband);

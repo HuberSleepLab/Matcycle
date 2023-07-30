@@ -1,4 +1,4 @@
-function [RisingEdgeCrossings, FallingEdgeCrossings] = detect_zero_crossings(Signal)
+function [RisingEdgeCrossings, FallingEdgeCrossings] = cycy_detect_zero_crossings(Signal)
 % finds all the timepoints in which the signal goes from positive to 
 % negative (falling edge zero-crossing) and from negative to positive
 % (rising edge zero-crossing).
