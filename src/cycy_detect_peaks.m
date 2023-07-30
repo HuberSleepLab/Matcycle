@@ -2,6 +2,9 @@ function [NegPeaks, PosPeaks] = cycy_detect_peaks(FallingEdgeZeroCrossings, Risi
 % Finds the negative and positive peaks between zero-crossings. NegPeaks
 % and PosPeaks are (2 x number of peaks) arrays, with peak indexes in the first
 % row, and amplitudes in the second.
+% Caution: the first rising edge zero-crossing must come at an earlier
+% timepoint than the first falling edge zero-crossing (sequence starts with 
+% a positive cycle).
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
