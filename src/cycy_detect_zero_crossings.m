@@ -7,16 +7,7 @@ function [RisingEdgeCrossings, FallingEdgeCrossings] = cycy_detect_zero_crossing
 % sequence starts with a positive cycle).
 % Part of Matcycle 2022, by Sophia Snipes.
 
-SignSignal = sign(Signal);
-
-% fix edgecase where slope is exactly 0
-SignSignal(SignSignal == 0) = 1;
-
-FallingEdgeCrossings = find(diff(SignSignal) < 0);
-RisingEdgeCrossings = find(diff(SignSignal) > 0);
-
-% attributes the rising edge zero-crossing index to the right-side datapoint
-RisingEdgeCrossings = RisingEdgeCrossings + 1;
+[RisingEdgeCrossings, FallingEdgeCrossings] = detect_crossings(Signal, 0);
 
 % Ensure that the first index is always a rising edge zero-crossing
 if RisingEdgeCrossings(1) >= FallingEdgeCrossings(1)
