@@ -22,33 +22,26 @@ for idxCycle = 1:numel(Cycles)
         NextCycle = Cycles(idxCycle+1);
     end
 
-    CurrCycle = measure_amplitudes(CurrCycle, ChannelBroadband);
+    CurrCycle = measure_voltages(CurrCycle, ChannelBroadband);
     CurrCycle = is_true_peak(CurrCycle);
 
     CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
-    Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
+    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
+    CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
+    CurrCycle = measure_amplitude_ramp(Cycle, ChannelBroadband);
+
 
     AugmentedCycles(idxCycle) = CurrCycle;
 end
 end
 
-function Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% Returns a boolean, if the negative peak is prominent with respects to the
-% two neighboring negative cycles.
 
-
-MidpointFallingEdge = (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
-Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
-
-
+function Cycle = measure_amplitude(Cycle, ChannelBroadband)
+Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
+    - ChannelBroadband(Cycle.NegPeakIdx);
 end
-% 
-% function Cycle = count_crossings(Wave, Threshold)
-% 
-% end
 
-
-function Cycle = measure_amplitudes(Cycle, ChannelBroadband)
+function Cycle = measure_voltages(Cycle, ChannelBroadband)
 Cycle.VoltagePrevPos = ChannelBroadband(Cycle.PrevPosPeakIdx);
 Cycle.VoltageNeg = ChannelBroadband(Cycle.NegPeakIdx);
 Cycle.VoltageNextPos = ChannelBroadband(Cycle.NextPosPeakIdx);
@@ -71,5 +64,36 @@ else
 end
 end
 
+function Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+% Returns a boolean, if the negative peak is prominent with respects to the
+% two neighboring negative cycles.
 
+MidpointFallingEdge = (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
+Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
+[~, FallingEdgeCrossings] = detect_crossings(Cycle1Signal, MidpointFallingEdge);
+
+MidpointRisingEdge = (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
+Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
+[RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
+
+Cycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
+end
+
+function Cycle = measure_amplitude_ramp(Cycle, ChannelBroadband)
+% determines whether the rising edge is larger or smaller than the falling
+% edge.
+% FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
+% RisingEdge = diff(ChannelBroadband([ Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
+
+PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
+NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
+
+if PrevPosPeak < NextPosPeak
+    Cycle.AmplitudeRamp = 1;
+elseif PrevPosPeak > NextPosPeak
+    Cycle.AmplitudeRamp = -1;
+else
+    Cycle.AmplitudeRamp = 0;
+end
+end
 
