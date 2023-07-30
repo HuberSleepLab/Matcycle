@@ -38,18 +38,52 @@ for idxCycle = 1:numel(Cycles)
     AugmentedCycles(idxCycle) = CurrCycle;
 end
 
-% This is a separate for loop for determining properties that require 
-% the properties of the next cycle to already be calculated.
+%%%
 
+% This is a separate for loop for determining properties that require
+% the properties of the next cycle to already be calculated.
+for idxCycle = 2:numel(AugmentedCycles)-1
+    CurrCycle = AugmentedCycles(idxCycle);
+    PrevCycle = AugmentedCycles(idxCycle-1);
+    NextCycle = AugmentedCycles(idxCycle+1);
+
+
+%     CurrCycle = measure_(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
+    AugmentedCycles(idxCycle) = CurrCycle;
+end
+
+% remove edge peaks that are empty
+AugmentedCycles([1 end]) = [];
 end
 
 
-% function Cycle = measure_(Cycle, ChannelBroadband)
-%
-% end
-% function Cycle = measure_(Cycle, ChannelBroadband)
-%
-% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% functions
+
+function Cycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+
+end
+
+function Cycle = measure_period_mean_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+% I dont understand this one atm (oh mean consistency across both positive
+% and negative periods)
+% not going to do this one
+end
+
+function Cycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+
+end
+
+function Cycle = count_extra_peaks(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+
+end
+
+function Cycle = measure_notched_efficiency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+% calculate efficiency by taking the nearest positive peaks rather than the
+% largest positive peaks ?
+% wont do prominence
+end
+
 
 function Cycle = measure_amplitude(Cycle, ChannelBroadband)
 Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
