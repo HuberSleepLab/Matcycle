@@ -28,13 +28,13 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
     CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_amplitude_ramp(Cycle, ChannelBroadband);
+    CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
+    CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
 
 
     AugmentedCycles(idxCycle) = CurrCycle;
 end
 end
-
 
 function Cycle = measure_amplitude(Cycle, ChannelBroadband)
 Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
@@ -82,8 +82,6 @@ end
 function Cycle = measure_amplitude_ramp(Cycle, ChannelBroadband)
 % determines whether the rising edge is larger or smaller than the falling
 % edge.
-% FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
-% RisingEdge = diff(ChannelBroadband([ Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
 
 PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
 NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
@@ -95,5 +93,12 @@ elseif PrevPosPeak > NextPosPeak
 else
     Cycle.AmplitudeRamp = 0;
 end
+end
+
+function Cycle = measure_flank_consistency(Cycle, ChannelBroadband)
+FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
+RisingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
+
+Cycle.FlankConsistency = min(FallingEdge/RisingEdge, RisingEdge/FallingEdge);
 end
 
