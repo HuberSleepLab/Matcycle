@@ -30,11 +30,26 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
     CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
     CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
-
+    CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
+    CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, ChannelBroadband);
+    CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
+    %     CurrCycle = measure_(CurrCycle, ChannelBroadband);
 
     AugmentedCycles(idxCycle) = CurrCycle;
 end
+
+% This is a separate for loop for determining properties that require 
+% the properties of the next cycle to already be calculated.
+
 end
+
+
+% function Cycle = measure_(Cycle, ChannelBroadband)
+%
+% end
+% function Cycle = measure_(Cycle, ChannelBroadband)
+%
+% end
 
 function Cycle = measure_amplitude(Cycle, ChannelBroadband)
 Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
@@ -100,5 +115,38 @@ FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
 RisingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
 
 Cycle.FlankConsistency = min(FallingEdge/RisingEdge, RisingEdge/FallingEdge);
+end
+
+function Cycle = measure_monotonicity_in_time(Cycle, ChannelBroadband)
+PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
+NegPeak =  ChannelBroadband(Cycle.NegPeakIdx);
+NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
+
+FallingEdgeDiff = diff(ChannelBroadband(PrevPosPeak:NegPeak));
+RisingEdgeDiff = diff(ChannelBroadband(NegPeak:NextPosPeak));
+
+if numel(FallingEdgeDiff) < 2 || numel(RisingEdgeDiff) < 2
+    Cycle.MonotonicityInTime = 0;
+else
+    Cycle.MonotonicityInTime = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
+        numel([FallingEdgeDiff, RisingEdgeDiff]); % TODO: make sure total doesn't duplicate midpoint?
+end
+end
+
+function Cycle = measure_monotonicity_in_voltage(Cycle, ChannelBroadband)
+PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
+NegPeak =  ChannelBroadband(Cycle.NegPeakIdx);
+NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
+
+FallingEdgeDiff = diff(ChannelBroadband(PrevPosPeak:NegPeak));
+RisingEdgeDiff = diff(ChannelBroadband(NegPeak:NextPosPeak));
+
+MaxFallingEdge = diff(ChannelBroadband([NegPeak PrevPosPeak]));
+MaxRisingEdge = diff(ChannelBroadband([NegPeak NextPosPeak]));
+
+FallingEdgeEfficiency = (MaxFallingEdge - sum(abs(FallingEdgeDiff(FallingEdgeDiff>0))))/MaxFallingEdge;
+RisingEdgeEfficiency = (MaxRisingEdge-sum(abs(RisingEdgeDiff(RisingEdgeDiff<0))))/MaxRisingEdge;
+
+Cycle.MonotonicityVoltage = max(0, min(FallingEdgeEfficiency, RisingEdgeEfficiency));
 end
 
