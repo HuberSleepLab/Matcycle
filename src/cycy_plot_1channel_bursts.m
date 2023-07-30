@@ -11,8 +11,8 @@ figure('Units','normalized','OuterPosition',[0 0 1 1])
 ax1 = subplot(3, 1, 1);
 hold on
 plot(t, Wave, 'Color', [.4 .4 .4])
-scatter(t([Peaks.NegPeakID]), Wave([Peaks.NegPeakID]), 'MarkerEdgeColor', [.2 .2 .2])
-scatter(t([Peaks(BurstPeakIDs).NegPeakID]), Wave([Peaks(BurstPeakIDs).NegPeakID]), 'filled', 'MarkerFaceColor', getColors(1, 1, 'red'))
+scatter(t([Peaks.NegPeakIdx]), Wave([Peaks.NegPeakIdx]), 'MarkerEdgeColor', [.2 .2 .2])
+scatter(t([Peaks(BurstPeakIDs).NegPeakIdx]), Wave([Peaks(BurstPeakIDs).NegPeakIdx]), 'filled', 'MarkerFaceColor', getColors(1, 1, 'red'))
 
 legend({'data', 'all peaks', 'peaks in burst'})
 
@@ -50,11 +50,11 @@ for Indx_C = 1:numel(ThresholdFields) % loop through all provided thresholds
     end
 
     % plot all points
-    plot(t([Peaks.NegPeakID]), PeakField, 'o-', 'Color', Colors(Indx_C, :), 'LineWidth', 1.5)
+    plot(t([Peaks.NegPeakIdx]), PeakField, 'o-', 'Color', Colors(Indx_C, :), 'LineWidth', 1.5)
 
     % plot kept points
     Keep = PeakField >= T;
-    scatter(t([Peaks(Keep).NegPeakID]), PeakField(Keep), 'filled', 'MarkerFaceColor', Colors(Indx_C, :), 'HandleVisibility','off')
+    scatter(t([Peaks(Keep).NegPeakIdx]), PeakField(Keep), 'filled', 'MarkerFaceColor', Colors(Indx_C, :), 'HandleVisibility','off')
 end
 
 disp(ThresholdFields(RM))
@@ -71,14 +71,14 @@ hold on
 title('Frequency')
 
 Colors = getColors([1, 3], '', 'red');
-plot(t([Peaks.NegPeakID]), 1./[Peaks.periodPos], 'o-', 'Color', Colors(1, :))
-plot(t([Peaks.NegPeakID]), 1./[Peaks.periodNeg], 'o-', 'Color', Colors(2, :))
+plot(t([Peaks.NegPeakIdx]), 1./[Peaks.periodPos], 'o-', 'Color', Colors(1, :))
+plot(t([Peaks.NegPeakIdx]), 1./[Peaks.periodNeg], 'o-', 'Color', Colors(2, :))
 
 if isfield(Peak_Thresholds, 'period')
     Peak_Thresholds.period = sort(Peak_Thresholds.period);
     Keep = Period >= Peak_Thresholds.period(1) &  Period <= Peak_Thresholds.period(2);
-    plot(t([Peaks.NegPeakID]), 1./Period, 'ko-')
-    scatter(t([Peaks(Keep).NegPeakID]), 1./Period(Keep), 'filled', 'MarkerFaceColor', 'k', 'HandleVisibility','off')
+    plot(t([Peaks.NegPeakIdx]), 1./Period, 'ko-')
+    scatter(t([Peaks(Keep).NegPeakIdx]), 1./Period(Keep), 'filled', 'MarkerFaceColor', 'k', 'HandleVisibility','off')
 end
 
 legend({'peak zc', 'trough zc', 'peak', 'trough'})

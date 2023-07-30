@@ -61,7 +61,7 @@ end
 % also ignore peaks in 0 timepoints of Keep_Time
 if ~isempty(Keep_Points)
     Keep_Points = find(Keep_Points);
-    Peak_Points = [Peaks.NegPeakID];
+    Peak_Points = [Peaks.NegPeakIdx];
     C = ismember(Peak_Points, Keep_Points);
     Candidates = cat(1, Candidates, C);
     Diagnostics.Noise = nnz(~C);
@@ -166,8 +166,8 @@ for Indx_S = 1:numel(Starts)
     %%% get properties of the burst itself
 
     % start, end, duration
-    Bursts(Indx_S).Start = Peaks(IDs(1)-1).PosPeakID;
-    Bursts(Indx_S).End =  Bursts(Indx_S).PosPeakID(end);
+    Bursts(Indx_S).Start = Peaks(IDs(1)-1).PosPeakIdx;
+    Bursts(Indx_S).End =  Bursts(Indx_S).PosPeakIdx(end);
 end
 
 BurstPeakIDs = [Bursts.PeakIDs];

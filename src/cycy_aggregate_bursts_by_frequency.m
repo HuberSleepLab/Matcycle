@@ -85,7 +85,7 @@ for Indx_B = 1:nBursts
 
     Coh_Bursts = [];
     for Indx_O = 1:numel(Overlap)
-        Ref_Peaks = AllBursts(Indx_B).NegPeakID; % get location of all peaks in reference burst
+        Ref_Peaks = AllBursts(Indx_B).NegPeakIdx; % get location of all peaks in reference burst
 
         % identify in reference the peaks that overlap with other burst
         Start_Overlap = max(AllBursts(Indx_B).Start, Starts_O(Indx_O));
@@ -104,7 +104,7 @@ for Indx_B = 1:nBursts
         FreqRange = [Freq-MinFreqRange, Freq+MinFreqRange];
 
         % identify overlapping peaks in other burst
-        Other_Peaks = AllBursts(Overlap(Indx_O)).NegPeakID;
+        Other_Peaks = AllBursts(Overlap(Indx_O)).NegPeakIdx;
         Overlap_OtherPeaks = Other_Peaks>=Start_Overlap & Other_Peaks<=End_Overlap;
 
         % get frequency of overlapping segment in other burst
@@ -156,8 +156,8 @@ for Indx_B = 1:nBursts
         NewB.Coh_Burst_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
         NewB.Coh_Burst_amplitude_sum(Indx_C) = sum(AllBursts(Coh_Bursts(Indx_C)).amplitude);
 
-        Coh_Peaks(Indx_C).NegPeakID = AllBursts(Coh_Bursts(Indx_C)).NegPeakID;
-        Coh_Peaks(Indx_C).PosPeakID = AllBursts(Coh_Bursts(Indx_C)).PosPeakID;
+        Coh_Peaks(Indx_C).NegPeakIdx = AllBursts(Coh_Bursts(Indx_C)).NegPeakIdx;
+        Coh_Peaks(Indx_C).PosPeakIdx = AllBursts(Coh_Bursts(Indx_C)).PosPeakIdx;
     end
     NewB.Coh_Burst_Peaks = Coh_Peaks;
 

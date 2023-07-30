@@ -62,7 +62,7 @@ for Indx_B = 1:numel(Bursts)
     End = Ends(Indx_B);
 
     % see if any peaks are still in the boundaries
-    Peaks = Bursts(Indx_B).NegPeakID;
+    Peaks = Bursts(Indx_B).NegPeakIdx;
     nPeaks_original = numel(Peaks);
     KeepPeaks = Peaks >= Start & Peaks <= End;
 

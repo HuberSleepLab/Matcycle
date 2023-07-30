@@ -12,25 +12,25 @@ for Indx_B = 1:numel(Bursts)
 
     % decay-rise symmetry (fraction of the halfperiod that is compsed of the
     % down slope)
-    Bursts(Indx_B).drsym = getDRSYM(B.MidDownID, B.NegPeakID, B.MidUpID);
+    Bursts(Indx_B).drsym = getDRSYM(B.MidFallingIdx, B.NegPeakIdx, B.MidRisingIdx);
 
 
     % positive and negative slopes (in miV/s) from midpoints
     [Bursts(Indx_B).slopeDecay, Bursts(Indx_B).slopeRise] = getSlopes(Wave, fs, ...
-        B.MidDownID, B.NegPeakID, B.MidUpID); % TOCHECK if this works with multiple peaks
+        B.MidFallingIdx, B.NegPeakIdx, B.MidRisingIdx); % TOCHECK if this works with multiple peaks
 
     % period based on positive peaks' distance
-    rise_period = B.PosPeakID - B.NegPeakID;
-    decay_period = B.NegPeakID - B.PrevPosPeakID;
+    rise_period = B.PosPeakIdx - B.NegPeakIdx;
+    decay_period = B.NegPeakIdx - B.PrevPosPeakID;
     Bursts(Indx_B).periodPeakPos = (rise_period+decay_period)/fs;
 
     % trough-peak symmetry
-    Bursts(Indx_B).tpsym = getTPSYM(B.MidDownID, B.MidUpID, B.NextMidDownID);
+    Bursts(Indx_B).tpsym = getTPSYM(B.MidFallingIdx, B.MidRisingIdx, B.NextMidDownID);
 
     % get degree of roundedness of the peak
-    Bursts(Indx_B).roundinessNeg = getRoundiness(Wave, B.MidDownID, B.NegPeakID, ...
-        B.MidUpID);
-    Bursts(Indx_B).roundinessPos = getRoundiness(-Wave, B.MidUpID, B.PosPeakID, ...
+    Bursts(Indx_B).roundinessNeg = getRoundiness(Wave, B.MidFallingIdx, B.NegPeakIdx, ...
+        B.MidRisingIdx);
+    Bursts(Indx_B).roundinessPos = getRoundiness(-Wave, B.MidRisingIdx, B.PosPeakIdx, ...
         B.NextMidDownID);
 
     Bursts(Indx_B).roundiness = (Bursts(Indx_B).roundinessNeg+Bursts(Indx_B).roundinessPos)/2;

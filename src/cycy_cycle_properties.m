@@ -12,27 +12,27 @@ for n = 2:numel(Peaks)-1
 
     NextP = Peaks(n+1);
 
-    if min(Wave(P.MidDownID:P.MidUpID)) < Wave(P.NegPeakID) ...
-            || P.NegPeakID == P.MidUpID || P.NegPeakID == P.MidDownID % if peak coincided with edges of zero-crossings
+    if min(Wave(P.MidFallingIdx:P.MidRisingIdx)) < Wave(P.NegPeakIdx) ...
+            || P.NegPeakIdx == P.MidRisingIdx || P.NegPeakIdx == P.MidFallingIdx % if peak coincided with edges of zero-crossings
         Peaks(n).truePeak = 0;
     else
         Peaks(n).truePeak = 1;
     end
 
-    Peaks(n).voltageNeg = Wave(P.NegPeakID);
-    Peaks(n).voltagePos = Wave(P.PosPeakID);
+    Peaks(n).voltageNeg = Wave(P.NegPeakIdx);
+    Peaks(n).voltagePos = Wave(P.PosPeakIdx);
 
     % periods
-    Peaks(n).periodNeg = 2*(P.MidUpID - P.MidDownID)/fs;
-    Peaks(n).periodPos = 2*(P.NextMidDownID - P.MidUpID)/fs;
+    Peaks(n).periodNeg = 2*(P.MidRisingIdx - P.MidFallingIdx)/fs;
+    Peaks(n).periodPos = 2*(P.NextMidDownID - P.MidRisingIdx)/fs;
 
     % Prominance as boolean on whether there are any midpoint crossings
     % between the current peak's midpoint, and the previous one's.
-    halfWave = Wave(PrevP.MidUpID:P.MidDownID-1);
-    nCrossingsPre = nnz(diff(sign(halfWave-Wave(P.MidDownID))));
+    halfWave = Wave(PrevP.MidRisingIdx:P.MidFallingIdx-1);
+    nCrossingsPre = nnz(diff(sign(halfWave-Wave(P.MidFallingIdx))));
 
-    halfWave = Wave(P.MidUpID+1:NextP.MidDownID);
-    nCrossingsPost = nnz(diff(sign(halfWave-Wave(P.MidUpID))));
+    halfWave = Wave(P.MidRisingIdx+1:NextP.MidFallingIdx);
+    nCrossingsPost = nnz(diff(sign(halfWave-Wave(P.MidRisingIdx))));
 
     if nCrossingsPre > 1 || nCrossingsPost > 1
         %  if nCrossingsPre > 1 && nCrossingsPost > 1
@@ -44,8 +44,8 @@ for n = 2:numel(Peaks)-1
 
     % Amplitude as average between distance to positive peaks surrounding
     % this negative peak.
-    decay_amp = Wave(P.PrevPosPeakID) - Wave(P.NegPeakID);
-    rise_amp = Wave(P.PosPeakID) - Wave(P.NegPeakID);
+    decay_amp = Wave(P.PrevPosPeakID) - Wave(P.NegPeakIdx);
+    rise_amp = Wave(P.PosPeakIdx) - Wave(P.NegPeakIdx);
     Peaks(n).amplitude = (rise_amp + decay_amp)/2;
 
     % get direction of amplitude change
@@ -65,7 +65,7 @@ for n = 2:numel(Peaks)-1
     % monotonicity (degree to which both flanks go in the correct
     % direction) in time
     [Peaks(n).efficiency, Peaks(n).monotonicity, Peaks(n).monDecay, Peaks(n).monRise] = ...
-        flankInfo(Wave, P.PrevPosPeakID, P.NegPeakID, P.PosPeakID);
+        flankInfo(Wave, P.PrevPosPeakID, P.NegPeakIdx, P.PosPeakIdx);
 
 
 
@@ -80,8 +80,8 @@ end
 for n = 2:numel(Peaks)-1
 
     % period consistency (fraction of previous peak to next peak)
-    P1 = Peaks(n).NegPeakID-Peaks(n-1).NegPeakID;
-    P2 = Peaks(n+1).NegPeakID-Peaks(n).NegPeakID;
+    P1 = Peaks(n).NegPeakIdx-Peaks(n-1).NegPeakIdx;
+    P2 = Peaks(n+1).NegPeakIdx-Peaks(n).NegPeakIdx;
 
 
     if isempty(P1)
@@ -115,14 +115,14 @@ for n = 2:numel(Peaks)-1
 %     Peaks(n).ampConsistency = min([A1/A2, A2/A3, A2/A1, A3/A2]);
 
     % count number of extra negative peak and next peak
-    halfWave = Wave(Peaks(n).MidUpID:Peaks(n).NextMidDownID);
+    halfWave = Wave(Peaks(n).MidRisingIdx:Peaks(n).NextMidDownID);
     Peaks(n).nExtraPeaks = nnz(diff(sign(diff(halfWave))) > 1);
 
     % get efficiency relative to closest positive peaks. Pominence is the
     % ampplitude relative to the closest deflections
     if Peaks(n).nExtraPeaks > 0 && ~isempty(Peaks(n-1).nExtraPeaks) && Peaks(n-1).nExtraPeaks > 0
         [Peaks(n).prominence, Peaks(n).efficiencyAdj] = adjustPositivePeaks(Wave, ...
-            Peaks(n-1).PosPeakID, Peaks(n).MidDownID, Peaks(n).NegPeakID, Peaks(n).MidUpID, Peaks(n).PosPeakID);
+            Peaks(n-1).PosPeakIdx, Peaks(n).MidFallingIdx, Peaks(n).NegPeakIdx, Peaks(n).MidRisingIdx, Peaks(n).PosPeakIdx);
     else
         Peaks(n).efficiencyAdj = Peaks(n).efficiency;
         Peaks(n).prominence = Peaks(n).amplitude;

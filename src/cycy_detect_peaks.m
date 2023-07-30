@@ -11,14 +11,14 @@ for n = 1:length(FallingEdgeZeroCrossings)
     % adjust negative peak index to absolute value in channel signal
     NegPeakIdx = RelativeNegPeakIdx + FallingEdgeZeroCrossings(n) - 1;
 
-    Peaks(n).NegPeakID = NegPeakIdx;
+    Peaks(n).NegPeakIdx = NegPeakIdx;
 
 
     % same for positive peak
     if n < length(FallingEdgeZeroCrossings)
         [PosPeakAmp, PosPeakID] = max(ChannelBroadband(RisingEdgeZeroCrossings(n):FallingEdgeZeroCrossings(n+1)));
         PosPeakID = PosPeakID + RisingEdgeZeroCrossings(n) - 1;
-        Peaks(n).PosPeakID = PosPeakID;
+        Peaks(n).PosPeakIdx = PosPeakID;
 
         %%% Find midpoints (first point that crosses midpoint)
 
@@ -31,15 +31,15 @@ for n = 1:length(FallingEdgeZeroCrossings)
         else
             MidUpID = MidUpID + NegPeakIdx - 1;
         end
-        Peaks(n).MidUpID = MidUpID;
+        Peaks(n).MidRisingIdx = MidUpID;
     else
-        Peaks(n).PosPeakID =RisingEdgeZeroCrossings(n)+1;
-        Peaks(n).MidUpID = RisingEdgeZeroCrossings(n);
+        Peaks(n).PosPeakIdx =RisingEdgeZeroCrossings(n)+1;
+        Peaks(n).MidRisingIdx = RisingEdgeZeroCrossings(n);
     end
 
     % before peak
     if n > 1
-        PrevPosPeakID = Peaks(n-1).PosPeakID;
+        PrevPosPeakID = Peaks(n-1).PosPeakIdx;
         PrevPosAmp = ChannelBroadband(PrevPosPeakID);
         MidDownAmp = PrevPosAmp + (NegPeakAmplitude-PrevPosAmp)/2;
         halfWave = ChannelBroadband(PrevPosPeakID:NegPeakIdx);
@@ -49,9 +49,9 @@ for n = 1:length(FallingEdgeZeroCrossings)
         else
             MidDownID = MidDownID + PrevPosPeakID - 1;
         end
-        Peaks(n).MidDownID = MidDownID;
+        Peaks(n).MidFallingIdx = MidDownID;
     else
-        Peaks(n).MidDownID = FallingEdgeZeroCrossings(n);
+        Peaks(n).MidFallingIdx = FallingEdgeZeroCrossings(n);
     end
 end
 

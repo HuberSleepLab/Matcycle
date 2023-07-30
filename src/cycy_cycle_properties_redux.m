@@ -8,25 +8,25 @@ function Peaks = cycy_cycle_properties_redux(Wave, Peaks, fs)
 
 for n = 2:numel(Peaks)-1
     P = Peaks(n);
-    if min(Wave(P.MidDownID:P.MidUpID)) < Wave(P.NegPeakID) ...
-            || P.NegPeakID == P.MidUpID || P.NegPeakID == P.MidDownID % if peak coincided with edges of zero-crossings
+    if min(Wave(P.MidFallingIdx:P.MidRisingIdx)) < Wave(P.NegPeakIdx) ...
+            || P.NegPeakIdx == P.MidRisingIdx || P.NegPeakIdx == P.MidFallingIdx % if peak coincided with edges of zero-crossings
         Peaks(n).truePeak = 0;
     else
         Peaks(n).truePeak = 1;
     end
 
-    Peaks(n).voltageNeg = Wave(P.NegPeakID);
-    Peaks(n).voltagePos = Wave(P.PosPeakID);
+    Peaks(n).voltageNeg = Wave(P.NegPeakIdx);
+    Peaks(n).voltagePos = Wave(P.PosPeakIdx);
 
     % periods
-    Peaks(n).periodNeg = 2*(P.MidUpID - P.MidDownID)/fs;
-    Peaks(n).periodPos = 2*(P.NextMidDownID - P.MidUpID)/fs;
+    Peaks(n).periodNeg = 2*(P.MidRisingIdx - P.MidFallingIdx)/fs;
+    Peaks(n).periodPos = 2*(P.NextMidDownID - P.MidRisingIdx)/fs;
 
 
     % Amplitude as average between distance to positive peaks surrounding
     % this negative peak.
-    decay_amp = Wave(P.PrevPosPeakID) - Wave(P.NegPeakID);
-    rise_amp = Wave(P.PosPeakID) - Wave(P.NegPeakID);
+    decay_amp = Wave(P.PrevPosPeakID) - Wave(P.NegPeakIdx);
+    rise_amp = Wave(P.PosPeakIdx) - Wave(P.NegPeakIdx);
     Peaks(n).amplitude = (rise_amp + decay_amp)/2;
 
 end
@@ -36,8 +36,8 @@ end
 for n = 2:numel(Peaks)-1
 
     % period consistency (fraction of previous peak to next peak)
-    P1 = Peaks(n).NegPeakID-Peaks(n-1).NegPeakID;
-    P2 = Peaks(n+1).NegPeakID-Peaks(n).NegPeakID;
+    P1 = Peaks(n).NegPeakIdx-Peaks(n-1).NegPeakIdx;
+    P2 = Peaks(n+1).NegPeakIdx-Peaks(n).NegPeakIdx;
 
 
     if isempty(P1)

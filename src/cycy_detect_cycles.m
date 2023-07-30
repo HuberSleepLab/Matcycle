@@ -13,16 +13,16 @@ Cycles = cycy_detect_peaks(FallingEdgeZeroCrossings, RisingEdgeZeroCrossings, Ch
 % final adjustment to positive peaks to make sure they are the largest
 % point between midpoints. % TODO also for negative??
 for n = 1:numel(Cycles)-1
-    [~, PosPeakID] = max(ChannelBroadband(Cycles(n).MidUpID:Cycles(n+1).MidDownID));
-    PosPeakID = PosPeakID + Cycles(n).MidUpID - 1;
-    Cycles(n).PosPeakID = PosPeakID;
-    Cycles(n).NextMidDownID = Cycles(n+1).MidDownID;
+    [~, PosPeakID] = max(ChannelBroadband(Cycles(n).MidRisingIdx:Cycles(n+1).MidFallingIdx));
+    PosPeakID = PosPeakID + Cycles(n).MidRisingIdx - 1;
+    Cycles(n).PosPeakIdx = PosPeakID;
+    Cycles(n).NextMidDownID = Cycles(n+1).MidFallingIdx;
     if n>1
-        Cycles(n).PrevPosPeakID = Cycles(n-1).PosPeakID;
+        Cycles(n).PrevPosPeakID = Cycles(n-1).PosPeakIdx;
     end
 end
 
 % remove last peak if it's positive peak doesn't exist:
-if Cycles(n).PosPeakID > numel(ChannelBroadband)
+if Cycles(n).PosPeakIdx > numel(ChannelBroadband)
     Cycles(end) = [];
 end

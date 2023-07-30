@@ -114,8 +114,8 @@ for Indx_B = 1:nBursts
     Coh_Peaks = struct();
     for Indx_C = 1:numel(Coh_Bursts)
         NewB.Coh_amplitude(Indx_C) = mean(AllBursts(Coh_Bursts(Indx_C)).amplitude);
-        Coh_Peaks(Indx_C).NegPeakID = AllBursts(Coh_Bursts(Indx_C)).NegPeakID;
-         Coh_Peaks(Indx_C).PosPeakID = AllBursts(Coh_Bursts(Indx_C)).PosPeakID;
+        Coh_Peaks(Indx_C).NegPeakIdx = AllBursts(Coh_Bursts(Indx_C)).NegPeakIdx;
+         Coh_Peaks(Indx_C).PosPeakIdx = AllBursts(Coh_Bursts(Indx_C)).PosPeakIdx;
     end
     NewB.Coh_Burst_Peaks = Coh_Peaks; % for travelling eventually?
 
