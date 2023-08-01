@@ -70,7 +70,7 @@ for idxBand = 1:numel(BandLabels)
             CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 
             % find bursts
-            [BurstsSubset, ~] = cycy.aggregate_cycles(Cycles, CriteriaSet, KeepTimepoints);
+            [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints);
 
             % add metadata
             Metadata = struct();

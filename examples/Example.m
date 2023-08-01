@@ -106,7 +106,7 @@ fSignal = NarrowbandEEG.data(1, :);
 Cycles = cycy.detect_cycles(Signal, fSignal);
 Cycles = cycy.measure_cycle_properties(Signal, Cycles, fs);
 
-[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles(Cycles, CriteriaSets, Keep_Points);
+[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSets, Keep_Points);
 cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, CriteriaSets)
 
 %% Get bursts for each channel
@@ -143,7 +143,7 @@ fSignal = NarrowbandEEG.data(1, :);
 Cycles = cycy.detect_cycles(Signal, fSignal);
 Cycles = cycy.measure_cycle_properties(Signal, Cycles, fs);
 BT = remove_empty_fields_from_struct(CriteriaSets(1));
-[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles(Cycles, BT, MinCyclesPerBurst, Keep_Points);
+[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles_into_bursts(Cycles, BT, MinCyclesPerBurst, Keep_Points);
 cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, BT)
 
 % get bursts in all data
