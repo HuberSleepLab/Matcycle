@@ -67,17 +67,23 @@ function CurrCycle = measure_period_mean_consistency(PrevCycle, CurrCycle, NextC
 end
 
 function CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+% TODO
+CurrCycle.AmplitudeConsistency = 0;
 
 end
 
 function CurrCycle = count_extra_peaks(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 
+%TODO
+CurrCycle.ExtraPeaksCount = 0;
+
 end
 
-function CurrCycle = measure_notched_efficiency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = measure_notched_monotonicity(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 % calculate efficiency by taking the nearest positive peaks rather than the
 % largest positive peaks ?
 % wont do prominence
+CurrCycle.NotchedMonotonicity = 0; % TODO
 end
 
 
