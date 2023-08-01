@@ -4,90 +4,17 @@ function Bursts = remove_overlapping_bursts(Bursts, MinCyclesPerBurst)
 % remove all the bursts that are now too small.
 
 % Part of Matcycle 2022, by Sophia Snipes.
-
+% TODO: only keep chopped off burst if larger than min cycles for that
+% criteriaset from which it originates. 
 
 if numel(fieldnames(Bursts)) == 0
     return
 end
 
-Starts = [Bursts.Start];
-Ends = [Bursts.End];
-nBursts = numel(Starts);
+BurstsCountInitial = numel(Bursts);
 
-RM = false(size(Starts));
-Done = false(size(Starts));
-
-
-% loops through starts, finds overlap; leaves the biggest burst intact,
-% adjusts the starts and ends of the others so they're outside the burst.
-while any(~Done)
-    Durations = Ends-Starts;
-    Durations(Done) = nan; % ignore all bursts already done
-
-    if ~any(Durations > 0)
-        RM(Durations<=0) = true;
-        break
-    end
-
-    % get largest duration that hasn't been looked at yet
-    [~, MainBurst] = max(Durations);
-    Done(MainBurst) = true;
-
-    Start_Edge = Starts(MainBurst);
-    End_Edge = Ends(MainBurst);
-
-    % get all the overlaps with this large burst
-    Overlap_Starts = Starts >= Start_Edge & Starts < End_Edge & ~Done;
-    Overlap_Ends = Ends > Start_Edge & Ends <= End_Edge & ~Done;
-
-    % move their starts and ends to the outside of the large burst.
-    Starts(Overlap_Starts) = End_Edge;
-    Ends(Overlap_Ends) = Start_Edge;
-end
-
-Bursts(RM) = [];
-Starts(RM) = [];
-Ends(RM) = [];
-
-
-
-%%% goes through remaining bursts, and removes chopped off peaks, and if
-%%% there are no longer 3 cycles left, removes this little burst entirely.
-Fields = fieldnames(Bursts);
-RM = zeros(size(Starts));
-for Indx_B = 1:numel(Bursts)
-
-    % get new boundaries
-    Start = Starts(Indx_B);
-    End = Ends(Indx_B);
-
-    % see if any peaks are still in the boundaries
-    Peaks = Bursts(Indx_B).NegPeakIdx;
-    nPeaks_original = numel(Peaks);
-    KeepPeaks = Peaks >= Start & Peaks <= End;
-
-    % if not enough peaks, remove the burst
-    if nnz(KeepPeaks) < MinCyclesPerBurst
-        RM(Indx_B) = 1;
-        continue
-    end
-
-    % save new start and end times
-    Bursts(Indx_B).Start = Start;
-    Bursts(Indx_B).End = End;
-
-    % remove information about peaks no longer in burst
-    for Indx_F = 1:numel(Fields)
-        F = Fields{Indx_F};
-        if numel(Bursts(Indx_B).(F)) == nPeaks_original
-            Bursts(Indx_B).(F) = Bursts(Indx_B).(F)(KeepPeaks);
-        end
-    end
-end
-
-% remove bursts that are too short
-RM = logical(RM);
-Bursts(RM) = [];
+[Bursts, Starts, Ends] = remove_overlaps(Bursts);
+Bursts = adjust_chopped_bursts(Bursts, Starts, Ends, MinCyclesPerBurst);
 
 
 % reodrer by start time
@@ -95,5 +22,89 @@ Starts = [Bursts.Start];
 [~, SortedOrder] = sort(Starts, 'ascend');
 Bursts = Bursts(SortedOrder);
 
+BurstsCountFinal = numel(Bursts);
+disp(['Removed ', num2str(BurstsCountInitial-BurstsCountFinal), ' from ', num2str(BurstsCountInitial), ' bursts'])
+end
 
-disp(['Removed ', num2str(nBursts-numel(Bursts)), ' from ', num2str(nBursts), ' bursts'])
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% functions
+
+function [Bursts, Starts, Ends] = remove_overlaps(Bursts)
+
+Starts = [Bursts.Start];
+Ends = [Bursts.End];
+
+ToRemove = false(size(Starts));
+Visited = false(size(Starts));
+
+
+% loops through bursts, finds overlap; leaves the biggest burst intact,
+% adjusts the starts and ends of the others so they're outside the burst.
+while any(~Visited)
+    Durations = Ends-Starts;
+    Durations(Visited) = nan; % ignore all bursts already done
+
+    if ~any(Durations > 0)
+        ToRemove(Durations<=0) = true;
+        break
+    end
+
+    % get longest duration that hasn't been looked at yet
+    [~, LongestBurst] = max(Durations);
+    Visited(LongestBurst) = true;
+
+    Start = Starts(LongestBurst);
+    End = Ends(LongestBurst);
+
+    % get all the overlaps with this large burst
+    OverlapStarts = Starts >= Start & Starts < End & ~Visited;
+    OverlapEnds = Ends > Start & Ends <= End & ~Visited;
+
+    % move their starts and ends to the outside of the large burst.
+    Starts(OverlapStarts) = End;
+    Ends(OverlapEnds) = Start;
+end
+
+Bursts(ToRemove) = [];
+Starts(ToRemove) = [];
+Ends(ToRemove) = [];
+end
+
+function Bursts = adjust_chopped_bursts(Bursts, Starts, Ends, MinCyclesPerBurst)
+%%% goes through remaining bursts, and removes chopped off peaks, and if
+%%% there are no longer 3 cycles left, removes this little burst entirely.
+PropertyLabels = fieldnames(Bursts);
+ToRemove = zeros(size(Starts));
+for idxBurst = 1:numel(Bursts)
+
+    % get new boundaries
+    Start = Starts(idxBurst);
+    End = Ends(idxBurst);
+
+    % see if any peaks are still in the boundaries
+    Peaks = Bursts(idxBurst).NegPeakIdx;
+    PeaksCountOriginal = numel(Peaks);
+    PeaksToKeep = Peaks >= Start & Peaks <= End;
+
+    % if not enough peaks, remove the burst
+    if nnz(PeaksToKeep) < MinCyclesPerBurst
+        ToRemove(idxBurst) = 1;
+        continue
+    end
+
+    % save new start and end times
+    Bursts(idxBurst).Start = Start;
+    Bursts(idxBurst).End = End;
+
+    % remove information about peaks no longer in burst
+    for Label = PropertyLabels
+        if numel(Bursts(idxBurst).(Label)) == PeaksCountOriginal
+            Bursts(idxBurst).(Label) = Bursts(idxBurst).(Label)(PeaksToKeep);
+        end
+    end
+end
+
+% remove bursts that are too short
+ToRemove = logical(ToRemove);
+Bursts(ToRemove) = [];
+end
