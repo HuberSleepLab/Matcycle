@@ -1,4 +1,4 @@
-function cycy_plot_1channel_bursts(Wave, fs, Peaks, BurstPeakIDs, Peak_Thresholds)
+function plot_1channel_bursts(Wave, fs, Peaks, BurstPeakIDs, Peak_Thresholds)
 % Plots single channel burst and parameters that were used to construct it.
 
 % Part of Matcycle 2022, by Sophia Snipes.

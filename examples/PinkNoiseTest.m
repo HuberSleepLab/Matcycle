@@ -80,7 +80,7 @@ for Indx_R = 1:Repeats
     % plot(t, Signal)
 
     % filter between 2 and 40 hz
-    Signal = cycy_cycy.utils.highpass_filter(Signal, fs, 2);
+    Signal = cycy.cycy.utils.highpass_filter(Signal, fs, 2);
     Signal = lowpass_filter(Signal, fs, 40);
     %     hold on;plot(t, Signal)
 
@@ -95,7 +95,7 @@ for Indx_R = 1:Repeats
 
     for Indx_F = 1:numel(BandNames)
         B = Bands.(BandNames{Indx_F});
-        fSignal = cycy_cycy.utils.highpass_filter(Signal, fs, B(1));
+        fSignal = cycy.cycy.utils.highpass_filter(Signal, fs, B(1));
         fSignal = lowpass_filter(fSignal, fs, B(2));
 
         % count bursts
@@ -104,7 +104,7 @@ for Indx_R = 1:Repeats
     disp(['Finished R',num2str(Indx_R)])
 end
 
-FinalBursts = cycy_detect_bursts(EEG, FiltEEG, BT, MinCyclesPerBurst, Bands, Keep_Points);
+FinalBursts = cycy.detect_bursts(EEG, FiltEEG, BT, MinCyclesPerBurst, Bands, Keep_Points);
 
 T = tabulate([FinalBursts.Channel]);
 periods = cat(2, periods, FinalBursts.period);

@@ -6,7 +6,7 @@
 
 % add subfolders of the current repo
 addpath(genpath(extractBefore(mfilename('fullpath'), 'Example')))
-cycy_addpaths() % little function to add the src folders to path
+cycy.addpaths() % little function to add the src folders to path
 
 %% Load the EEG data
 
@@ -32,7 +32,7 @@ nPoints = numel(BroadbandEEG.data);
 %% View power
 % check out the spectrum to know frequency range of interest
 
-[Power, Freqs] = cycy_power(BroadbandEEG.data, fs, 4, .5);
+[Power, Freqs] = cycy.power(BroadbandEEG.data, fs, 4, .5);
 figure
 plot(Freqs, log(Power))
 xlim([0.5 40])
@@ -47,13 +47,13 @@ BroadBand = [4 40];
 % Broadband filter
 Raw = BroadbandEEG.data;
 t = linspace(0, nPoints/fs, nPoints);
-BroadbandEEG.data = cycy_cycy.utils.highpass_filter(BroadbandEEG.data, fs, BroadBand(1));
+BroadbandEEG.data = cycy.cycy.utils.highpass_filter(BroadbandEEG.data, fs, BroadBand(1));
 BroadbandEEG.data = lowpass_filter(BroadbandEEG.data, fs, BroadBand(2));
 
 NarrowbandEEG = BroadbandEEG;
 
 % narrowband filter in the band of interest for oscillations
-NarrowbandEEG.data = cycy_cycy.utils.highpass_filter(NarrowbandEEG.data, fs, NarrowBand(1));
+NarrowbandEEG.data = cycy.cycy.utils.highpass_filter(NarrowbandEEG.data, fs, NarrowBand(1));
 NarrowbandEEG.data = lowpass_filter(NarrowbandEEG.data, fs, NarrowBand(2));
 
 
@@ -72,7 +72,7 @@ CriteriaSets.period = NarrowBand;
 NarrowbandRanges = struct();
 NarrowbandRanges.Alpha = NarrowBand;
 
-FinalBursts = cycy_detect_bursts(BroadbandEEG, NarrowbandEEG, NarrowbandRanges, ...
+FinalBursts = cycy.detect_bursts(BroadbandEEG, NarrowbandEEG, NarrowbandRanges, ...
     CriteriaSets);
 
 
@@ -103,11 +103,11 @@ CriteriaSets.period = NarrowBand;
 
 Signal = EEG.data(1, :);
 fSignal = NarrowbandEEG.data(1, :);
-Cycles = cycy_detect_cycles(Signal, fSignal);
-Cycles = cycy_measure_cycle_properties(Signal, Cycles, fs);
+Cycles = cycy.detect_cycles(Signal, fSignal);
+Cycles = cycy.measure_cycle_properties(Signal, Cycles, fs);
 
-[~, BurstPeakIDs_Clean] = cycy_aggregate_cycles(Cycles, CriteriaSets, Keep_Points);
-cycy_plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, CriteriaSets)
+[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles(Cycles, CriteriaSets, Keep_Points);
+cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, CriteriaSets)
 
 %% Get bursts for each channel
 
@@ -140,31 +140,31 @@ Keep_Points = ones(1, nPoints); % set to 0 any points that contain artifacts or 
 % DEBUG: use these lines to check if the thresholds are working:
 Signal = EEG.data(1, :);
 fSignal = NarrowbandEEG.data(1, :);
-Cycles = cycy_detect_cycles(Signal, fSignal);
-Cycles = cycy_measure_cycle_properties(Signal, Cycles, fs);
+Cycles = cycy.detect_cycles(Signal, fSignal);
+Cycles = cycy.measure_cycle_properties(Signal, Cycles, fs);
 BT = remove_empty_fields_from_struct(CriteriaSets(1));
-[~, BurstPeakIDs_Clean] = cycy_aggregate_cycles(Cycles, BT, MinCyclesPerBurst, Keep_Points);
-cycy_plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, BT)
+[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles(Cycles, BT, MinCyclesPerBurst, Keep_Points);
+cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, BT)
 
 % get bursts in all data
-AllBursts = cycy_detect_bursts(EEG, NarrowbandEEG, CriteriaSets, MinCyclesPerBurst, Bands, Keep_Points);
+AllBursts = cycy.detect_bursts(EEG, NarrowbandEEG, CriteriaSets, MinCyclesPerBurst, Bands, Keep_Points);
 
 
 %% get burst properties
 MinCoherence = .75;
 
 % assemble bursts across channels based on coherence
-Bursts = cycy_aggregate_bursts(AllBursts, EEG, MinCoherence);
+Bursts = cycy.aggregate_bursts(AllBursts, EEG, MinCoherence);
 
 % get properties of the main channel
-Bursts = cycy_burst_shape_properties(Bursts, EEG);
-Bursts = cycy_burst_averages(Bursts); % does the mean of the main peak's properties
+Bursts = cycy.burst_shape_properties(Bursts, EEG);
+Bursts = cycy.burst_averages(Bursts); % does the mean of the main peak's properties
 
 % classify the bursts by shape
-Bursts = cycy_classify_bursts_shape(Bursts);
+Bursts = cycy.classify_bursts_shape(Bursts);
 
 YGap = 20; % distance between EEG channels. 20 is good for high density
-cycy_plot_all_bursts(EEG, YGap, Bursts, 'BT')
+cycy.plot_all_bursts(EEG, YGap, Bursts, 'BT')
 
 
 

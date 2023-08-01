@@ -1,4 +1,4 @@
-function Bursts = cycy_aggregate_bursts_by_frequency(AllBursts, EEG, MinFreqRange)
+function Bursts = aggregate_bursts_by_frequency(AllBursts, EEG, MinFreqRange)
 % identifies bursts that occur at the same time that are actually the same
 % frequency, aggregates them together. Ignores bursts where there wasn't any overlap.
 

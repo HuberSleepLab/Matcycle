@@ -1,4 +1,4 @@
-function Bursts = cycy_burst_shape_properties(Bursts, EEG)
+function Bursts = burst_shape_properties(Bursts, EEG)
 % Gets all the information about the peaks in the burst that are not used
 % to determine the bursts in the first place
 % Part of Matcycle 2022, by Sophia Snipes.

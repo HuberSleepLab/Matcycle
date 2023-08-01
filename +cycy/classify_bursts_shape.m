@@ -1,4 +1,4 @@
-function Bursts = cycy_classify_bursts_shape(Bursts)
+function Bursts = classify_bursts_shape(Bursts)
 % categorizes bursts based on their average shape
 % Types: Sw = sawtooth, Mu = mu wave, NM = notched mu, Sq = square, Tr =
 % triangle, Sn = sinusoid

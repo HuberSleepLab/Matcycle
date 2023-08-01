@@ -1,4 +1,4 @@
-function Bursts = cycy_detect_bursts_all_channels(EEGBroadband, EEGNarrowbands, NarrowbandRanges, ...
+function Bursts = detect_bursts_all_channels(EEGBroadband, EEGNarrowbands, NarrowbandRanges, ...
     CriteriaSets, RunParallel, KeepTimepoints)
 arguments
     EEGBroadband struct
@@ -9,7 +9,7 @@ arguments
     KeepTimepoints = ones(1, size(EEGBroadband.data, 2));
 end
 % From EEG data, finds all the bursts in each channel.
-% See cycy_detect_bursts() for argument documentation.
+% See cycy.detect_bursts() for argument documentation.
 %
 % RunParallel is a boolean (default false), if true, runs burst detection in 
 % channels in parallel.
@@ -24,12 +24,12 @@ AllChannelBursts = cell([1, ChannelCount]);
 
 if RunParallel
     parfor idxChannel = 1:ChannelCount % get bursts for every component
-        AllChannelBursts{idxChannel} = cycy_detect_bursts(EEGBroadband, idxChannel, ...
+        AllChannelBursts{idxChannel} = cycy.detect_bursts(EEGBroadband, idxChannel, ...
             EEGNarrowbands, NarrowbandRanges, CriteriaSets, KeepTimepoints);
     end
 else
     for idxChannel = 1:ChannelCount
-        AllChannelBursts{idxChannel} = cycy_detect_bursts(EEGBroadband, idxChannel, ...
+        AllChannelBursts{idxChannel} = cycy.detect_bursts(EEGBroadband, idxChannel, ...
             EEGNarrowbands, NarrowbandRanges, CriteriaSets, KeepTimepoints);
     end
 end

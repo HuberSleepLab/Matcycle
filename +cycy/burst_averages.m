@@ -1,4 +1,4 @@
-function Bursts = cycy_burst_averages(Bursts)
+function Bursts = burst_averages(Bursts)
 % gets mean values of all the peaks in a burst, so long as the fieldname is
 % lowercase, and the number of items is equal to the number of peak ids.
 % Part of Matcycle 2022, by Sophia Snipes.

@@ -1,4 +1,4 @@
-function Bursts = cycy_detect_bursts(EEGBroadband, ChannelIndex, EEGNarrowbands,...
+function Bursts = detect_bursts(EEGBroadband, ChannelIndex, EEGNarrowbands,...
     NarrowbandRanges, CriteriaSets, KeepTimepoints)
 arguments
     EEGBroadband struct
@@ -61,8 +61,8 @@ for idxBand = 1:numel(BandLabels)
             CriteriaSet = CriteriaSets(idxCriteriaSet);
 
             % find all peaks in a given band
-            Cycles = cycy_detect_cycles(SignChannelBroadband, SignChannelNarrowband);
-            Cycles = cycy_measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
+            Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
+            Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
             CriteriaSet.period = 1./Band; % add period threshold
 
@@ -70,7 +70,7 @@ for idxBand = 1:numel(BandLabels)
             CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 
             % find bursts
-            [BurstsSubset, ~] = cycy_aggregate_cycles(Cycles, CriteriaSet, KeepTimepoints);
+            [BurstsSubset, ~] = cycy.aggregate_cycles(Cycles, CriteriaSet, KeepTimepoints);
 
             % add metadata
             Metadata = struct();
@@ -97,7 +97,7 @@ end
 % cropped into their own short burst.
 MinCyclesPerBurst = [CriteriaSets.MinCyclesPerBurst];
 MinCyclesPerBurst = min(MinCyclesPerBurst);
-Bursts = cycy_remove_overlapping_bursts(AllBursts, MinCyclesPerBurst);
+Bursts = cycy.remove_overlapping_bursts(AllBursts, MinCyclesPerBurst);
 
 disp(['Finished ', num2str(ChannelIndex)])
 

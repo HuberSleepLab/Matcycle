@@ -1,9 +1,9 @@
-function cycy_addpaths()
+function addpaths()
 % add all folders to path so scripts can find functions
 
 
 CD = mfilename('fullpath');
-CD = extractBefore(CD, 'cycy_addpaths');
+CD = extractBefore(CD, 'cycy.addpaths');
 
 % get all folders in matcyle directory
 Subfolders = deblank(string(ls(fullfile(CD, 'src')))); % all content

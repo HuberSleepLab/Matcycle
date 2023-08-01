@@ -7,7 +7,7 @@ function Output = cache_function_output(Function, varargin)
 
 StringInput = string_all_input(Function, varargin{:});
 
-CacheDir = fullfile(cd, 'cycy_cache_dont_add_to_git'); % 
+CacheDir = fullfile(cd, 'cycy.cache_dont_add_to_git'); % 
 CachePath = fullfile(CacheDir, [StringInput, '.mat']);
 
 if exist(CachePath, 'file')

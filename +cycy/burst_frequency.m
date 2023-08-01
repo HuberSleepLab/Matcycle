@@ -1,4 +1,4 @@
-function AllBursts = cycy_burst_frequency(AllBursts)
+function AllBursts = burst_frequency(AllBursts)
 % loops through all bursts, gets mean frequency based on period
 
 for Indx_B = 1:numel(AllBursts)

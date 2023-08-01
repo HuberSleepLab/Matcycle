@@ -16,13 +16,13 @@ For more details, see [Snipes et al. (2023)](https://doi.org/10.1016/j.isci.2023
 See [Example.m](Example.m).
 
 1. Filter clean EEG data into narrow overlapping bands
-2. Run `cycy_detect_bursts()` to get a struct with all the detected bursts in the EEG recording.
-3. Run `cycy_aggregate_bursts()` to aggregate bursts in different channels overlapping in time by phase coherence, or `aggregateBurstsByFrequency()` to aggregate bursts by burst frequency (recommended).
-4. Run `cycy_plot_all_bursts()` to see how well the detection went.
+2. Run `cycy.detect_bursts()` to get a struct with all the detected bursts in the EEG recording.
+3. Run `cycy.aggregate_bursts()` to aggregate bursts in different channels overlapping in time by phase coherence, or `aggregateBurstsByFrequency()` to aggregate bursts by burst frequency (recommended).
+4. Run `cycy.plot_all_bursts()` to see how well the detection went.
 
 Optional:
-4. Run `cycy_burst_shape_properties()` then `cycy_burst_averages()` to get all sorts of properties of the reference burst (the longest from those aggregated across channels), like how peaky it is
-5. Run `cycy_classify_bursts_shape()` to sort bursts into shapes, like "sawtooth" or "sinusoid".
+4. Run `cycy.burst_shape_properties()` then `cycy.burst_averages()` to get all sorts of properties of the reference burst (the longest from those aggregated across channels), like how peaky it is
+5. Run `cycy.classify_bursts_shape()` to sort bursts into shapes, like "sawtooth" or "sinusoid".
 
 
 ## How to adapt

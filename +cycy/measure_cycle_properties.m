@@ -1,4 +1,4 @@
-function AugmentedCycles = cycy_measure_cycle_properties(ChannelBroadband, Cycles, SampleRate)
+function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, SampleRate)
 % Identifies various ways to characterize each peak. Based on Cole 2019,
 % but relative to the negative peaks rather than positive peaks.
 % NOTE: all fieldnames should start lowercase, so I know later on that they
