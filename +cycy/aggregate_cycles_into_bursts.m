@@ -1,4 +1,4 @@
-function [Bursts, BurstPeakIDs, Diagnostics] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
+function [Bursts, Diagnostics] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
 % goes through all peaks found, puts them into structs according to
 % whether they make up a burst, or if they are on their own.
 % Peak_Thresholds is a struct, with fields already present in Peaks, and is
@@ -49,7 +49,6 @@ AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
 
 if isempty(Starts) || isempty(Ends)
     Bursts = struct();
-    BurstPeakIDs = [];
     return
 end
 
