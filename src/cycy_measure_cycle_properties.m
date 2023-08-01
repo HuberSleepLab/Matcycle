@@ -46,8 +46,9 @@ for idxCycle = 2:numel(AugmentedCycles)-1
     PrevCycle = AugmentedCycles(idxCycle-1);
     NextCycle = AugmentedCycles(idxCycle+1);
 
+    CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
+    %     CurrCycle = measure_(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
 
-%     CurrCycle = measure_(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
     AugmentedCycles(idxCycle) = CurrCycle;
 end
 
@@ -58,10 +59,6 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
-
-function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-
-end
 
 function CurrCycle = measure_period_mean_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 % I dont understand this one atm (oh mean consistency across both positive
@@ -181,5 +178,14 @@ FallingEdgeEfficiency = (MaxFallingEdge - sum(abs(FallingEdgeDiff(FallingEdgeDif
 RisingEdgeEfficiency = (MaxRisingEdge-sum(abs(RisingEdgeDiff(RisingEdgeDiff<0))))/MaxRisingEdge;
 
 Cycle.MonotonicityVoltage = max(0, min(FallingEdgeEfficiency, RisingEdgeEfficiency));
+end
+
+%%%%%%%%%%%%%%%%
+%%% Functions for second for loop
+
+function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle)
+PrevPeriod = CurrCycle.NegPeakIdx-PrevCycle.NegPeakIdx;
+NextPeriod = NextCycle.NegPeakIdx-CurrCycle.NegPeakIdx;
+CurrCycle.periodConsistency = min([PrevPeriod/NextPeriod, NextPeriod/PrevPeriod]);
 end
 
