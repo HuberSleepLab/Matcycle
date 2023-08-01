@@ -252,9 +252,8 @@ for idxBurst = 1:numel(Starts)
     end
 
     %%% get properties of the burst itself
-
-    % start, end, duration
     Bursts(idxBurst).Start = Cycles(CycleIndexes(1)-1).PosPeakIdx;
     Bursts(idxBurst).End =  Bursts(idxBurst).PosPeakIdx(end);
+    Bursts(idxBurst).Frequency = 1/mean(Bursts(idxBurst).PeriodNeg);
 end
 end
