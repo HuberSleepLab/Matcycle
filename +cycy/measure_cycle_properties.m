@@ -192,6 +192,6 @@ end
 function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle)
 PrevPeriod = CurrCycle.NegPeakIdx-PrevCycle.NegPeakIdx;
 NextPeriod = NextCycle.NegPeakIdx-CurrCycle.NegPeakIdx;
-CurrCycle.periodConsistency = min([PrevPeriod/NextPeriod, NextPeriod/PrevPeriod]);
+CurrCycle.PeriodConsistency = min([PrevPeriod/NextPeriod, NextPeriod/PrevPeriod]);
 end
 
