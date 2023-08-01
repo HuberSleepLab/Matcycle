@@ -1,4 +1,4 @@
-function EEG = cycy_simulate_eeg(Channels, Seconds, fs, bpfilter, hpStopfrq)
+function EEG = simulate_eeg(Channels, Seconds, fs, bpfilter, hpStopfrq)
 % Generates a fake EEG signal without any oscillations, to see how many
 % false positives get generated.
 % Channels: number of "channels" to generate
@@ -36,8 +36,8 @@ for Indx_Ch = 1:Channels
 
     % filter
     if exist('bpfilter', 'var') && ~isempty(bpfilter)
-        Signal = cycy_highpass_filter(Signal, fs, bpfilter(1), hpStopfrq);
-        Signal = cycy_lowpass_filter(Signal, fs, bpfilter(2));
+        Signal = cycy_cycy.utils.highpass_filter(Signal, fs, bpfilter(1), hpStopfrq);
+        Signal = lowpass_filter(Signal, fs, bpfilter(2));
 
     end
 

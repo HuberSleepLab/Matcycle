@@ -1,8 +1,8 @@
-function Output = cycy_cache(Function, varargin)
+function Output = cache_function_output(Function, varargin)
 % runs a function, saves the output on disk, and next time the function
 % is run, if there's something on disk, it just uses that instead of
 % running the function again. Use for slow functions like designfilt.
-% Example: Output = cycy_cache(@sum, [1 2 3]);
+% Example: Output = cycy.utils.cache_function_output(@sum, [1 2 3]);
 % Part of Matcycle 2022, by Sophia Snipes.
 
 StringInput = string_all_input(Function, varargin{:});

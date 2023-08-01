@@ -1,4 +1,4 @@
-function Colors = cycy_colors(N, Order, Color)
+function Colors = pick_colors(N, Order, Color)
 % Selects from colorblind friendly pallettes the requested colors.
 % N can be either 1 or 2 values; the first indicates the number of hues,
 % the second the number of luminance changes. if no second value is
