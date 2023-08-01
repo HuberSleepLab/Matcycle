@@ -64,7 +64,7 @@ for idxBand = 1:numel(BandLabels)
             Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
             Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
-            CriteriaSet.period = 1./Band; % add period threshold
+            CriteriaSet.period = sort(1./Band); % add period threshold
 
             % remove thresholds that are empty
             CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);

@@ -39,7 +39,7 @@ Modify the example script burst thresholds, and run the lines under `%DEBUG`. It
   - **falling edge** and **rising edge**
 - **cycles**: falling-edge-midpoint to falling-edge-midpoint
 - **properties**: of cycles (frequency, ratio of falling/rising edges, etc.)
-- **criteria**: conditions the properties of each cycle has to meet to make it into a burst
+- **criteria**: conditions the properties of each cycle has to meet to make it into a burst. Each criteria indicates a value, and the cycle has to hae a property above that value to be part of a burst.
 - **criteria set**: a set of criteria that have to all be fullfiled for cycles to be included in a burst
 - **burst**: set of consecutive cycles that match all criteria in a given criteria set in a single channel
 - **burst cluster**: set of bursts that overlap in time across multiple channels with similar frequencies

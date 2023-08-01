@@ -1,4 +1,4 @@
-function [Bursts, BurstPeakIDs, Diagnostics] = aggregate_cycles(Peaks, Peak_Thresholds, Keep_Points)
+function [Bursts, BurstPeakIDs, Diagnostics] = aggregate_cycles(Cycles, CriteriaSet, KeepTimepoints)
 % goes through all peaks found, puts them into structs according to
 % whether they make up a burst, or if they are on their own.
 % Peak_Thresholds is a struct, with fields already present in Peaks, and is
@@ -29,65 +29,67 @@ function [Bursts, BurstPeakIDs, Diagnostics] = aggregate_cycles(Peaks, Peak_Thre
 
 %%% gather peaks based on single peak property requirements
 
-PeakFields = fieldnames(Peaks);
+CycleFields = fieldnames(Cycles);
 
-ThresholdFields = fieldnames(Peak_Thresholds);
-ThresholdFields(~ismember(ThresholdFields, PeakFields)) = []; % in case there's extra junk in there
-ThresholdFields(strcmp(ThresholdFields, 'MinCyclesPerBurst')) = [];
+Criterias = fieldnames(CriteriaSet);
+Criterias(~ismember(Criterias, CycleFields)) = []; % in case there's extra junk in there
 
+% remove from criteria those that don't correspond to specific properties 
+% of cycles
+Criterias(strcmp(Criterias, 'MinCyclesPerBurst')) = [];
+
+% TODO: explain what this is 
 Diagnostics = struct();
 
-Candidates = []; % candidates of peaks to keep
-for Indx_C = 1:numel(ThresholdFields) % loop through all provided thresholds
-    Field = ThresholdFields{Indx_C};
-    T = Peak_Thresholds.(Field); % threshold
-    PeakField =  [Peaks.(Field)]; % values of the peaks for that threshold
+% computes booleans of whether each cycle meets each criteria
+CyclesMeetCriteria = true(numel(Criterias), numel(Cycles));
+for idxCriteria = 1:numel(Criterias)
+    Criteria = Criterias{idxCriteria};
+    Threshold = CriteriaSet.(Criteria);
+    CycleProperty = [Cycles.(Criteria)];
 
-    if numel(T) == 1
-        C =PeakField >= T;
-    elseif numel(T) == 2 % if a range is provided
-        T = sort(T); % make sure first number is the smallest
-        C = PeakField >= T(1) & PeakField <= T(2);
+    if numel(Threshold) == 1 % a scalar is provided
+        isMet = CycleProperty >= Threshold;
+    elseif numel(Threshold) == 2 % a range is provided
+        isMet = CycleProperty >= Threshold(1) & CycleProperty <= Threshold(2);
     else
-        error('incorrect threshold inputs')
+        error('incorrect number of criteria inputs')
     end
 
-    Candidates = cat(1, Candidates, C);
-    Diagnostics.(Field) = nnz(~C);
-
+    CyclesMeetCriteria(idxCriteria, :) = isMet;
+    Diagnostics.(Criteria) = nnz(~isMet);
 end
 
 
-% also ignore peaks in 0 timepoints of Keep_Time
-if ~isempty(Keep_Points)
-    Keep_Points = find(Keep_Points);
-    Peak_Points = [Peaks.NegPeakIdx];
-    C = ismember(Peak_Points, Keep_Points);
-    Candidates = cat(1, Candidates, C);
-    Diagnostics.Noise = nnz(~C);
+% ignore cycles with a peak that is not included in KeepTimepoints
+if ~isempty(KeepTimepoints)
+    KeepTimepoints = find(KeepTimepoints);
+    Peak_Points = [Cycles.NegPeakIdx];
+    isMet = ismember(Peak_Points, KeepTimepoints);
+    CyclesMeetCriteria = cat(1, CyclesMeetCriteria, isMet);
+    Diagnostics.Noise = nnz(~isMet);
 end
 
-
-% merge all requirements
-AllCandidates = all(Candidates);
-
+% check when all criterias are met
+AllCriteriaMet = all(CyclesMeetCriteria);
 
 
 %%% special cases
 
-% identify edges of bursts that might be changing amplitude
-if isfield(Peak_Thresholds, 'ampConsistency')
-    Indx = find(strcmp(ThresholdFields, 'ampConsistency'));
-    Unique = singleThreshold(Candidates, Indx);
-    Ramp = [Peaks.ampRamp]; % whether amplitude of burst is increasing or decreasing
-    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.MinCyclesPerBurst);
+% if the edge of a burst would be excluded just because of amplitude 
+% consistency, include it instead.
+if isfield(CriteriaSet, 'AmplitudeConsistency')
+    Indx = find(strcmp(Criterias, 'AmplitudeConsistency'));
+    Unique = is_only_exclusion_criteria(CyclesMeetCriteria, Indx);
+    Ramp = [Cycles.ampRamp]; % whether amplitude of burst is increasing or decreasing
+    [Starts, Ends]  = getStreaks(AllCriteriaMet, CriteriaSet.MinCyclesPerBurst);
     for S = Starts(:)' % just make sure it's a row vector
         Edge = S-1;
 
         % if the peak just prior to the start is only excluded for amplitude
         % consistency, and it's because the amplitude is increasing, keep
         while Unique(Edge) && Ramp(Edge)>= 0 && Edge>0
-            AllCandidates(Edge) = 1;
+            AllCriteriaMet(Edge) = 1;
             Edge = Edge-1;
         end
     end
@@ -95,34 +97,35 @@ if isfield(Peak_Thresholds, 'ampConsistency')
     for E = Ends(:)'
         Edge = E+1;
         while Unique(Edge) && Ramp(Edge)<=0 && Edge <= numel(Unique)
-            AllCandidates(Edge) = 1;
+            AllCriteriaMet(Edge) = 1;
             Edge = Edge+1;
         end
     end
 end
 
-% include peaks that are on the edge but incorrect period consistency
-if isfield(Peak_Thresholds, 'periodConsistency')
+% if the edge of a burst would be excluded just because of period 
+% consistency, include it instead.
+if isfield(CriteriaSet, 'periodConsistency')
 
-    Indx = find(strcmp(ThresholdFields, 'periodConsistency'));
-    Unique = singleThreshold(Candidates, Indx);
+    Indx = find(strcmp(Criterias, 'periodConsistency'));
+    Unique = is_only_exclusion_criteria(CyclesMeetCriteria, Indx);
 
     % Get all the peaks adjacent to a burst that are excluded only for the period
-    [Starts, Ends]  = getStreaks(AllCandidates, Peak_Thresholds.MinCyclesPerBurst);
+    [Starts, Ends]  = getStreaks(AllCriteriaMet, CriteriaSet.MinCyclesPerBurst);
     NewEdges = intersect(find(Unique), [Starts-1, Ends+1]);
-    AllCandidates(NewEdges) = 1;
+    AllCriteriaMet(NewEdges) = 1;
 end
 
 
 % identify number of peaks uniquely removed by a single factor for later
-for Indx_C = 1:numel(ThresholdFields)
-    Field = ThresholdFields{Indx_C};
-    Unique = singleThreshold(Candidates, Indx_C);
-    Diagnostics.([Field, 'u']) = nnz(Unique);
+for idxCriteria = 1:numel(Criterias)
+    Criteria = Criterias{idxCriteria};
+    Unique = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
+    Diagnostics.([Criteria, 'u']) = nnz(Unique);
 end
 
 %%% Get bursts that meet minimum cycle requirements
-[Starts, Ends] = getStreaks(AllCandidates, Peak_Thresholds.MinCyclesPerBurst);
+[Starts, Ends] = getStreaks(AllCriteriaMet, CriteriaSet.MinCyclesPerBurst);
 
 if isempty(Starts) || isempty(Ends)
     Bursts = struct();
@@ -137,28 +140,28 @@ end
 Bursts = struct();
 for Indx_S = 1:numel(Starts)
     IDs = Starts(Indx_S):Ends(Indx_S);
-    P = Peaks;
+    P = Cycles;
     Bursts(Indx_S).PeakIDs = IDs;
     Bursts(Indx_S).nPeaks = numel(IDs);
 
     %%% transfer all info about the individual peaks
-    for Indx_F = 1:numel(PeakFields)
-        Field = PeakFields{Indx_F};
-        All = [P(IDs).(Field)];
+    for Indx_F = 1:numel(CycleFields)
+        Criteria = CycleFields{Indx_F};
+        All = [P(IDs).(Criteria)];
 
         % handle differently depending on whether its a string or numbers,
         % and if it's the same for all elements in the burst or not
         AllTypes = unique(All);
         if isnumeric(All) && numel(AllTypes) > 1
-            Bursts(Indx_S).(Field) = All;
+            Bursts(Indx_S).(Criteria) = All;
         elseif isnumeric(All) && numel(AllTypes) == 1
-            Bursts(Indx_S).(Field) = All(1);
+            Bursts(Indx_S).(Criteria) = All(1);
         else
-            All = {P(IDs).(Field)};
+            All = {P(IDs).(Criteria)};
             if numel(unique(All))==1
-                Bursts(Indx_S).(Field) = All(1);
+                Bursts(Indx_S).(Criteria) = All(1);
             else
-                Bursts(Indx_S).(Field) = All;
+                Bursts(Indx_S).(Criteria) = All;
             end
         end
     end
@@ -166,7 +169,7 @@ for Indx_S = 1:numel(Starts)
     %%% get properties of the burst itself
 
     % start, end, duration
-    Bursts(Indx_S).Start = Peaks(IDs(1)-1).PosPeakIdx;
+    Bursts(Indx_S).Start = Cycles(IDs(1)-1).PosPeakIdx;
     Bursts(Indx_S).End =  Bursts(Indx_S).PosPeakIdx(end);
 end
 
@@ -176,11 +179,11 @@ end
 
 
 
-function Unique = singleThreshold(Candidates, Indx)
-% identifies all the peaks that were removed for a single threshold
+function ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, IdxCriteria)
+% identifies all cycles that were excluded only because of this criteria
 
-I = 1:size(Candidates, 1);
-I(Indx) = [];
-Remaining = all(Candidates(I, :));
-Unique = Remaining & ~Candidates(Indx, :);
+I = 1:size(CyclesMeetCriteria, 1);
+I(IdxCriteria) = [];
+Remaining = all(CyclesMeetCriteria(I, :));
+ExcludedCycles = Remaining & ~CyclesMeetCriteria(IdxCriteria, :);
 end
