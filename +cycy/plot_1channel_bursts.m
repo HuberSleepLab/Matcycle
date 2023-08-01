@@ -86,3 +86,4 @@ legend({'peak zc', 'trough zc', 'peak', 'trough'})
 linkaxes([ax1,ax2],'x');
 linkaxes([ax1,ax3],'x');
 
+% TODO rename and check

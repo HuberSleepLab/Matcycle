@@ -102,3 +102,5 @@ elseif numel(N) == 2
 else
     error('Not correct N')
 end
+
+% TODO rename and check

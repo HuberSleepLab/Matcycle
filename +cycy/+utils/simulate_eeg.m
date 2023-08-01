@@ -56,3 +56,5 @@ EEG.xmax = EEG.pnts/EEG.srate;
 EEG.times = linspace(0, EEG.xmax, EEG.pnts);
 EEG.chanlocs = [];
 EEG.event = [];
+
+% TODO rename and check

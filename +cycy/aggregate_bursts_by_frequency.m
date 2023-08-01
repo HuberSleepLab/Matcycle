@@ -177,3 +177,4 @@ Bursts = Bursts(SortedOrder);
 
 disp(['Reduced to ', num2str(numel(Bursts)), ' from ', num2str(nBursts), ' bursts'])
 
+% TODO rename and check

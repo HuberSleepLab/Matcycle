@@ -45,3 +45,5 @@ for Indx_B = 1:numel(Bursts)
         Bursts(Indx_B).Type = 'Sn';
     end
 end
+
+% TODO rename and check

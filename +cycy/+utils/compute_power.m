@@ -16,3 +16,5 @@ window = hanning(nfft);
 [Power, Freqs] = pwelch(Data', window, noverlap, nfft, fs);
 Power = Power';
 Freqs = Freqs';
+
+% TODO rename and check

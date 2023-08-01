@@ -52,3 +52,5 @@ end
 Peaks([1 end]) = [];
 
 end
+
+% TODO rename and check, maybe delete
