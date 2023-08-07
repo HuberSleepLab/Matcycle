@@ -26,7 +26,6 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = is_true_peak(CurrCycle);
 
     CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
-    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
     CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
     CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
@@ -47,6 +46,7 @@ for idxCycle = 2:numel(AugmentedCycles)-1
     NextCycle = AugmentedCycles(idxCycle+1);
 
     CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
+    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
     %     CurrCycle = measure_(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
 
     AugmentedCycles(idxCycle) = CurrCycle;
