@@ -13,6 +13,13 @@ For more details, see [Snipes et al. (2023)](https://doi.org/10.1016/j.isci.2023
 
 ## How to use
 
+### Set up first time
+1. Add the Matcycle folder to the MATLAB paths. Either:
+  - run `addpath("{path}/Matcycle")`
+  - Using the GUI, in Home > Set path > add folder (N.B. don't use "add subfolers")
+
+### Incorporate into scripts
+
 See [Example.m](Example.m).
 
 1. Filter clean EEG data into narrow overlapping bands
