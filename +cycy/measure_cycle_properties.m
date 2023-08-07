@@ -45,7 +45,7 @@ for idxCycle = 2:numel(AugmentedCycles)-1
     PrevCycle = AugmentedCycles(idxCycle-1);
     NextCycle = AugmentedCycles(idxCycle+1);
 
-    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
+    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
     CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle);
 
@@ -133,22 +133,17 @@ end
 
 function Cycle = measure_monotonicity_in_voltage(Cycle, ChannelBroadband)
 
-MaxFallingEdge = abs(diff(ChannelBroadband([Cycle.NegPeakIdx Cycle.PrevPosPeakIdx])));
-MaxRisingEdge = abs(diff(ChannelBroadband([Cycle.NegPeakIdx Cycle.NextPosPeakIdx])));
-
 FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
 RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
 
 IncreaseDuringFallingEdge = sum(abs(FallingEdgeDiff(FallingEdgeDiff>0)));
 DecreaseDuringRisingEdge = sum(abs(RisingEdgeDiff(RisingEdgeDiff<0)));
 
-Monotonicity = ((MaxFallingEdge - IncreaseDuringFallingEdge) + ...
-    (MaxRisingEdge - DecreaseDuringRisingEdge))/(MaxFallingEdge + MaxRisingEdge);
+Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/Cycle.Amplitude;
 
 Cycle.MonotonicityVoltage = max(0, Monotonicity);
 
 end
-
 
 %%%%%%%%%%%%%%%%
 %%% Functions for second for loop
@@ -157,11 +152,11 @@ function Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroa
 % Returns a boolean, if the negative peak is prominent with respects to the
 % two neighboring negative cycles.
 
-MidpointFallingEdge = (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
+MidpointFallingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
 Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
 [~, FallingEdgeCrossings] = detect_crossings(Cycle1Signal, MidpointFallingEdge);
 
-MidpointRisingEdge = (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
+MidpointRisingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
 Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
 [RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
 
