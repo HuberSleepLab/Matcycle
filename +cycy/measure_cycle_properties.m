@@ -127,22 +127,26 @@ if numel(FallingEdgeDiff) < 2 || numel(RisingEdgeDiff) < 2
     Cycle.MonotonicityInTime = 0;
 else
     Cycle.MonotonicityInTime = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
-        numel([FallingEdgeDiff, RisingEdgeDiff]); % TODO: make sure total doesn't duplicate midpoint?
+        numel([FallingEdgeDiff, RisingEdgeDiff]);
 end
 end
 
 function Cycle = measure_monotonicity_in_voltage(Cycle, ChannelBroadband)
 
-FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
-RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
-
 MaxFallingEdge = abs(diff(ChannelBroadband([Cycle.NegPeakIdx Cycle.PrevPosPeakIdx])));
 MaxRisingEdge = abs(diff(ChannelBroadband([Cycle.NegPeakIdx Cycle.NextPosPeakIdx])));
 
-FallingEdgeEfficiency = (MaxFallingEdge - sum(abs(FallingEdgeDiff(FallingEdgeDiff>0))))/MaxFallingEdge;
-RisingEdgeEfficiency = (MaxRisingEdge-sum(abs(RisingEdgeDiff(RisingEdgeDiff<0))))/MaxRisingEdge;
+FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
+RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
 
-Cycle.MonotonicityVoltage = max(0, min(FallingEdgeEfficiency, RisingEdgeEfficiency));
+IncreaseDuringFallingEdge = sum(abs(FallingEdgeDiff(FallingEdgeDiff>0)));
+DecreaseDuringRisingEdge = sum(abs(RisingEdgeDiff(RisingEdgeDiff<0)));
+
+Monotonicity = ((MaxFallingEdge - IncreaseDuringFallingEdge) + ...
+    (MaxRisingEdge - DecreaseDuringRisingEdge))/(MaxFallingEdge + MaxRisingEdge);
+
+Cycle.MonotonicityVoltage = max(0, Monotonicity);
+
 end
 
 
