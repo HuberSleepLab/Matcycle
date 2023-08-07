@@ -1,18 +1,19 @@
 % Use this to check the effects of the narrowband filtering on the EEG
-% data. Make sure that there are no weird effects
+% data.
 clear
 clc
 close all
 
-load("C:\Users\colas\Code\Matcycle\example_data\EEGbroadband.mat", "EEGbroadband")
-Data = EEGbroadband.data(80, :);
+load("C:\Users\colas\Code\Matcycle\example_data\EEGbroadband_fulltime.mat", "EEGbroadband")
+DataBroadband = EEGbroadband.data(3, :);
 SampleRate = EEGbroadband.srate;
-t = linspace(0, numel(Data)/SampleRate, numel(Data));
+t = linspace(0, numel(DataBroadband)/SampleRate, numel(DataBroadband));
 
 
 Bands = struct();
-Bands.ThetaLow = [2 6];
-Bands.Alpha = [8 12];
+% Bands.Theta = [4 8];
+% Bands.Alpha = [8 12];
+Bands.Alpha = [10 14];
 Bands.Beta = [20 24];
 
 %%
@@ -21,7 +22,7 @@ for Band = fieldnames(Bands)'
     Range = Bands.(Band{1});
 
     % filter the data (and cache the filter)
-    [FiltData, Filter] = cycy.utils.highpass_filter(Data, SampleRate, Range(1));
+    [DataNarrowband, Filter] = cycy.utils.highpass_filter(DataBroadband, SampleRate, Range(1));
     freqz(Filter,2^14,SampleRate)
 
     clc
@@ -29,8 +30,8 @@ for Band = fieldnames(Bands)'
     disp('Press enter to continue')
     pause
 
-        % filter the data (and cache the filter)
-    [FiltData, Filter] = cycy.utils.lowpass_filter(FiltData, SampleRate, Range(2));
+    % filter the data (and cache the filter)
+    [DataNarrowband, Filter] = cycy.utils.lowpass_filter(DataNarrowband, SampleRate, Range(2));
     freqz(Filter,2^14,SampleRate)
 
     clc
@@ -39,12 +40,30 @@ for Band = fieldnames(Bands)'
     pause
 
 
+    % show original and filtered data
     figure('Units','normalized','OuterPosition',[0 0 1 .3])
     hold on
-    plot(t, Data, 'k', 'LineWidth', 1.5)
-    plot(t, FiltData, 'r', 'LineWidth', 1)
+    plot(t, DataBroadband, 'k', 'LineWidth', 1.5)
+    plot(t, DataNarrowband, 'r', 'LineWidth', 1)
+    xlim([0 5])
+    title(Band{1})
+
+    % show original and filtered power spectrum
+    [PowerBroadband, Freqs] = cycy.utils.compute_power(DataBroadband, SampleRate);
+    [PowerNarrowband, ~] = cycy.utils.compute_power(DataNarrowband, SampleRate);
+
+    figure
+    hold on
+    plot(Freqs, log(PowerBroadband), 'k')
+    plot(Freqs, log(PowerNarrowband), 'r')
+    xlim([0 60])
 
 
+    clc
+    disp(['Showing ', Band{1}])
+    disp('Press enter to continue')
+    pause
+    close all
 end
 
 
@@ -52,4 +71,3 @@ end
 % TODO:
 % - check data with and without filter
 % - check spectrum with and without filter
- 

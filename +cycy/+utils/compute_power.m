@@ -1,20 +1,16 @@
-function [Power, Freqs] = compute_power(Data, fs, Window, Overlap)
-% Data is a Ch x t matrix. 
-
-if ~exist("Window", 'var') || isempty(Window)
-    Window = 4; % duration of window to do FFT
-end
-
-if ~exist("Overlap", 'var') || isempty(Window)
-   Overlap = .5; % duration of window to do FFT
+function [Power, Freqs] = compute_power(Data, SampleRate, WindowLength, Overlap)
+% Data is a Ch x t matrix.
+arguments
+    Data
+    SampleRate (1, 1) {mustBePositive}
+    WindowLength (1, 1) {mustBePositive} = 4;
+    Overlap (1, 1) {mustBePositive, mustBeLessThanOrEqual(Overlap, 1)} = .5;
 end
 
 % FFT
-nfft = 2^nextpow2(Window*fs);
+nfft = 2^nextpow2(WindowLength*SampleRate);
 noverlap = round(nfft*Overlap);
 window = hanning(nfft);
-[Power, Freqs] = pwelch(Data', window, noverlap, nfft, fs);
+[Power, Freqs] = pwelch(Data', window, noverlap, nfft, SampleRate);
 Power = Power';
 Freqs = Freqs';
-
-% TODO rename and check

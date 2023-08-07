@@ -1,7 +1,6 @@
 # EEG related stuff
 .fdt
 .set
-.mat
 .eeg
 .fig
 .log
@@ -52,5 +51,6 @@ generalFunctions/desktop.ini
 .Rproj.user
 Analysis/surfmesh.mat
 Analysis/surfmesh.mat
-*.mat
 !docs/*.jpg
+
+.cycy_cache_dont_add_to_git
