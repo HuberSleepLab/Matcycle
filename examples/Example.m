@@ -59,21 +59,21 @@ NarrowbandEEG.data = lowpass_filter(NarrowbandEEG.data, fs, NarrowBand(2));
 
 %% Run main script
 
-CriteriaSets = struct();
-CriteriaSets.isProminent = 1;
-CriteriaSets.periodConsistency = .7;
-CriteriaSets.periodMeanConsistency = .7;
-CriteriaSets.truePeak = 1;
-CriteriaSets.efficiencyAdj = .6;
-CriteriaSets.flankConsistency = .5;
-CriteriaSets.ampConsistency = .25;
-CriteriaSets.MinCyclesPerBurst = 3;
-CriteriaSets.period = NarrowBand;
+CriteriaSet = struct();
+CriteriaSet.isProminent = 1;
+CriteriaSet.periodConsistency = .7;
+CriteriaSet.periodMeanConsistency = .7;
+CriteriaSet.truePeak = 1;
+CriteriaSet.efficiencyAdj = .6;
+CriteriaSet.flankConsistency = .5;
+CriteriaSet.ampConsistency = .25;
+CriteriaSet.MinCyclesPerBurst = 3;
+CriteriaSet.period = NarrowBand;
 NarrowbandRanges = struct();
 NarrowbandRanges.Alpha = NarrowBand;
 
 FinalBursts = cycy.detect_bursts(BroadbandEEG, NarrowbandEEG, NarrowbandRanges, ...
-    CriteriaSets);
+    CriteriaSet);
 
 
 %% plot data
@@ -90,48 +90,48 @@ xlim([0 10])
 Keep_Points = ones(1, nPoints); % if you have information identifying noise, set values to 0
 
 % Burst Thresholds for finding very clean bursts
-CriteriaSets = struct();
-CriteriaSets.isProminent = 1;
-CriteriaSets.periodConsistency = .7;
-CriteriaSets.periodMeanConsistency = .7;
-CriteriaSets.truePeak = 1;
-CriteriaSets.efficiencyAdj = .6;
-CriteriaSets.flankConsistency = .5;
-CriteriaSets.ampConsistency = .25;
-CriteriaSets.MinCyclesPerBurst = 3;
-CriteriaSets.period = NarrowBand;
+CriteriaSet = struct();
+CriteriaSet.isProminent = 1;
+CriteriaSet.periodConsistency = .7;
+CriteriaSet.periodMeanConsistency = .7;
+CriteriaSet.truePeak = 1;
+CriteriaSet.efficiencyAdj = .6;
+CriteriaSet.flankConsistency = .5;
+CriteriaSet.ampConsistency = .25;
+CriteriaSet.MinCyclesPerBurst = 3;
+CriteriaSet.period = NarrowBand;
 
 Signal = EEG.data(1, :);
 fSignal = NarrowbandEEG.data(1, :);
 Cycles = cycy.detect_cycles(Signal, fSignal);
 Cycles = cycy.measure_cycle_properties(Signal, Cycles, fs);
 
-[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSets, Keep_Points);
-cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, CriteriaSets)
+[~, BurstPeakIDs_Clean] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, Keep_Points);
+cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, CriteriaSet)
 
 %% Get bursts for each channel
 
 MinCyclesPerBurst = 3; % minimum number of cycles per burst
 
 % Burst Thresholds for finding very clean bursts
-CriteriaSets = struct();
-CriteriaSets(1).isProminent = 1;
-CriteriaSets(1).periodConsistency = .7;
-CriteriaSets(1).periodMeanConsistency = .7;
-CriteriaSets(1).truePeak = 1;
-CriteriaSets(1).efficiencyAdj = .6;
-CriteriaSets(1).flankConsistency = .5;
-CriteriaSets(1).ampConsistency = .25;
+CriteriaSet = struct();
+CriteriaSet(1).isProminent = 1;
+CriteriaSet(1).periodConsistency = .7;
+CriteriaSet(1).periodMeanConsistency = .7;
+CriteriaSet(1).truePeak = 1;
+CriteriaSet(1).efficiencyAdj = .6;
+CriteriaSet(1).flankConsistency = .5;
+CriteriaSet(1).ampConsistency = .25;
 
 % Burst thresholds for notched waves, but compensates
 % with more strict thresholds for everything else
-CriteriaSets(2).monotonicity = .8;
-CriteriaSets(2).periodConsistency = .6;
-CriteriaSets(2).periodMeanConsistency = .6;
-CriteriaSets(2).efficiency = .8;
-CriteriaSets(2).truePeak = 1;
-CriteriaSets(2).flankConsistency = .5;
-CriteriaSets(2).ampConsistency = .5;
+CriteriaSet(2).monotonicity = .8;
+CriteriaSet(2).periodConsistency = .6;
+CriteriaSet(2).periodMeanConsistency = .6;
+CriteriaSet(2).efficiency = .8;
+CriteriaSet(2).truePeak = 1;
+CriteriaSet(2).flankConsistency = .5;
+CriteriaSet(2).ampConsistency = .5;
 
 Bands.Alpha = NarrowBand; % format like this so it can loop through fieldnames to find relevant bands
 
@@ -142,12 +142,12 @@ Signal = EEG.data(1, :);
 fSignal = NarrowbandEEG.data(1, :);
 Cycles = cycy.detect_cycles(Signal, fSignal);
 Cycles = cycy.measure_cycle_properties(Signal, Cycles, fs);
-BT = remove_empty_fields_from_struct(CriteriaSets(1));
+BT = remove_empty_fields_from_struct(CriteriaSet(1));
 [~, BurstPeakIDs_Clean] = cycy.aggregate_cycles_into_bursts(Cycles, BT, MinCyclesPerBurst, Keep_Points);
 cycy.plot_1channel_bursts(Signal, fs, Cycles, BurstPeakIDs_Clean, BT)
 
 % get bursts in all data
-AllBursts = cycy.detect_bursts(EEG, NarrowbandEEG, CriteriaSets, MinCyclesPerBurst, Bands, Keep_Points);
+AllBursts = cycy.detect_bursts(EEG, NarrowbandEEG, CriteriaSet, MinCyclesPerBurst, Bands, Keep_Points);
 
 
 %% get burst properties
