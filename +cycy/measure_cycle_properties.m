@@ -22,18 +22,18 @@ for idxCycle = 1:numel(Cycles)
         NextCycle = Cycles(idxCycle+1);
     end
 
-    CurrCycle = measure_voltages(CurrCycle, ChannelBroadband);
+    CurrCycle = retrieve_peak_voltages(CurrCycle, ChannelBroadband);
     CurrCycle = is_true_peak(CurrCycle);
-
+    CurrCycle = count_extra_peaks(CurrCycle, ChannelBroadband);
     CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
     CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
     CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
     CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
 
-    AugmentedCycles(idxCycle) = CurrCycle;
+    AugmentedCycles = cat_structs(AugmentedCycles, CurrCycle);
+    
 end
 
 %%%
@@ -45,9 +45,9 @@ for idxCycle = 2:numel(AugmentedCycles)-1
     PrevCycle = AugmentedCycles(idxCycle-1);
     NextCycle = AugmentedCycles(idxCycle+1);
 
-    CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle);
-    %     CurrCycle = measure_(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
+    CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
+    CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle);
 
     AugmentedCycles(idxCycle) = CurrCycle;
 end
@@ -60,39 +60,17 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
 
-function CurrCycle = measure_period_mean_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% I dont understand this one atm (oh mean consistency across both positive
-% and negative periods)
-% not going to do this one
+function Cycle = count_extra_peaks(Cycle, ChannelBroadband)
+CycleSignal = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NextPosPeakIdx);
+Cycle.PeaksCount = nnz(diff(sign(diff(CycleSignal))) > 1);
 end
-
-function CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% TODO
-CurrCycle.AmplitudeConsistency = 0;
-
-end
-
-function CurrCycle = count_extra_peaks(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-
-%TODO
-CurrCycle.ExtraPeaksCount = 0;
-
-end
-
-function CurrCycle = measure_notched_monotonicity(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% calculate efficiency by taking the nearest positive peaks rather than the
-% largest positive peaks ?
-% wont do prominence
-CurrCycle.NotchedMonotonicity = 0; % TODO
-end
-
 
 function Cycle = measure_amplitude(Cycle, ChannelBroadband)
 Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
     - ChannelBroadband(Cycle.NegPeakIdx);
 end
 
-function Cycle = measure_voltages(Cycle, ChannelBroadband)
+function Cycle = retrieve_peak_voltages(Cycle, ChannelBroadband)
 Cycle.VoltagePrevPos = ChannelBroadband(Cycle.PrevPosPeakIdx);
 Cycle.VoltageNeg = ChannelBroadband(Cycle.NegPeakIdx);
 Cycle.VoltageNextPos = ChannelBroadband(Cycle.NextPosPeakIdx);
@@ -115,20 +93,6 @@ else
 end
 end
 
-function Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% Returns a boolean, if the negative peak is prominent with respects to the
-% two neighboring negative cycles.
-
-MidpointFallingEdge = (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
-Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
-[~, FallingEdgeCrossings] = detect_crossings(Cycle1Signal, MidpointFallingEdge);
-
-MidpointRisingEdge = (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
-Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
-[RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
-
-Cycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
-end
 
 function Cycle = measure_amplitude_ramp(Cycle, ChannelBroadband)
 % determines whether the rising edge is larger or smaller than the falling
@@ -147,6 +111,7 @@ end
 end
 
 function Cycle = measure_flank_consistency(Cycle, ChannelBroadband)
+
 FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
 RisingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
 
@@ -154,12 +119,9 @@ Cycle.FlankConsistency = min(FallingEdge/RisingEdge, RisingEdge/FallingEdge);
 end
 
 function Cycle = measure_monotonicity_in_time(Cycle, ChannelBroadband)
-PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
-NegPeak =  ChannelBroadband(Cycle.NegPeakIdx);
-NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
 
-FallingEdgeDiff = diff(ChannelBroadband(PrevPosPeak:NegPeak));
-RisingEdgeDiff = diff(ChannelBroadband(NegPeak:NextPosPeak));
+FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
+RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
 
 if numel(FallingEdgeDiff) < 2 || numel(RisingEdgeDiff) < 2
     Cycle.MonotonicityInTime = 0;
@@ -170,15 +132,12 @@ end
 end
 
 function Cycle = measure_monotonicity_in_voltage(Cycle, ChannelBroadband)
-PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
-NegPeak =  ChannelBroadband(Cycle.NegPeakIdx);
-NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
 
-FallingEdgeDiff = diff(ChannelBroadband(PrevPosPeak:NegPeak));
-RisingEdgeDiff = diff(ChannelBroadband(NegPeak:NextPosPeak));
+FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
+RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
 
-MaxFallingEdge = diff(ChannelBroadband([NegPeak PrevPosPeak]));
-MaxRisingEdge = diff(ChannelBroadband([NegPeak NextPosPeak]));
+MaxFallingEdge = abs(diff(ChannelBroadband([Cycle.NegPeakIdx Cycle.PrevPosPeakIdx])));
+MaxRisingEdge = abs(diff(ChannelBroadband([Cycle.NegPeakIdx Cycle.NextPosPeakIdx])));
 
 FallingEdgeEfficiency = (MaxFallingEdge - sum(abs(FallingEdgeDiff(FallingEdgeDiff>0))))/MaxFallingEdge;
 RisingEdgeEfficiency = (MaxRisingEdge-sum(abs(RisingEdgeDiff(RisingEdgeDiff<0))))/MaxRisingEdge;
@@ -186,8 +145,24 @@ RisingEdgeEfficiency = (MaxRisingEdge-sum(abs(RisingEdgeDiff(RisingEdgeDiff<0)))
 Cycle.MonotonicityVoltage = max(0, min(FallingEdgeEfficiency, RisingEdgeEfficiency));
 end
 
+
 %%%%%%%%%%%%%%%%
 %%% Functions for second for loop
+
+function Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+% Returns a boolean, if the negative peak is prominent with respects to the
+% two neighboring negative cycles.
+
+MidpointFallingEdge = (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
+Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
+[~, FallingEdgeCrossings] = detect_crossings(Cycle1Signal, MidpointFallingEdge);
+
+MidpointRisingEdge = (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
+Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
+[RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
+
+Cycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
+end
 
 function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle)
 PrevPeriod = CurrCycle.NegPeakIdx-PrevCycle.NegPeakIdx;
@@ -195,3 +170,11 @@ NextPeriod = NextCycle.NegPeakIdx-CurrCycle.NegPeakIdx;
 CurrCycle.PeriodConsistency = min([PrevPeriod/NextPeriod, NextPeriod/PrevPeriod]);
 end
 
+
+function CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle)
+% gets ratio of current cycle's amplitude relative to the neighbors
+
+MeanNeighborsAmplitude = mean([PrevCycle.Amplitude, NextCycle.Amplitude]);
+CurrCycle.AmplitudeConsistency = min([CurrCycle.Amplitude/MeanNeighborsAmplitude, ...
+    MeanNeighborsAmplitude/CurrCycle.Amplitude]);
+end
