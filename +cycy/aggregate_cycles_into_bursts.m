@@ -25,6 +25,9 @@ function [Bursts, Diagnostics] = aggregate_cycles_into_bursts(Cycles, CriteriaSe
 
 %%% Gather all peaks that meet all the threshold requirements
 
+% remove thresholds that are empty
+CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
+
 % gather peaks based on single peak property requirements
 [CyclesMeetCriteria, Diagnostics] = detect_cycles_that_meet_criteria( ...
     Cycles, CriteriaSet, KeepTimepoints);
@@ -167,7 +170,7 @@ end
 
 function AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles)
-% if the edge of a burst would be excluded just because of amplitude 
+% if the edge of a burst would be excluded just because of amplitude
 % consistency, include it instead.
 
 if isfield(CriteriaSet, 'AmplitudeConsistency')
@@ -175,10 +178,10 @@ if isfield(CriteriaSet, 'AmplitudeConsistency')
 
     idxCriteria = find(strcmp(CriteriaLabels, 'AmplitudeConsistency'));
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
-    
+
     Ramp = [Cycles.AmplitudeRamp]; % whether amplitude of burst is increasing or decreasing
     [Starts, Ends]  = find_streaks(AcceptedCycles, CriteriaSet.MinCyclesPerBurst);
-    
+
     for S = Starts(:)' % just make sure it's a row vector
         Edge = S-1;
 
@@ -207,7 +210,7 @@ function AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet
 % consistency, include it instead.
 
 if isfield(CriteriaSet, 'PeriodConsistency')
-      CriteriaLabels = get_criteria_labels(Cycles, CriteriaSet);
+    CriteriaLabels = get_criteria_labels(Cycles, CriteriaSet);
 
     idxCriteria = find(strcmp(CriteriaLabels, 'PeriodConsistency'));
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);

@@ -60,14 +60,11 @@ for idxBand = 1:numel(BandLabels)
         for idxCriteriaSet = 1:numel(CriteriaSets) % loop through combination of thresholds
             CriteriaSet = CriteriaSets(idxCriteriaSet);
 
-            % find all peaks in a given band
+            % find all cycles in a given band
             Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
             Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
             CriteriaSet.period = sort(1./Band); % add period threshold
-
-            % remove thresholds that are empty
-            CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 
             % find bursts
             [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints);
