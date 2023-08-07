@@ -4,7 +4,7 @@ arguments
     Data
     SampleRate (1, 1) {mustBePositive}
     PassbandFrequency (1, 1) {mustBePositive}
-    StopbandFrequency (1, 1) {mustBePositive} = PassbandFrequency-1;
+    StopbandFrequency (1, 1) {mustBePositive} = PassbandFrequency+1;
     DesignMethod = 'equiripple';
     PassbandRipple = 0.02; % TODO: check if should be 0.04 like highpass
     StopbandAttenuation = 40;
@@ -15,6 +15,7 @@ end
 
 
 % design filter, or load in from cache
+
 Filter = cycy.utils.cache_function_output(@designfilt, 'lowpassfir', ...
     'PassbandFrequency', PassbandFrequency, ...
     'StopbandFrequency', StopbandFrequency, ...
