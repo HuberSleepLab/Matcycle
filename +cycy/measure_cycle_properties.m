@@ -6,7 +6,7 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 
 % Part of Matcycle 2022, by Sophia Snipes.
 
-AugmentedCycles = struct();
+AugmentedCyclesFirstPass = struct();
 
 for idxCycle = 1:numel(Cycles)
 
@@ -32,7 +32,7 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
 
-    AugmentedCycles = cat_structs(AugmentedCycles, CurrCycle);
+    AugmentedCyclesFirstPass = cat_structs(AugmentedCyclesFirstPass, CurrCycle);
     
 end
 
@@ -40,20 +40,21 @@ end
 
 % This is a separate for loop for determining properties that require
 % the properties of the next cycle to already be calculated.
-for idxCycle = 2:numel(AugmentedCycles)-1
-    CurrCycle = AugmentedCycles(idxCycle);
-    PrevCycle = AugmentedCycles(idxCycle-1);
-    NextCycle = AugmentedCycles(idxCycle+1);
+AugmentedCyclesSecondPass = struct();
+for idxCycle = 2:numel(AugmentedCyclesFirstPass)-1
+    CurrCycle = AugmentedCyclesFirstPass(idxCycle);
+    PrevCycle = AugmentedCyclesFirstPass(idxCycle-1);
+    NextCycle = AugmentedCyclesFirstPass(idxCycle+1);
 
     CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
     CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle);
 
-    AugmentedCycles(idxCycle) = CurrCycle;
+    AugmentedCyclesSecondPass = cat_structs(AugmentedCyclesSecondPass, CurrCycle);
 end
 
 % remove edge peaks that are empty
-AugmentedCycles([1 end]) = [];
+AugmentedCycles = AugmentedCyclesSecondPass;
 end
 
 
@@ -148,7 +149,7 @@ end
 %%%%%%%%%%%%%%%%
 %%% Functions for second for loop
 
-function Cycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
+function CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
 % Returns a boolean, if the negative peak is prominent with respects to the
 % two neighboring negative cycles.
 
@@ -160,7 +161,7 @@ MidpointRisingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltageNextPos-CurrCycle.
 Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
 [RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
 
-Cycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
+CurrCycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
 end
 
 function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle)
