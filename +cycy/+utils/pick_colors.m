@@ -18,6 +18,8 @@ AllColors.olive = [181, 191, 109];
 AllColors.teal = [87, 162, 172];
 AllColors.blue = [78, 121, 196];
 AllColors.purple = [130, 77, 153];
+AllColors.magenta = [208 106 201];
+AllColors.brown = [156 117 78];
 AllColors.black = [0 0 0];
 
 if exist('Color', 'var')
@@ -50,6 +52,19 @@ switch N(1)
         MainColors = [AllColors.blue; AllColors.yellow;  AllColors.red;
             AllColors.green; AllColors.purple; AllColors.orange;
             AllColors.teal; AllColors.olive];
+    case 9
+           MainColors = [AllColors.blue; AllColors.yellow;  AllColors.red;
+            AllColors.green; AllColors.purple; AllColors.orange;
+            AllColors.teal; AllColors.olive, AllColors.magenta];
+    case 10
+        MainColors = [AllColors.blue; AllColors.yellow;  AllColors.red;
+            AllColors.green; AllColors.purple; AllColors.orange;
+            AllColors.teal; AllColors.olive; AllColors.magenta; AllColors.brown];
+    case 11
+         MainColors = [AllColors.blue; AllColors.yellow;  AllColors.red;
+            AllColors.green; AllColors.purple; AllColors.orange;
+            AllColors.teal; AllColors.olive; AllColors.magenta; AllColors.brown;
+            AllColors.black];
     otherwise
         error('too many colors')
 end
