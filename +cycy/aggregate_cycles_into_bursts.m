@@ -34,7 +34,7 @@ end
 CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 
 % gather peaks based on single peak property requirements
-[CyclesMeetCriteria, Diagnostics] = detect_cycles_that_meet_criteria( ...
+[CyclesMeetCriteria, Diagnostics] = cycy.detect_cycles_that_meet_criteria( ...
     Cycles, CriteriaSet, KeepTimepoints);
 
 % check when all criterias are met
@@ -108,17 +108,6 @@ Starts(remove) = [];
 Ends(remove) = [];
 
 Starts = Starts+1; % adjust indexing
-end
-
-
-
-
-function ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, IdxCriteria)
-% identifies all cycles that were excluded only because of this criteria
-I = 1:size(CyclesMeetCriteria, 1);
-I(IdxCriteria) = [];
-Remaining = all(CyclesMeetCriteria(I, :));
-ExcludedCycles = Remaining & ~CyclesMeetCriteria(IdxCriteria, :);
 end
 
 
@@ -212,6 +201,6 @@ for idxBurst = 1:numel(Starts)
     %%% get properties of the burst itself
     Bursts(idxBurst).Start = Cycles(CycleIndexes(1)-1).PrevPosPeakIdx;
     Bursts(idxBurst).End =  Bursts(idxBurst).NextPosPeakIdx(end);
-    Bursts(idxBurst).Frequency = 1/mean(Bursts(idxBurst).PeriodNeg);
+    Bursts(idxBurst).BurstFrequency = 1/mean(Bursts(idxBurst).PeriodNeg);
 end
 end

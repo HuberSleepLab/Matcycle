@@ -96,6 +96,8 @@ elseif isempty(NextCycle)
 else
     CurrCycle.PeriodNeg = (NextCycle.NegPeakIdx - PrevCycle.NegPeakIdx)/2/SampleRate;
 end
+
+CurrCycle.Frequency = 1/CurrCycle.PeriodNeg;
 end
 
 

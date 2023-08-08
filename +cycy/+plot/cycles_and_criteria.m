@@ -42,7 +42,7 @@ end
 
 % peaks
 if ~isempty(Cycles)
-    scatter(t([Cycles.PrevPeakIdx]), DataBroadband([Cycles.PrevPeakIdx]), 5, ...
+    scatter(t([Cycles.PrevPosPeakIdx]), DataBroadband([Cycles.PrevPosPeakIdx]), 10, ...
         'filled', 'MarkerFaceColor', [.8 .8 .8], 'HandleVisibility','off')
     scatter(t([Cycles.NegPeakIdx]), DataBroadband([Cycles.NegPeakIdx]), 10, ...
         'filled', 'MarkerFaceColor', 'k', 'HandleVisibility', 'off')
@@ -66,7 +66,7 @@ end
 % criteria with values between 0 and 1
 [CriteriaLabels, AbridgedCriteriaSet] = select_criteria_between_0_1(Cycles, CriteriaSet);
 
-CyclesMeetCriteria = detect_cycles_that_meet_criteria(Cycles, AbridgedCriteriaSet, ...
+CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, AbridgedCriteriaSet, ...
     KeepTimepoints);
 
 ax2 = subplot(SubplotCount, 1, 2);
@@ -78,14 +78,16 @@ title('Applied critiera')
 % frequency
 ax3 = subplot(SubplotCount, 1, 3);
 PeriodCriteria.PeriodNeg = CriteriaSet.PeriodNeg;
-CyclesMeetCriteria = detect_cycles_that_meet_criteria(Cycles, PeriodCriteria, ...
+CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, PeriodCriteria, ...
     KeepTimepoints);
-plot_criteria(t, Cycles, {'PeriodNeg'}, CyclesMeetCriteria)
+plot_criteria(t, Cycles, {'Frequency'}, CyclesMeetCriteria)
 
 
 %%% plot properties that weren't used as criteria
+ax4 = subplot(SubplotCount, 1, 4);
 PropertyLabels = select_properties_between_0_1(Cycles);
-plot_criteria(t, Cycles, PropertyLabels, false(numel(PropertyLabels, numel(Cycles))))
+PropertyLabels(contains(PropertyLabels, CriteriaLabels)) = [];
+plot_criteria(t, Cycles, PropertyLabels, false(numel(PropertyLabels), numel(Cycles)))
 
 
 linkaxes([ax1,ax2],'x');
@@ -119,6 +121,7 @@ end
 
 function PropertyLabels = select_properties_between_0_1(Cycles)
 AllPropertyLabels = fieldnames(Cycles);
+AllPropertyLabels(contains(AllPropertyLabels, 'Period')) = [];
 PropertyLabels = {};
 for Property = AllPropertyLabels'
     Values = [Cycles.(Property{1})];
@@ -132,15 +135,20 @@ end
 
 function plot_criteria(t, Cycles, CriteriaLabels, CyclesMeetCriteria)
 
-Colors = getColors(numel(CriteriaLabels));
+Colors = cycy.utils.pick_colors(numel(CriteriaLabels));
+
 
 hold on
-for idxCriteria = numel(CriteriaLabels)
+for idxCriteria = 1:numel(CriteriaLabels)
     CycleProperties = [Cycles.(CriteriaLabels{idxCriteria})];
 
     plot(t([Cycles.NegPeakIdx]), CycleProperties, 'o-', 'Color', Colors(idxCriteria, :), 'LineWidth', 1.5)
 
+    try
     Keep = CyclesMeetCriteria(idxCriteria, :);
+    catch
+        a=1
+    end
     scatter(t([Cycles(Keep).NegPeakIdx]), CycleProperties(Keep), ...
         'filled', 'MarkerFaceColor', Colors(idxCriteria, :), 'HandleVisibility','off')
 end
