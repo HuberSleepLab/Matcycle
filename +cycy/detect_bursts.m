@@ -64,7 +64,7 @@ for idxBand = 1:numel(BandLabels)
             Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
             Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
-            CriteriaSet.period = sort(1./Band); % add period threshold
+            CriteriaSet.PeriodNeg = sort(1./Band); % add period threshold
 
             % find bursts
             [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints);
