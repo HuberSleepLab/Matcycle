@@ -56,7 +56,7 @@ AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
 [Starts, Ends] = find_streaks(AcceptedCycles, CriteriaSet.MinCyclesPerBurst);
 
 if isempty(Starts) || isempty(Ends)
-    Bursts = struct();
+    Bursts = [];
     return
 end
 
