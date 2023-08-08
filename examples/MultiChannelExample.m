@@ -50,17 +50,24 @@ CriteriaSets(1).AmplitudeConsistency = .5; % left and right cycles should be of 
 CriteriaSets(1).MinCyclesPerBurst = 4; % all the above criteria have to be met for this many cycles in a row
 
 CriteriaSets(2).isTruePeak = 1; % excludes edge cases in which the negative "peak" is actually the same as one of the positive "peaks"
-CriteriaSets(2).VoltageNeg = 0; % make sure all negative peaks are actually negative values
-CriteriaSets(2).Amplitude = 30; % if you want, you can actually set an amplitude threshold; I recommend either none or a really small value
+CriteriaSets(2).VoltageNeg = [-100 0]; % make sure all negative peaks are actually negative values. N.B. thresholds by default need the value to be greater than the criteria; so need to provide a range for negative values
+CriteriaSets(2).Amplitude = 20; % if you want, you can actually set an amplitude threshold; I recommend either none or a really small value
 CriteriaSets(2).MinCyclesPerBurst = 3; % all the above criteria have to be met for this many cycles in a row
 
 % detect bursts in each channel
-
-% profile on
-Bursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
+AllBursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
     CriteriaSets, RunParallel);
 
-% profile viewer
+cycy.plot.plot_all_bursts(EEGbroadband, 20, AllBursts, 'CriteriaSetIndex')
+
+
+%% Get burst information
+
+MinFrequencyRange = 1;
+
+% aggregate bursts across channels
+Bursts = aggregate_bursts_by_frequency(AllBursts, EEG, MinFrequencyRange);
+
 
 
 
