@@ -69,6 +69,9 @@ MinFrequencyRange = 1;
 Bursts = cycy.aggregate_bursts_by_frequency(AllBursts, EEGbroadband, MinFrequencyRange);
 
 
+%%
+
+cycy.plot.plot_all_bursts(EEGbroadband, 20, Bursts, 'CriteriaSetIndex');
 
 
 

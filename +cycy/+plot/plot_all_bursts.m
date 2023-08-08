@@ -53,9 +53,9 @@ for Indx_B = 1:numel(Bursts)
 
     B = Bursts(Indx_B);
 
-    if isfield(B, 'All_Start')
-        Start = B.All_Start;
-        End = B.All_End;
+    if isfield(B, 'ClusterStart')
+        Start = B.ClusterStart;
+        End = B.ClusterEnd;
     else
         Start = B.Start;
         End = B.End;
@@ -65,8 +65,8 @@ for Indx_B = 1:numel(Bursts)
     Ch = B.ChannelIndex;
     if isfield(B, 'involved_ch')
         AllCh = B.involved_ch;
-    elseif isfield(B, 'Coh_Burst_Channels')
-        AllCh = B.Coh_Burst_Channels;
+    elseif isfield(B, 'ClusterChannelIndexes')
+        AllCh = B.ClusterChannelIndexes;
     else
         AllCh = [];
     end
