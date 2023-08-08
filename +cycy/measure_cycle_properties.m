@@ -148,7 +148,7 @@ DecreaseDuringRisingEdge = sum(abs(RisingEdgeDiff(RisingEdgeDiff<0)));
 
 Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/Cycle.Amplitude;
 
-Cycle.MonotonicityVoltage = max(0, Monotonicity);
+Cycle.MonotonicityInVoltage = max(0, Monotonicity);
 
 end
 
@@ -178,9 +178,16 @@ end
 
 
 function CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle)
-% gets ratio of current cycle's amplitude relative to the neighbors
+% gets ratio of current cycle's amplitude relative to the neighbors, taking
+% smallest
 
-MeanNeighborsAmplitude = mean([PrevCycle.Amplitude, NextCycle.Amplitude]);
-CurrCycle.AmplitudeConsistency = min([CurrCycle.Amplitude/MeanNeighborsAmplitude, ...
-    MeanNeighborsAmplitude/CurrCycle.Amplitude]);
+Amp1 = PrevCycle.Amplitude;
+Amp2 = CurrCycle.Amplitude;
+Amp3 = NextCycle.Amplitude;
+
+CurrCycle.AmplitudeConsistency = min([Amp1/Amp2, Amp2/Amp1, Amp2/Amp3, Amp3/Amp2]);
 end
+
+
+
+
