@@ -1,12 +1,12 @@
 function cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
-    Cycles, CriteriaSet, AcceptedCycles, KeepTimepoints)
+    Cycles, CriteriaSet, Bursts, KeepTimepoints)
 arguments
     DataBroadband
     SampleRate (1,1)
     DataNarrowband = [];
     Cycles = [];
     CriteriaSet = [];
-    AcceptedCycles = false(1, numel(Cycles));
+    Bursts = [];
     KeepTimepoints = true(1, numel(DataBroadband));
 end
 
@@ -48,8 +48,9 @@ if ~isempty(Cycles)
         'filled', 'MarkerFaceColor', 'k', 'HandleVisibility', 'off')
 end
 
-if any(AcceptedCycles)
-    scatter(t([Cycles(AcceptedCycles).NegPeakIdx]), DataBroadband([Cycles(AcceptedCycles).NegPeakIdx]), ...
+if ~isempty(Bursts)
+    AcceptedCycles = [Bursts.NegPeakIdx];
+    scatter(t(AcceptedCycles), DataBroadband(AcceptedCycles), ...
         'filled', 'MarkerFaceColor', cycy.utils.pick_colors(1, 1, 'red'))
     Legend = cat(2, Legend, 'Accepted cycles');
 end

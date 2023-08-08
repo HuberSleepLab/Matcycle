@@ -1,4 +1,4 @@
-function [Bursts, Diagnostics, AcceptedCycles] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
+function [Bursts, Diagnostics] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
 arguments
 Cycles
 CriteriaSet
