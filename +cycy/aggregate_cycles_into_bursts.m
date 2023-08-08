@@ -1,4 +1,9 @@
-function [Bursts, Diagnostics, CyclesMeetCriteria, AcceptedCycles] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
+function [Bursts, Diagnostics, AcceptedCycles] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
+arguments
+Cycles
+CriteriaSet
+KeepTimepoints = []
+end
 % goes through all peaks found, puts them into structs according to
 % whether they make up a burst, or if they are on their own.
 % Peak_Thresholds is a struct, with fields already present in Peaks, and is
@@ -75,20 +80,6 @@ for Indx_F = 1:numel(Fieldnames)
 end
 end
 
-
-function CriteriaLabels = get_criteria_labels(Cycles, CriteriaSet)
-CycleFields = fieldnames(Cycles);
-
-CriteriaLabels = fieldnames(CriteriaSet);
-CriteriaLabels(~ismember(CriteriaLabels, CycleFields)) = []; % in case there's extra junk in there
-
-% remove from criteria those that don't correspond to specific properties
-% of cycles
-CriteriaLabels(strcmp(CriteriaLabels, 'MinCyclesPerBurst')) = [];
-end
-
-
-
 function [Starts, Ends] = find_streaks(BoolArray, MinSamples)
 % identify starts and ends that make up streaks
 % BinArray is ones and zeros, and tries to find streaks of ones
@@ -120,56 +111,6 @@ Starts = Starts+1; % adjust indexing
 end
 
 
-function [CyclesMeetCriteria, Diagnostics] = detect_cycles_that_meet_criteria( ...
-    Cycles, CriteriaSet, KeepTimepoints)
-% Creates a matrix (# criteria x # cycles) of booleans, indicating whether
-% each cycle meets each criteria. Cycles and Criterias are structs, sich
-% that all the fieldnames of Criterias should be present in Cycles.
-% KeepTimepoints is a vector of booleans the length of your original
-% signal.
-
-CriteriaLabels = get_criteria_labels(Cycles, CriteriaSet);
-
-% TODO: explain what this is
-Diagnostics = struct();
-
-% computes booleans of whether each cycle meets each criteria
-CyclesMeetCriteria = true(numel(CriteriaLabels), numel(Cycles));
-
-for idxCriteria = 1:numel(CriteriaLabels)
-
-    Criteria = CriteriaLabels{idxCriteria};
-    Threshold = CriteriaSet.(Criteria);
-    CycleProperty = [Cycles.(Criteria)];
-
-    if numel(Threshold) == 1 % a scalar is provided
-        isMet = CycleProperty >= Threshold;
-    elseif numel(Threshold) == 2 % a range is provided
-        isMet = CycleProperty >= Threshold(1) & CycleProperty <= Threshold(2);
-    else
-        error('incorrect number of criteria inputs')
-    end
-
-    CyclesMeetCriteria(idxCriteria, :) = isMet;
-    Diagnostics.(Criteria) = nnz(~isMet);
-end
-
-% ignore cycles with a peak that is not included in KeepTimepoints
-if ~isempty(KeepTimepoints)
-    KeepTimepoints = find(KeepTimepoints);
-    Peak_Points = [Cycles.NegPeakIdx];
-    isMet = ismember(Peak_Points, KeepTimepoints);
-    CyclesMeetCriteria = cat(1, CyclesMeetCriteria, isMet);
-    Diagnostics.Noise = nnz(~isMet);
-end
-
-% identify number of peaks uniquely removed by a single factor for later
-for idxCriteria = 1:numel(CriteriaLabels)
-    Criteria = CriteriaLabels{idxCriteria};
-    ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
-    Diagnostics.([Criteria, 'u']) = nnz(ExcludedCycles);
-end
-end
 
 
 function ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, IdxCriteria)
@@ -187,7 +128,7 @@ function AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, Criteria
 % consistency, include it instead.
 
 if isfield(CriteriaSet, 'AmplitudeConsistency')
-    CriteriaLabels = get_criteria_labels(Cycles, CriteriaSet);
+    CriteriaLabels = cycy.utils.get_criteria_labels(Cycles, CriteriaSet);
 
     idxCriteria = find(strcmp(CriteriaLabels, 'AmplitudeConsistency'));
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
@@ -223,7 +164,7 @@ function AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet
 % consistency, include it instead.
 
 if isfield(CriteriaSet, 'PeriodConsistency')
-    CriteriaLabels = get_criteria_labels(Cycles, CriteriaSet);
+    CriteriaLabels = cycy.utils.get_criteria_labels(Cycles, CriteriaSet);
 
     idxCriteria = find(strcmp(CriteriaLabels, 'PeriodConsistency'));
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
@@ -247,29 +188,30 @@ for idxBurst = 1:numel(Starts)
     Bursts(idxBurst).CycleIndexes = CycleIndexes;
 
     %%% transfer all info about the individual peaks
-    for Label = CyclePropertyLabels
-        AllCyclesProperties = [Cycles(CycleIndexes).(Label)];
+    for Label = CyclePropertyLabels'
+        AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
+ 
 
         % handle differently depending on whether its a string or numbers,
         % and if it's the same for all elements in the burst or not
         UniqueProperties = unique(AllCyclesProperties);
         if isnumeric(AllCyclesProperties) && numel(UniqueProperties) > 1
-            Bursts(idxBurst).(Label) = AllCyclesProperties;
+            Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
         elseif isnumeric(AllCyclesProperties) && numel(UniqueProperties) == 1
-            Bursts(idxBurst).(Label) = AllCyclesProperties(1);
+            Bursts(idxBurst).(Label{1}) = AllCyclesProperties(1);
         else
-            AllCyclesProperties = {Cycles(CycleIndexes).(Label)};
+            AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
             if numel(unique(AllCyclesProperties))==1
-                Bursts(idxBurst).(Label) = AllCyclesProperties(1);
+                Bursts(idxBurst).(Label{1}) = AllCyclesProperties(1);
             else
-                Bursts(idxBurst).(Label) = AllCyclesProperties;
+                Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
             end
         end
     end
 
     %%% get properties of the burst itself
-    Bursts(idxBurst).Start = Cycles(CycleIndexes(1)-1).PosPeakIdx;
-    Bursts(idxBurst).End =  Bursts(idxBurst).PosPeakIdx(end);
+    Bursts(idxBurst).Start = Cycles(CycleIndexes(1)-1).PrevPosPeakIdx;
+    Bursts(idxBurst).End =  Bursts(idxBurst).NextPosPeakIdx(end);
     Bursts(idxBurst).Frequency = 1/mean(Bursts(idxBurst).PeriodNeg);
 end
 end

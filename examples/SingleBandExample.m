@@ -24,14 +24,12 @@ DataNarrowband = cycy.utils.lowpass_filter(DataNarrowband, SampleRate, Range(2))
 %%% set parameters
 CriteriaSet = struct();
 CriteriaSet.isProminent = 1;
-CriteriaSet.periodConsistency = .7;
-CriteriaSet.periodMeanConsistency = .7;
-CriteriaSet.truePeak = 1;
-CriteriaSet.efficiencyAdj = .6;
-CriteriaSet.flankConsistency = .5;
-CriteriaSet.ampConsistency = .25;
+CriteriaSet.PeriodConsistency = .7;
+CriteriaSet.isTruePeak = 1;
+CriteriaSet.FlankConsistency = .5;
+CriteriaSet.AmplitudeConsistency = .25;
 CriteriaSet.MinCyclesPerBurst = 3;
-CriteriaSet.period = sort(1./Range); % add period threshold
+CriteriaSet.PeriodNeg = sort(1./Range); % add period threshold
 
 %%
 %%% detect cycles
@@ -41,9 +39,13 @@ AugmentedCycles = cycy.measure_cycle_properties(DataBroadband, Cycles, SampleRat
 
 %%% detect bursts
 % find bursts
- [Bursts, Diagnostics, CyclesMeetCriteria, AcceptedCycles] = cycy.aggregate_cycles_into_bursts(AugmentedCycles, CriteriaSet);
+ [Bursts, Diagnostics, AcceptedCycles] = cycy.aggregate_cycles_into_bursts(AugmentedCycles, CriteriaSet);
 
 
 
 
 
+%%
+
+cycy.plot.cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
+    Cycles, CriteriaSet, CyclesMeetCriteria, AcceptedCycles, [])
