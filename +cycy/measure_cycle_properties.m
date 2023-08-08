@@ -148,7 +148,7 @@ DecreaseDuringRisingEdge = sum(abs(RisingEdgeDiff(RisingEdgeDiff<0)));
 
 Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/Cycle.Amplitude;
 
-Cycle.MonotonicityInVoltage = max(0, Monotonicity);
+Cycle.MonotonicityInAmplitude = max(0, Monotonicity);
 
 end
 
