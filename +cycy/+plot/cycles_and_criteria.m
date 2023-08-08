@@ -137,6 +137,10 @@ end
 
 function plot_criteria(t, Cycles, CriteriaLabels, CyclesMeetCriteria)
 
+if isempty(CriteriaLabels)
+    return
+end
+
 Colors = cycy.utils.pick_colors(numel(CriteriaLabels));
 
 
@@ -145,12 +149,8 @@ for idxCriteria = 1:numel(CriteriaLabels)
     CycleProperties = [Cycles.(CriteriaLabels{idxCriteria})];
 
     plot(t([Cycles.NegPeakIdx]), CycleProperties, 'o-', 'Color', Colors(idxCriteria, :), 'LineWidth', 1.5)
-
-    try
+    
     Keep = CyclesMeetCriteria(idxCriteria, :);
-    catch
-        a=1
-    end
     scatter(t([Cycles(Keep).NegPeakIdx]), CycleProperties(Keep), ...
         'filled', 'MarkerFaceColor', Colors(idxCriteria, :), 'HandleVisibility','off')
 end

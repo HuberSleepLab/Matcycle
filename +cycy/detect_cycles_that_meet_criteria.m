@@ -45,6 +45,6 @@ end
 for idxCriteria = 1:numel(CriteriaLabels)
     Criteria = CriteriaLabels{idxCriteria};
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
-    Diagnostics.([Criteria, 'u']) = nnz(ExcludedCycles);
+    Diagnostics.([Criteria, 'Unique']) = nnz(ExcludedCycles);
 end
 end
