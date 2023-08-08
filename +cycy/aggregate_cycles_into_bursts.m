@@ -177,19 +177,7 @@ for idxBurst = 1:numel(Starts)
     %%% transfer all info about the individual peaks
     for Label = CyclePropertyLabels'
         AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
-
-
-        % handle differently depending on whether its a string or numbers,
-        % and if it's the same for all elements in the burst or not
-        UniqueProperties = unique(AllCyclesProperties);
-        if isnumeric(AllCyclesProperties) && numel(UniqueProperties) > 1
-            Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
-        elseif isnumeric(AllCyclesProperties) && numel(UniqueProperties) == 1
-            Bursts(idxBurst).(Label{1}) = AllCyclesProperties(1);
-        else
-            AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
-            Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
-        end
+        Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
     end
 
     %%% get properties of the burst itself

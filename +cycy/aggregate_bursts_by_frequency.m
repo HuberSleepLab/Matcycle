@@ -60,7 +60,7 @@ for idxBurst = 1:BurstsCount
     HasBeenEvaluated(AggregatedBurstIndexes) = true;
 
     % assemble new burst's info
-    Burst = assemble_burst_metadata(AllBurstsSorted, AggregatedBurstIndexes, SortedBurstIndexes, ChannelCount);
+    Burst = assemble_burst_metadata(AllBurstsSorted, AggregatedBurstIndexes, SortedBurstIndexes, ChannelCount, idxBurst);
     Bursts = cat_structs(Bursts, Burst);
 end
 
@@ -109,14 +109,14 @@ end
 
 %%%
 function OverlappingBurstIndexes = keep_only_mostly_overlapping_bursts( ...
-    OverlappingBurstIndexes, SortedStarts, SortedEnds, ReferenceIdx)
+    OverlappingBurstIndexes, Starts, Ends, ReferenceIdx)
 
 StartReferenceBurst = Starts(ReferenceIdx);
 EndReferenceBurst = Ends(ReferenceIdx);
 
 % get the duration of each burst
-OverlappingStartTimes = SortedStarts(OverlappingBurstIndexes);
-OverlappingEndTimes = SortedEnds(OverlappingBurstIndexes);
+OverlappingStartTimes = Starts(OverlappingBurstIndexes);
+OverlappingEndTimes = Ends(OverlappingBurstIndexes);
 OverlappingBurstDurations = OverlappingEndTimes - OverlappingStartTimes;
 
 % identify 50% of each burst
@@ -162,7 +162,11 @@ for idxOverlapper = 1:numel(OverlappingBurstIndexes)
 
     % get frequency of overlapping segment in other burst
     OverlapperPeriod = Bursts(OverlappingBurstIndexes(idxOverlapper)).PeriodNeg;
+    try
     OverlapperFrequency = 1/mean(OverlapperPeriod(OverlappingOverlapperPeakIdx), 'omitnan');
+    catch
+        a=2
+    end
 
     % if frequency of overlapping burst is within range, keep
     if OverlapperFrequency >= FrequencyRange(1) && OverlapperFrequency <=FrequencyRange(2)
@@ -173,16 +177,16 @@ end
 
 
 %%%
-function Burst = assemble_burst_metadata(AllBursts, AggregatedBurstIndexes, BurstIndexes, ChannelCount)
+function Burst = assemble_burst_metadata(AllBursts, AggregatedBurstIndexes, BurstIndexes, ChannelCount, ReferenceIdx)
 
 % transfer metadata from aggregated bursts
-Burst = AllBursts(idxBurst);
+Burst = AllBursts(ReferenceIdx);
 Burst.ClusterBurstsIdx = BurstIndexes(AggregatedBurstIndexes);
 Burst.ClusterChannelIndexes = [AllBursts(AggregatedBurstIndexes).ChannelIndex];
 Burst.ClusterChannelLabels = [AllBursts(AggregatedBurstIndexes).ChannelIndexLabel];
 Burst.ClusterStarts = [AllBursts(AggregatedBurstIndexes).Start];
 Burst.ClusterEnds = [AllBursts(AggregatedBurstIndexes).End];
-Burst.ClusterCycleCounts = [AllBursts(AggregatedBurstIndexes).CycleCount];
+Burst.ClusterCycleCounts = [AllBursts(AggregatedBurstIndexes).CyclesCount];
 Burst.ClusterSigns = [AllBursts(AggregatedBurstIndexes).Sign];
 Burst.ClusterFrequency = [AllBursts(AggregatedBurstIndexes).Frequency];
 
@@ -195,7 +199,8 @@ for Indx_C = 1:numel(AggregatedBurstIndexes)
     Burst.ClusterAmplitudeSum(Indx_C) = sum(AllBursts(AggregatedBurstIndexes(Indx_C)).Amplitude);
 
     ClusterPeaks(Indx_C).NegPeakIdx = AllBursts(AggregatedBurstIndexes(Indx_C)).NegPeakIdx;
-    ClusterPeaks(Indx_C).PosPeakIdx = AllBursts(AggregatedBurstIndexes(Indx_C)).PosPeakIdx;
+    ClusterPeaks(Indx_C).PrevPosPeakIdx = AllBursts(AggregatedBurstIndexes(Indx_C)).PrevPosPeakIdx;
+    ClusterPeaks(Indx_C).NextPosPeakIdx = AllBursts(AggregatedBurstIndexes(Indx_C)).NextPosPeakIdx;
 end
 
 Burst.ClusterPeaks = ClusterPeaks;
@@ -204,6 +209,6 @@ Burst.ClusterStart = min([Burst.ClusterStarts, Burst.Start]);
 Burst.ClusterEnd = max([Burst.ClusterEnds, Burst.End]);
 
 % how many channels involved in burst
-Burst.ClusterGlobality = numel(unique(Burst.ClusterChannels))./ChannelCount;
+Burst.ClusterGlobality = numel(unique(Burst.ClusterChannelIndexes))./ChannelCount;
 
 end
