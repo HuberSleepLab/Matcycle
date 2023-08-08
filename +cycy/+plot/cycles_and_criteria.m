@@ -9,6 +9,16 @@ arguments
     Bursts = [];
     KeepTimepoints = true(1, numel(DataBroadband));
 end
+% Plots the EEG data with the detected cycles. Everything after SampleRate
+% is optional. If Cycles are provided, it will plot the detected peaks. If
+% CriteriaSet is provided, it will plot 4 pannels: 1st the EEG signal with
+% the detected peaks, 2nd the cycle properties for the criteria included in
+% the CriteriaSet (filled circles indicate that the cycle passed the
+% threshold), 3rd the frequency of each cycle, 4th the properties of the
+% cycles that wasn't included in the CriteriaSet. Only criteria values
+% between 0 and 1 will be plotted. If Bursts are provided, then the 1st
+% plot will highlight in red which cycles made it into a burst.
+% KeepTimepoints will mask timepoints that were considered noise.
 
 t = linspace(0, numel(DataBroadband)/SampleRate, numel(DataBroadband));
 
