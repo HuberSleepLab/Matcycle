@@ -73,7 +73,7 @@ for idxBand = 1:numel(BandLabels)
             Metadata = struct();
             Metadata.Band = BandLabels(idxBand);
             Metadata.ChannelIndex = ChannelIndex;
-            Metadata.ChannelIndexOriginal = indexes2labels(ChannelIndex, EEGBroadband.chanlocs);
+            Metadata.ChannelIndexLabel = indexes2labels(ChannelIndex, EEGBroadband.chanlocs);
             Metadata.Sign = Sign;
             Metadata.CriteriaSetIndex = idxCriteriaSet;
 
