@@ -5,9 +5,6 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 % come from here.
 
 % Part of Matcycle 2022, by Sophia Snipes.
-
-AugmentedCyclesFirstPass = struct();
-
 for idxCycle = 1:numel(Cycles)
 
     CurrCycle = Cycles(idxCycle);
@@ -32,8 +29,11 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
 
-    AugmentedCyclesFirstPass = cat_structs(AugmentedCyclesFirstPass, CurrCycle);
-    
+    if idxCycle == 1
+        AugmentedCyclesFirstPass = CurrCycle;
+    else
+        AugmentedCyclesFirstPass(idxCycle) = CurrCycle;
+    end
 end
 
 %%%
@@ -50,7 +50,11 @@ for idxCycle = 2:numel(AugmentedCyclesFirstPass)-1
     CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle);
 
-    AugmentedCyclesSecondPass = cat_structs(AugmentedCyclesSecondPass, CurrCycle);
+    if idxCycle == 2
+        AugmentedCyclesSecondPass = CurrCycle;
+    else
+        AugmentedCyclesSecondPass(idxCycle-1) = CurrCycle;
+    end
 end
 
 % remove edge peaks that are empty
