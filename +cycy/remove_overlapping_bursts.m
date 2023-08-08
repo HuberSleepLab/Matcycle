@@ -97,9 +97,9 @@ for idxBurst = 1:numel(Bursts)
     Bursts(idxBurst).End = End;
 
     % remove information about peaks no longer in burst
-    for Label = PropertyLabels
-        if numel(Bursts(idxBurst).(Label)) == PeaksCountOriginal
-            Bursts(idxBurst).(Label) = Bursts(idxBurst).(Label)(PeaksToKeep);
+    for Label = PropertyLabels'
+        if numel(Bursts(idxBurst).(Label{1})) == PeaksCountOriginal
+            Bursts(idxBurst).(Label{1}) = Bursts(idxBurst).(Label{1})(PeaksToKeep);
         end
     end
 end
