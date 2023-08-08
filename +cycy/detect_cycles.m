@@ -7,8 +7,12 @@ function Cycles = detect_cycles(ChannelBroadband, ChannelNarrowband)
 [RisingEdgeZeroCrossings, FallingEdgeZeroCrossings] = ...
     cycy.detect_zero_crossings(ChannelNarrowband);
 
+try
 [NegPeaks, PosPeaks] = cycy.detect_peaks(RisingEdgeZeroCrossings, ...
     FallingEdgeZeroCrossings, ChannelBroadband);
+catch
+    a=1
+end
 
 NegPeaksCount = numel(NegPeaks);
 Cycles = struct();

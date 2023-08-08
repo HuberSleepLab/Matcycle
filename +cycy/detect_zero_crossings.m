@@ -10,8 +10,11 @@ function [RisingEdgeCrossings, FallingEdgeCrossings] = detect_zero_crossings(Sig
 [RisingEdgeCrossings, FallingEdgeCrossings] = detect_crossings(Signal, 0);
 
 % Ensure that the first index is always a rising edge zero-crossing
-if RisingEdgeCrossings(1) >= FallingEdgeCrossings(1)
+if RisingEdgeCrossings(1) > FallingEdgeCrossings(1)
     FallingEdgeCrossings(1) = [];
+elseif RisingEdgeCrossings(1) == FallingEdgeCrossings(1)
+    FallingEdgeCrossings(1) = FallingEdgeCrossings(1)+1;
+
 end
 
 % Ensure that the last index is always a falling edge zero-crossing
