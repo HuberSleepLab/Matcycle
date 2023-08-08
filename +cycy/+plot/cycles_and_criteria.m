@@ -88,12 +88,20 @@ title('Applied critiera')
 
 % frequency
 ax3 = subplot(SubplotCount, 1, 3);
+if isfield(CriteriaSet, 'PeriodNeg')
 PeriodCriteria.PeriodNeg = CriteriaSet.PeriodNeg;
+else
+    PeriodCriteria = [];
+end
+
+if isfield(CriteriaSet, 'PeriodPos')
+PeriodCriteria.PeriodPos = CriteriaSet.PeriodPos;
+end
+
 CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, PeriodCriteria, ...
     KeepTimepoints);
-plot_criteria(t, Cycles, {'Frequency'}, CyclesMeetCriteria)
-legend off
-title('Frequency')
+plot_criteria(t, Cycles, fieldnames(PeriodCriteria), CyclesMeetCriteria)
+title('Period')
 
 %%% plot properties that weren't used as criteria
 ax4 = subplot(SubplotCount, 1, 4);
@@ -115,7 +123,7 @@ end
 function [CriteriaLabels, AbridgedCriteraSet] = select_criteria_between_0_1(Cycles, CriteriaSet)
 AllCriteriaLabels = cycy.utils.get_criteria_labels(Cycles, CriteriaSet);
 
-AllCriteriaLabels(contains(AllCriteriaLabels, 'Period')) = [];
+AllCriteriaLabels(contains(AllCriteriaLabels, {'PeriodNeg', 'PeriodPos'})) = [];
 CriteriaLabels = {};
 AbridgedCriteraSet = struct();
 
@@ -133,7 +141,7 @@ end
 
 function PropertyLabels = select_properties_between_0_1(Cycles)
 AllPropertyLabels = fieldnames(Cycles);
-AllPropertyLabels(contains(AllPropertyLabels, 'Period')) = [];
+AllPropertyLabels(contains(AllPropertyLabels, {'PeriodNeg', 'PeriodPos'})) = [];
 PropertyLabels = {};
 for Property = AllPropertyLabels'
     Values = [Cycles.(Property{1})];
