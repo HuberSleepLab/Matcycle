@@ -81,14 +81,15 @@ PeriodCriteria.PeriodNeg = CriteriaSet.PeriodNeg;
 CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, PeriodCriteria, ...
     KeepTimepoints);
 plot_criteria(t, Cycles, {'Frequency'}, CyclesMeetCriteria)
-
+legend off
+title('Frequency')
 
 %%% plot properties that weren't used as criteria
 ax4 = subplot(SubplotCount, 1, 4);
 PropertyLabels = select_properties_between_0_1(Cycles);
 PropertyLabels(contains(PropertyLabels, CriteriaLabels)) = [];
 plot_criteria(t, Cycles, PropertyLabels, false(numel(PropertyLabels), numel(Cycles)))
-
+title('Unused criteria')
 
 linkaxes([ax1,ax2],'x');
 linkaxes([ax1,ax3],'x');
