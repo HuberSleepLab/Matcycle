@@ -1,8 +1,8 @@
 function [Bursts, Diagnostics] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
 arguments
-Cycles
-CriteriaSet
-KeepTimepoints = []
+    Cycles
+    CriteriaSet
+    KeepTimepoints = []
 end
 % goes through all peaks found, puts them into structs according to
 % whether they make up a burst, or if they are on their own.
@@ -48,8 +48,6 @@ AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles);
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%
 %%% Gather burst info
 
 % identify edges of the bursts
@@ -179,7 +177,7 @@ for idxBurst = 1:numel(Starts)
     %%% transfer all info about the individual peaks
     for Label = CyclePropertyLabels'
         AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
- 
+
 
         % handle differently depending on whether its a string or numbers,
         % and if it's the same for all elements in the burst or not
@@ -190,11 +188,7 @@ for idxBurst = 1:numel(Starts)
             Bursts(idxBurst).(Label{1}) = AllCyclesProperties(1);
         else
             AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
-            if numel(unique(AllCyclesProperties))==1
-                Bursts(idxBurst).(Label{1}) = AllCyclesProperties(1);
-            else
-                Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
-            end
+            Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
         end
     end
 

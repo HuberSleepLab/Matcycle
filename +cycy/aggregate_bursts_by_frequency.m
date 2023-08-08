@@ -35,8 +35,9 @@ for idxBurst = 1:BurstsCount
         continue
     end
 
-    %%% only consider bursts that overlap > 50%
-OverlappingBurstIndexes = keep_only_mostly_overlapping_bursts(OverlappingBurstIndexes, SortedStarts, SortedEnds, idxBurst);
+    % only consider bursts that overlap > 50%
+    OverlappingBurstIndexes = keep_only_mostly_overlapping_bursts( ...
+        OverlappingBurstIndexes, SortedStarts, SortedEnds, idxBurst);
 
     FinalOverlappingStartTimes = SortedStarts(OverlappingBurstIndexes);
     FinalOverlappingEndTimes = SortedEnds(OverlappingBurstIndexes);
@@ -59,12 +60,8 @@ OverlappingBurstIndexes = keep_only_mostly_overlapping_bursts(OverlappingBurstIn
         Overlap_RefPeaks = ReferenceNegPeakIdx>=Start_Overlap & ReferenceNegPeakIdx<=End_Overlap;
 
         % identify in reference the mean frequency of the overlapping segment
-        Period = AllBurstsSorted(idxBurst).period;
-
-        if numel(Period) == 1 % because of stupid hack earlier, that reduces to 1 if they're all the same
-            Period = repmat(Period, 1, numel(Overlap_RefPeaks));
-        end
-
+        Period = AllBurstsSorted(idxBurst).PeriodNeg;
+        
         Freq = 1/mean(Period(Overlap_RefPeaks), 'omitnan');
 
         FreqRange = [Freq-MinFrequencyRange, Freq+MinFrequencyRange];
