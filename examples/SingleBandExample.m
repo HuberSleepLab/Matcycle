@@ -6,55 +6,57 @@ close all
 
 %% load the EEG data
 
-load("C:\Users\colas\Code\Matcycle\example_data\EEGbroadband_fulltime.mat", "EEGbroadband")
+Path = fullfile(extractBefore(cd, 'examples'), 'example_data');
+load(fullfile(Path, "EEGbroadband_fulltime.mat"), "EEGbroadband") % like this, it will run when you are inside the folder where this script is saved
 DataBroadband = EEGbroadband.data(2, :); % try channels 1 and 3 as well ;)
 SampleRate = EEGbroadband.srate;
 
-%% Plot spectrum, to see where oscillations are
-[Power, Freqs] = cycy.utils.compute_power(DataBroadband, SampleRate);
-figure;plot(Freqs, log(Power))
-set(gca, 'XScale', 'log')
-xlim([0 40])
+%% Plot spectrum, to at what frequencies there are oscillations
 
-%% Filter narrowband in frequency of interest
+[Power, Frequencies] = cycy.utils.compute_power(DataBroadband, SampleRate);
 
-Range = [6 11];
+figure
+cycy.plot.power_spectrum(Power, Frequencies, true, true)
 
-DataNarrowband = cycy.utils.highpass_filter(DataBroadband, SampleRate, Range(1));
+%% Filter narrowband for burst detection
+
+Range = [6 11]; % select a range that is wide enough to cover the variability you expect for a specific band (i.e. start and end of the oscillatory bump in the power spectrum)
+
+DataNarrowband = cycy.utils.highpass_filter(DataBroadband, SampleRate, Range(1)); % if you want, you can specify other aspects of the filter; see function
 DataNarrowband = cycy.utils.lowpass_filter(DataNarrowband, SampleRate, Range(2));
+% running the filters will create a cache in the folder you're located.
+% This is to save time next time you want to filter something.
 
 %% Determine bursts according to detection criteria
 
-%%% set parameters
+% set parameters
 CriteriaSet = struct();
 
-% CriteriaSet.VoltageNeg = 0; % make sure all negative peaks are actually negative values
+% CriteriaSet.VoltageNeg = 0; % makes sure all negative peaks are actually negative values
 CriteriaSet.isTruePeak = 1; % excludes edge cases in which the negative "peak" is actually the same as one of the positive "peaks"
 CriteriaSet.PeaksCount = 1; % excludes cycles where there is more than one peak; essentially the strictest version of monotonicity
 CriteriaSet.PeriodNeg = sort(1./Range); % makes sure all peaks are actually in the range of the narrowband filter
-% CriteriaSet.Amplitude = 20; % if you want, you can actually set an amplitude threshold; I recommend either none or a really small value
+% CriteriaSet.Amplitude = 20; % if you want, you can set an amplitude threshold, but it almost defeats the point
 CriteriaSet.FlankConsistency = .65; % cycle should not have too asymetric flanks
-CriteriaSet.MonotonicityInTime = 0.5; % shouldn't be many fluctuations on top of the cycle
-CriteriaSet.MonotonicityInAmplitude = 0.7; % they shouldn't be very large either
+CriteriaSet.MonotonicityInTime = 0.5; % there shouldn't be many faster fluctuations on top of the cycle
+% CriteriaSet.MonotonicityInAmplitude = 0.7; % those faster fluctuations shouldn't be very large either
 CriteriaSet.isProminent = 1; % there shouldn't be other high-amplitude negative peaks that surpass the midpoint between the negative peak and the positive peaks in the cycle
 CriteriaSet.PeriodConsistency = .6; % left and right negative peaks should be similarly distant
 CriteriaSet.AmplitudeConsistency = .5; % left and right cycles should be of similar amplitude
 
 CriteriaSet.MinCyclesPerBurst = 4; % all the above criteria have to be met for this many cycles in a row
 
-
 % detect cycles
 Cycles = cycy.detect_cycles(DataBroadband, DataNarrowband);
 AugmentedCycles = cycy.measure_cycle_properties(DataBroadband, Cycles, SampleRate);
 
 % detect bursts
- [Bursts, Diagnostics] = cycy.aggregate_cycles_into_bursts(AugmentedCycles, CriteriaSet);
-
+[Bursts, Diagnostics] = cycy.aggregate_cycles_into_bursts(AugmentedCycles, CriteriaSet);
 
 %% Plot channel and corresponding cycle properties to evaluate if the above criteria set is good
 
 cycy.plot.cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
-   AugmentedCycles, CriteriaSet, Bursts);
+    AugmentedCycles, CriteriaSet, Bursts);
 
 %% Plot diagnostics to help determine good criteria
 
@@ -64,3 +66,4 @@ cycy.plot.criteriaset_diagnostics(Diagnostics)
 % plot distribution of values for each criteria to better decide new
 % thresholds
 cycy.plot.properties_distributions(AugmentedCycles)
+

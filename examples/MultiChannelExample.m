@@ -1,5 +1,5 @@
 % This script demonstrates how the burst detection works for multiple
-% channels
+% channels.
 
 clear
 clc
@@ -9,11 +9,17 @@ close all
 %% load the EEG data
 
 load("C:\Users\colas\Code\Matcycle\example_data\EEGbroadband.mat", "EEGbroadband")
+% EEG data needs to be a structure with fields "data" (channels x time 
+% array), "srate" (sampling rate), and "chanlocs" (1 x channel count struct; 
+% EEGLAB's structure for channel information, containing field "labels" 
+% and X, Y, Z coordinates).
 
 SampleRate = EEGbroadband.srate;
 
 %% filter the data
 
+% create a struct with the fieldnames indicating the band labels and each
+% containing the range of interest.
 NarrowbandRanges = struct();
 NarrowbandRanges.Theta = [4 8];
 NarrowbandRanges.ThetaAlpha = [6 10];
@@ -22,6 +28,8 @@ NarrowbandRanges.LowSigma = [10 14];
 
 BandLabels = fieldnames(NarrowbandRanges);
 
+% create a struct array the same as the broadband data, but containing all
+% the filtered data.
 EEGnarrowbands = EEGbroadband;
 for idxBand = 1:numel(BandLabels)
     EEGnarrowbands(idxBand) = EEGbroadband;
@@ -35,10 +43,12 @@ end
 
 %% Detect bursts
 
-% establish criteria
-CriteriaSets = struct();
-RunParallel = false;
+% establish sets of criteria to be used together to determine bursts.
+% Having multiple distinct sets allows the user to relax some thresholds
+% while tightening others; for example allowing lower monotonicity but
+% requiring that bursts be longer. 
 
+CriteriaSets = struct();
 CriteriaSets(1).isTruePeak = 1; % excludes edge cases in which the negative "peak" is actually the same as one of the positive "peaks"
 CriteriaSets(1).PeaksCount = 1; % excludes cycles where there is more than one peak; essentially the strictest version of monotonicity
 CriteriaSets(1).FlankConsistency = .65; % cycle should not have too asymetric flanks
@@ -54,25 +64,30 @@ CriteriaSets(2).VoltageNeg = [-100 0]; % make sure all negative peaks are actual
 CriteriaSets(2).Amplitude = 30; % if you want, you can actually set an amplitude threshold; I recommend either none or a really small value
 CriteriaSets(2).MinCyclesPerBurst = 3; % all the above criteria have to be met for this many cycles in a row
 
-% detect bursts in each channel
+% detect bursts
+RunParallel = false; % if there's a lot of data, channels can be run in parallel
 AllBursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
     CriteriaSets, RunParallel);
 
+% plot
 cycy.plot.plot_all_bursts(EEGbroadband, 20, AllBursts, 'CriteriaSetIndex')
 
 
-%% Get burst information
+%% Get further burst information
 
 MinFrequencyRange = 1;
 
 % aggregate bursts across channels
 Bursts = cycy.aggregate_bursts_by_frequency(AllBursts, EEGbroadband, MinFrequencyRange);
 
+% TODO: run burst properties
 
-%%
+%% plot final output
 
 cycy.plot.plot_all_bursts(EEGbroadband, 20, Bursts, 'CriteriaSetIndex');
-
+% the second input is the scale for the EEG; 20 is good for high-density
+% clean wake data; use larger numbers for higher-amplitudes or fewer
+% channels.
 
 
 
