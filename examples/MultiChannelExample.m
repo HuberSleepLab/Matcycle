@@ -66,11 +66,11 @@ CriteriaSets(2).MinCyclesPerBurst = 3; % all the above criteria have to be met f
 
 % detect bursts
 RunParallel = false; % if there's a lot of data, channels can be run in parallel
-AllBursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
+Bursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
     CriteriaSets, RunParallel);
 
 % plot
-cycy.plot.plot_all_bursts(EEGbroadband, 20, AllBursts, 'CriteriaSetIndex')
+cycy.plot.plot_all_bursts(EEGbroadband, 20, Bursts, 'CriteriaSetIndex')
 
 
 %% Get further burst information
@@ -78,13 +78,13 @@ cycy.plot.plot_all_bursts(EEGbroadband, 20, AllBursts, 'CriteriaSetIndex')
 MinFrequencyRange = 1;
 
 % aggregate bursts across channels
-Bursts = cycy.aggregate_bursts_by_frequency(AllBursts, EEGbroadband, MinFrequencyRange);
+BurstClusters = cycy.aggregate_bursts_into_clusters(Bursts, EEGbroadband, MinFrequencyRange);
 
 % TODO: run burst properties
 
 %% plot final output
 
-cycy.plot.plot_all_bursts(EEGbroadband, 20, Bursts, 'CriteriaSetIndex');
+cycy.plot.plot_all_bursts(EEGbroadband, 20, BurstClusters, 'CriteriaSetIndex');
 % the second input is the scale for the EEG; 20 is good for high-density
 % clean wake data; use larger numbers for higher-amplitudes or fewer
 % channels.
