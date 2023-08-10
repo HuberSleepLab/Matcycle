@@ -108,10 +108,10 @@ elseif numel(N) == 2
     all_hsl_Colors(:, 3, :) =  repmat(Lum, N(1), 1);
     if N(1) == 1
         all_hsl_Colors = permute(all_hsl_Colors, [3, 2, 1]);
-        Colors = hsl2rgb(all_hsl_Colors);
+        Colors = cycy.utils.hsl2rgb(all_hsl_Colors);
     else
         all_hsl_Colors = permute(all_hsl_Colors, [1, 3, 2]);
-        Colors = hsl2rgb(all_hsl_Colors);
+        Colors = cycy.utils.hsl2rgb(all_hsl_Colors);
         Colors = permute(Colors, [2, 3, 1]);
     end
 else
