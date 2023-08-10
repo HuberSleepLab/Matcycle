@@ -40,7 +40,7 @@ else
     end
 
     if numel(Groups) <= 8
-        Colors = getColors(numel(Groups));
+        Colors = cycy.utils.pick_colors(numel(Groups));
     elseif numel(Groups) <= 20
         Colors = jet(numel(Groups));
     else

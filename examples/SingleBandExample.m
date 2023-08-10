@@ -34,7 +34,7 @@ CriteriaSet = struct();
 
 % CriteriaSet.VoltageNeg = 0; % makes sure all negative peaks are actually negative values
 CriteriaSet.isTruePeak = 1; % excludes edge cases in which the negative "peak" is actually the same as one of the positive "peaks"
-CriteriaSet.PeaksCount = 1; % excludes cycles where there is more than one peak; essentially the strictest version of monotonicity
+CriteriaSet.PeaksCount = [0 1]; % excludes cycles where there is more than one peak; essentially the strictest version of monotonicity
 CriteriaSet.PeriodNeg = sort(1./Range); % makes sure all peaks are actually in the range of the narrowband filter
 % CriteriaSet.Amplitude = 20; % if you want, you can set an amplitude threshold, but it almost defeats the point
 CriteriaSet.FlankConsistency = .65; % cycle should not have too asymetric flanks
