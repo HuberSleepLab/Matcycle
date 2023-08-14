@@ -1,43 +1,65 @@
-function EEG = manually_score_bursts(EEG, ChannelsToHighlight, WindowLength, Scale)
+function EEG = manually_score_bursts(EEG, isBurst, WindowLength, Scale)
 arguments
     EEG
-    ChannelsToHighlight = [];
-        WindowLength = 20;
+    isBurst = true;
+    WindowLength = 20;
     Scale = 20;
 end
 % requires EEGLAB function, and input EEG signal needs to be called "EEG"
 
-% get colors for the EEG channels
-StandardColor = {[0.19608  0.19608  0.51765]};
-LineColors = repmat(StandardColor, size(EEG.data, 1), 1);
-LineColors(cycy.utils.labels2indexes(ChannelsToHighlight, EEG.chanlocs), :) = ...
-    repmat({[1 0 0]}, numel(ChannelsToHighlight), 1); % make red channels to focus on
+if isBurst
+    CommandOnSave = 'EEG.ManualBurstWindows = TMPREJ(:, 1:2)';
+else
+    CommandOnSave = 'EEG.ManualNoiseWindows = TMPREJ(:, 1:2)';
+end
 
-LineColors = repmat({'b'}, 1, size(EEG.data, 1));
-LineColors(cycy.utils.labels2indexes(ChannelsToHighlight, EEG.chanlocs)) = ...
-    repmat({'r'}, 1, numel(ChannelsToHighlight));
 
 Pix = get(0,'screensize');
 
-if isfield(EEG, 'ManualBurstWindows')
-    RejectWindows = windows2TMPREJ(EEG.ManualBurstWindows, size(EEG.data, 1));
-    eegplot(EEG.data, 'srate', EEG.srate, 'spacing', 50, 'winlength', WindowLength, ...
-        'command', 'EEG.ManualBurstWindows = TMPREJ(:, 1:2)', 'color', LineColors', 'butlabel', 'Save', ...
-        'winrej', RejectWindows, 'position', [0 0 Pix(3) Pix(4)])
+if isfield(EEG, 'ManualBurstWindows') || isfield(EEG, 'ManualNoiseWindows') 
+    RejectWindows = create_highlights(EEG);
+    eegplot(EEG.data, 'srate', EEG.srate, 'spacing',Scale, 'winlength', WindowLength, ...
+        'command', CommandOnSave, 'butlabel', 'Save', ...
+        'winrej', RejectWindows, 'position', [0 0 Pix(3) Pix(4)]);
 
 else
-    eegplot(EEG.data, 'srate', EEG.srate, 'spacing', 50, 'winlength', WindowLength, ...
-        'command', 'EEG.ManualBurstWindows = TMPREJ(:, 1:2)', 'color', LineColors, 'butlabel', ...
-        'Save', 'position', [0 0 Pix(3) Pix(4)])
+    eegplot(EEG.data, 'srate', EEG.srate, 'spacing', Scale, 'winlength', WindowLength, ...
+        'command',CommandOnSave,'butlabel', ...
+        'Save', 'position', [0 0 Pix(3) Pix(4)]);
 end
 end
 
-function RejectWindows = windows2TMPREJ(Windows, ChannelCount)
+function HighlightWindows = create_highlights(EEG)
 
-Color = [1 1 0];
+ChannelCount = size(EEG.data, 1);
+
+% burst highlights
+if isfield(EEG, 'ManualBurstWindows')
+Color = cycy.utils.pick_colors([1, 3], '', 'green');
+BurstHighlights = windows2TMPREJ(EEG.ManualBurstWindows, Color(3, :), ChannelCount);
+else
+    BurstHighlights = [];
+end
+
+if isfield(EEG, 'ManualNoiseWindows')
+Color = cycy.utils.pick_colors([1 3], '', 'red');
+NoiseHighlights = windows2TMPREJ(EEG.ManualNoiseWindows, Color(3, :), ChannelCount);
+else
+    NoiseHighlights = [];
+end
+
+HighlightWindows = cat(1, BurstHighlights, NoiseHighlights);
+
+end
+
+function TMPREJ = windows2TMPREJ(Windows, Color, ChannelCount)
+% turns windows (n x 2 array) into a TMPREJ array as required by EEGLAB, so
+% [n x [Starts, Ends, R, G, B, ch1, ch2 ...] ]
+
 WindowsCount = size(Windows, 1);
 
-RejectWindows = ones(WindowsCount, 5+ChannelCount);
-RejectWindows(:, 1:2) = Windows;
-RejectWindows(:, 3:5) = repmat(Color, WindowsCount, 1);
+TMPREJ = ones(WindowsCount, 5+ChannelCount);
+TMPREJ(:, 1:2) = Windows;
+TMPREJ(:, 3:5) = repmat(Color, WindowsCount, 1);
+
 end

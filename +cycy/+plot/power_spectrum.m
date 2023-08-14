@@ -2,8 +2,8 @@ function power_spectrum(Power, Frequencies, LogX, LogY, Legend)
 arguments
     Power
     Frequencies
-    LogX
-    LogY
+    LogX = false;
+    LogY = false;
     Legend = {};
 end
 
