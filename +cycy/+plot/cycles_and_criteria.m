@@ -92,15 +92,20 @@ if isfield(CriteriaSet, 'PeriodNeg')
 PeriodCriteria.PeriodNeg = CriteriaSet.PeriodNeg;
 else
     PeriodCriteria = [];
+    PeriodLegend = [];
 end
 
 if isfield(CriteriaSet, 'PeriodPos')
 PeriodCriteria.PeriodPos = CriteriaSet.PeriodPos;
 end
 
+if ~isempty(PeriodCriteria)
+    PeriodLegend = fieldnames(PeriodCriteria);
+end
+
 CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, PeriodCriteria, ...
     KeepTimepoints);
-plot_criteria(t, Cycles, fieldnames(PeriodCriteria), CyclesMeetCriteria)
+plot_criteria(t, Cycles, PeriodLegend, CyclesMeetCriteria)
 title('Period')
 
 %%% plot properties that weren't used as criteria
