@@ -25,20 +25,8 @@ NarrowbandRanges.Theta = [4 8];
 NarrowbandRanges.ThetaAlpha = [6 10];
 NarrowbandRanges.Alpha = [8 12];
 NarrowbandRanges.LowSigma = [10 14];
+EEGNarrowbands = filter_eeg_narrobands(EEGbroadband, NarrowbandRanges);
 
-BandLabels = fieldnames(NarrowbandRanges);
-
-% create a struct array the same as the broadband data, but containing all
-% the filtered data.
-EEGnarrowbands = EEGbroadband;
-for idxBand = 1:numel(BandLabels)
-    EEGnarrowbands(idxBand) = EEGbroadband;
-    EEGnarrowbands(idxBand).data = cycy.utils.highpass_filter(EEGnarrowbands(idxBand).data, ...
-        SampleRate, NarrowbandRanges.(BandLabels{idxBand})(1));
-
-      EEGnarrowbands(idxBand).data = cycy.utils.lowpass_filter(EEGnarrowbands(idxBand).data, ...
-        SampleRate, NarrowbandRanges.(BandLabels{idxBand})(2));
-end
 
 
 %% Detect bursts
@@ -66,7 +54,7 @@ CriteriaSets(2).MinCyclesPerBurst = 3; % all the above criteria have to be met f
 
 % detect bursts
 RunParallel = false; % if there's a lot of data, channels can be run in parallel
-Bursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
+Bursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGNarrowbands, NarrowbandRanges, ...
     CriteriaSets, RunParallel);
 
 % plot
