@@ -38,7 +38,7 @@ CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
     Cycles, CriteriaSet, KeepTimepoints);
 
 % check when all criterias are met
-AcceptedCycles = all(CyclesMeetCriteria);
+AcceptedCycles = all(CyclesMeetCriteria, 1);
 
 % special cases
 AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, CriteriaSet,...
