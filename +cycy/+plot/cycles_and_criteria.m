@@ -92,7 +92,7 @@ if isfield(CriteriaSet, 'PeriodNeg')
 PeriodCriteria.PeriodNeg = CriteriaSet.PeriodNeg;
 else
     PeriodCriteria = [];
-    PeriodLegend = [];
+    PeriodLegend = {'PeriodNeg'};
 end
 
 if isfield(CriteriaSet, 'PeriodPos')
