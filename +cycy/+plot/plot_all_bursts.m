@@ -92,5 +92,6 @@ end
 
 
 xlim(Bursts(1).Start/EEG.srate+[0 20])
+legend(Groups)
 
 % TODO rename and check

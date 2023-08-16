@@ -1,5 +1,6 @@
 function EEGNarrowbands = filter_eeg_narrowbands(EEGBroadband, NarrowbandRanges)
-% 
+% filters EEG data into the specified narrow bands (a structure, each field
+% indicating a lower and upper bound like so: NarrowbandRanges.Alpha = [8 12];
 
 SampleRate = EEGBroadband.srate;
 
@@ -15,4 +16,5 @@ for idxBand = 1:numel(BandLabels)
 
       EEGNarrowbands(idxBand).data = cycy.utils.lowpass_filter(EEGNarrowbands(idxBand).data, ...
         SampleRate, NarrowbandRanges.(BandLabels{idxBand})(2));
+      disp(['Finished filtering ', BandLabels{idxBand}])
 end

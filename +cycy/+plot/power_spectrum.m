@@ -1,17 +1,15 @@
-function power_spectrum(Power, Frequencies, LogX, LogY, Legend)
+function power_spectrum(Power, Frequencies, LogX, LogY, Legend, Colors)
 arguments
     Power
     Frequencies
     LogX = false;
     LogY = false;
     Legend = {};
+    Colors =  cycy.utils.pick_colors(size(Power, 1));
 end
 
-PowerPlotCount = size(Power, 1);
 
-Colors = cycy.utils.pick_colors(PowerPlotCount);
-
-for idxPower = 1:PowerPlotCount
+for idxPower = 1:size(Power, 1)
     plot(Frequencies, Power(idxPower, :), 'LineWidth', 2, 'Color', Colors(idxPower, :))
 end
 

@@ -16,6 +16,7 @@ end
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
+StartTime = tic;
 [ChannelCount, ~] = size(EEGBroadband.data);
 
 % initialize spot to put data.
@@ -39,3 +40,6 @@ Bursts = struct();
 for idxChannel = 1:ChannelCount
     Bursts = cat_structs(Bursts, AllChannelBursts{idxChannel});
 end
+
+EndTime = toc(StartTime);
+disp(['Finished in ', num2str(round(EndTime)), 's'])
