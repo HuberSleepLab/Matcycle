@@ -1,20 +1,15 @@
-function eeg_data(Data, SampleRate, YGap, Color, LineWidth, DisplayName)
+function eeg_data(Data, SampleRate, YGap, DisplayName, Color, LineWidth)
 arguments
     Data
     SampleRate
     YGap = 20;
+        DisplayName = '';
     Color = [.3 .3 .3];
     LineWidth = 0.5;
-    DisplayName = '';
 end
 % Data is ch x time matrix
 % YGap is how much to space the channels. Default is 20.
 
-if isempty(DisplayName)
-    HandleVisibility = 'off';
-else
-    HandleVisibility = 'on';
-end
     
 [ChannelCount, TimepointCount] = size(Data);
 
@@ -25,5 +20,18 @@ YAxisGaps(end) = [];
 
 DataSpread = Data+YAxisGaps';
 
+% plot a single channel for the legend (hack)
+hold on
+if ~isempty(DisplayName)
+plot(Timepoints(1), DataSpread(1, 1), 'Color', Color, 'LineWidth', LineWidth, ...
+    'HandleVisibility', 'on', 'DisplayName', DisplayName)
+end
+
 plot(Timepoints, DataSpread,  'Color', Color, 'LineWidth', LineWidth, ...
-    'HandleVisibility', HandleVisibility, 'DisplayName', DisplayName)
+    'HandleVisibility', 'off')
+
+YLims = [median(DataSpread(end, :))-YGap, median(DataSpread(1, :))+YGap];
+
+if all(~isnan(YLims))
+ylim(YLims)
+end

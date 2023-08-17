@@ -25,7 +25,7 @@ NarrowbandRanges.Theta = [4 8];
 NarrowbandRanges.ThetaAlpha = [6 10];
 NarrowbandRanges.Alpha = [8 12];
 NarrowbandRanges.LowSigma = [10 14];
-EEGNarrowbands = filter_eeg_narrobands(EEGbroadband, NarrowbandRanges);
+EEGNarrowbands = cycy.filter_eeg_narrowbands(EEGbroadband, NarrowbandRanges);
 
 
 
@@ -72,7 +72,7 @@ BurstClusters = cycy.aggregate_bursts_into_clusters(Bursts, EEGbroadband, MinFre
 
 %% plot final output
 
-cycy.plot.plot_all_bursts(EEGbroadband, 20, BurstClusters, 'CriteriaSetIndex');
+cycy.plot.plot_all_bursts(EEGbroadband, 20, BurstClusters, 'Band');
 % the second input is the scale for the EEG; 20 is good for high-density
 % clean wake data; use larger numbers for higher-amplitudes or fewer
 % channels.
