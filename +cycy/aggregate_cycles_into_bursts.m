@@ -41,8 +41,12 @@ CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 AcceptedCycles = all(CyclesMeetCriteria, 1);
 
 % special cases
+try
 AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, CriteriaSet,...
     CyclesMeetCriteria, AcceptedCycles);
+catch
+    a=1
+end
 
 AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles);

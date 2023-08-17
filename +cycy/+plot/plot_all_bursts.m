@@ -1,97 +1,101 @@
 function plot_all_bursts(EEG, YGap, Bursts, ColorCode)
+arguments
+    EEG
+    YGap = 20;
+    Bursts = [];
+    ColorCode = [];
+end
 % function to view bursts in the EEG
 % Type is either 'ICA' or 'EEG', and will appropriately plot the bursts
 % over the channels or the components, accordingly.
 % colorcode indicates based on which property to pick the colors.
-
 % Part of Matcycle 2022, by Sophia Snipes.
 
-[~, nPnts] = size(EEG.data);
-t = linspace(0, nPnts/EEG.srate, nPnts);
-
-Data = EEG.data;
-DimsD = size(Data);
-
-Y = YGap*DimsD(1):-YGap:0;
-Y(end) = [];
 
 figure('Units','normalized', 'OuterPosition',[0 0 1 1])
 hold on
 
-%%% plot EEG
-Color = [.3 .3 .3];
-LW = .5;
+% plot broadband EEG data
+cycy.plot.eeg_data(EEG.data, EEG.srate, YGap)
 
-Data = Data+Y';
-
-plot(t, Data,  'Color', Color, 'LineWidth', LW, 'HandleVisibility','off')
-
-
-%%% plot bursts
+% get colors for plotting
 if isempty(ColorCode)
-    Colors = 'b';
+    % TODO
 else
-    % get colors for all the types of burst
-
     if ischar(Bursts(1).(ColorCode))
         Groups = unique({Bursts.(ColorCode)});
     else
         Groups = unique([Bursts.(ColorCode)]);
     end
 
-    if numel(Groups) <= 8
+    if numel(Groups) <= 10
         Colors = cycy.utils.pick_colors(numel(Groups));
     elseif numel(Groups) <= 20
         Colors = jet(numel(Groups));
     else
         Colors = rand(numel(Groups), 3);
     end
-
 end
 
-for Indx_B = 1:numel(Bursts)
-
-    B = Bursts(Indx_B);
-
-    if isfield(B, 'ClusterStart')
-        Start = B.ClusterStart;
-        End = B.ClusterEnd;
+for idxGroup = 1:numel(Groups)
+    if ischar(Bursts(1).(ColorCode))
+        Group = Groups{idxGroup};
+        BurstIndexes = strcmp({Bursts.(ColorCode)}, Group);
     else
-        Start = B.Start;
-        End = B.End;
+        Group = Groups(idxGroup);
+        BurstIndexes = [Bursts.(ColorCode)]==Group;
     end
 
-
-    Ch = B.ChannelIndex;
-    if isfield(B, 'involved_ch')
-        AllCh = B.involved_ch;
-    elseif isfield(B, 'ClusterChannelIndexes')
-        AllCh = B.ClusterChannelIndexes;
-    else
-        AllCh = [];
+    [BurstMask, ReferenceMask] = mask_bursts(EEG.data, Bursts(BurstIndexes));
+    cycy.plot.eeg_data(BurstMask, EEG.srate, YGap, Colors(idxGroup))
+    if ~isempty(ReferenceMask)
+        cycy.plot.eeg_data(ReferenceMask, EEG.srate, YGap, Colors(idxGroup), 2, Group)
     end
-
-    Ch(Ch>DimsD(1)) = [];
-
-    if isempty(ColorCode)
-        C  = Colors;
-    else
-        C = Colors(ismember(Groups, B.(ColorCode)), :); % get appropriate color, and make it slightly translucent
-    end
-
-    % plot all channels involved
-    if ~isempty(AllCh)
-        Burst = EEG.data(AllCh, Start:End)+Y(AllCh)';
-        plot(t(Start:End), Burst', 'Color', C);
-    end
-
-    % plot main burst
-    Burst = EEG.data(Ch, Start:End)+Y(Ch);
-    plot(t(Start:End), Burst', 'Color', [C, .5], 'LineWidth', 2);
 end
 
 
 xlim(Bursts(1).Start/EEG.srate+[0 20])
 legend(Groups)
+end
 
-% TODO rename and check
+function [BurstMask, ReferenceMask] = mask_bursts(EEGData, Bursts)
+% creates a matrix the size of the data in EEG, with values of the data
+% only during the bursts
+
+BurstMask = nan(size(EEGData));
+
+if isfield(Bursts, 'ClusterStart')
+    Starts = [Bursts.ClusterStarts];
+    Ends = [Bursts.ClusterEnds];
+    Channels = [Bursts.ClusterChannelIndexes];
+else
+    Starts = [Bursts.Start];
+    Ends = [Bursts.End];
+    Channels = [Bursts.ChannelIndex];
+end
+
+for idxBursts = 1:numel(Starts)
+    BurstMask(Channels(idxBursts), Starts(idxBursts):Ends(idxBursts)) = ...
+        EEGData(Channels(idxBursts), Starts(idxBursts):Ends(idxBursts));
+end
+
+
+
+% create seperate mask just for reference channels when burst clusters are
+% provided, so that they can be made thicker
+if ~isfield(Bursts, 'ClusterStart')
+    ReferenceMask = [];
+    return
+end
+
+ReferenceMask = nan(size(EEGData));
+
+RefStarts = [Bursts.Start];
+RefEnds = [Bursts.End];
+RefChannels = [Bursts.ChannelIndex];
+
+for idxRefBursts = 1:numel(RefStarts)
+    BurstMask(RefChannels(idxRefBursts), RefStarts(idxRefBursts):RefEnds(idxRefBursts)) = ...
+        EEGData(RefChannels(idxRefBursts), RefStarts(idxRefBursts):RefEnds(idxRefBursts));
+end
+end
