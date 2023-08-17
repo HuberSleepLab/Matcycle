@@ -137,7 +137,7 @@ if isfield(CriteriaSet, 'AmplitudeConsistency')
 
     for E = Ends(:)'
         Edge = E+1;
-        while ExcludedCycles(Edge) && Ramp(Edge)<=0 && Edge <= numel(ExcludedCycles)
+        while Edge<= numel(AcceptedCycles) && ExcludedCycles(Edge) && Ramp(Edge)<=0 && Edge <= numel(ExcludedCycles)
             AcceptedCycles(Edge) = 1;
             Edge = Edge+1;
         end
