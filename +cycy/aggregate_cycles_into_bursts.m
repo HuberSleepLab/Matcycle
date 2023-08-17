@@ -41,12 +41,9 @@ CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
 AcceptedCycles = all(CyclesMeetCriteria, 1);
 
 % special cases
-try
 AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, CriteriaSet,...
     CyclesMeetCriteria, AcceptedCycles);
-catch
-    a=1
-end
+
 
 AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles);
@@ -188,5 +185,6 @@ for idxBurst = 1:numel(Starts)
     Bursts(idxBurst).Start = Cycles(CycleIndexes(1)-1).PrevPosPeakIdx;
     Bursts(idxBurst).End =  Bursts(idxBurst).NextPosPeakIdx(end);
     Bursts(idxBurst).BurstFrequency = 1/mean(Bursts(idxBurst).PeriodNeg);
+    Bursts(idxBurst).DurationPoints = Bursts(idxBurst).End - Bursts(idxBurst).Start;
 end
 end
