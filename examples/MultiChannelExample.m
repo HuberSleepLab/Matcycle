@@ -50,6 +50,7 @@ CriteriaSets(1).MinCyclesPerBurst = 4; % all the above criteria have to be met f
 CriteriaSets(2).isTruePeak = 1; % excludes edge cases in which the negative "peak" is actually the same as one of the positive "peaks"
 CriteriaSets(2).VoltageNeg = [-100 0]; % make sure all negative peaks are actually negative values. N.B. thresholds by default need the value to be greater than the criteria; so need to provide a range for negative values
 CriteriaSets(2).Amplitude = 30; % if you want, you can actually set an amplitude threshold; I recommend either none or a really small value
+CriteriaSets(1).MonotonicityInAmplitude = 0.5;
 CriteriaSets(2).MinCyclesPerBurst = 3; % all the above criteria have to be met for this many cycles in a row
 
 % detect bursts
@@ -78,5 +79,13 @@ cycy.plot.plot_all_bursts(EEGbroadband, 20, BurstClusters, 'Band');
 % channels.
 
 
+%% plot bursts removed when aggregating
 
+KeptBursts = [BurstClusters.ClusterBurstsIdx];
+All = true(1, numel(Bursts));
+All(KeptBursts) = false;
+
+% All = false(1, numel(Bursts));
+% All(KeptBursts) = true;
+cycy.plot.plot_all_bursts(EEGbroadband, 20, Bursts(All), 'Band');
 
