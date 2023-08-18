@@ -31,7 +31,7 @@ end
 %%% Gather all peaks that meet all the threshold requirements
 
 % remove thresholds that are empty
-CriteriaSet = remove_empty_fields_from_struct(CriteriaSet);
+CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
 
 % gather peaks based on single peak property requirements
 [CyclesMeetCriteria, Diagnostics] = cycy.detect_cycles_that_meet_criteria( ...
@@ -67,17 +67,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
 
-function Struct = remove_empty_fields_from_struct(Struct)
-% removes empty fields
-
-Fieldnames  = fieldnames(Struct);
-
-for Indx_F = 1:numel(Fieldnames)
-    if isempty(Struct.(Fieldnames{Indx_F}))
-        Struct = rmfield(Struct, Fieldnames{Indx_F});
-    end
-end
-end
 
 function [Starts, Ends] = find_streaks(BoolArray, MinSamples)
 % identify starts and ends that make up streaks

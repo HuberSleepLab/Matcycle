@@ -21,7 +21,7 @@ end
 % KeepTimepoints will mask timepoints that were considered noise.
 
 t = linspace(0, numel(DataBroadband)/SampleRate, numel(DataBroadband));
-
+CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
 
 if isempty(CriteriaSet)
     figure('Units','normalized','OuterPosition',[0 0 1 .25])
