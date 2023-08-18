@@ -55,7 +55,7 @@ switch N(1)
     case 9
            MainColors = [AllColors.blue; AllColors.yellow;  AllColors.red;
             AllColors.green; AllColors.purple; AllColors.orange;
-            AllColors.teal; AllColors.olive, AllColors.magenta];
+            AllColors.teal; AllColors.olive; AllColors.magenta];
     case 10
         MainColors = [AllColors.blue; AllColors.yellow;  AllColors.red;
             AllColors.green; AllColors.purple; AllColors.orange;
