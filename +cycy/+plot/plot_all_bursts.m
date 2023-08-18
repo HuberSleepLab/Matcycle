@@ -18,7 +18,7 @@ figure('Units','normalized', 'OuterPosition',[0 0 1 1])
 hold on
 
 % plot broadband EEG data
-cycy.plot.eeg_data(EEG.data, EEG.srate, YGap)
+cycy.plot.eeg_data(EEG.data, EEG.srate, YGap, '', [.6 .6 .6])
 
 % get colors for plotting
 [Colors, CategoryLabels] = pick_group_colors(Bursts, ColorCategory);
@@ -47,7 +47,7 @@ for idxCategory = 1:numel(CategoryLabels)
     end
 end
 
-
+legend
 xlim(Bursts(1).Start/EEG.srate+[0 15])
 end
 

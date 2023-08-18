@@ -83,6 +83,7 @@ for idxBand = 1:numel(BandLabels)
             AllBursts = cat_structs(AllBursts, BurstsSubset);
         end
     end
+    disp(['Finished ', BandLabels{idxBand}])
 end
 
 % Here we remove duplicate burst detections, by picking a single burst from
