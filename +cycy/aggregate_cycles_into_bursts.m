@@ -24,7 +24,7 @@ end
 % M_Threshold is for monotonicity (between 0 and 1), PC_Threshold is for
 % period consistency (between 0 and 1), and C_Threshold is number of cycles
 % in a row to consider a burst.
-
+%
 % Part of Matcycle 2022, by Sophia Snipes.
 
 

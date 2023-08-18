@@ -64,7 +64,9 @@ for idxBand = 1:numel(BandLabels)
             Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
             Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
 
-            % CriteriaSet.PeriodNeg = sort(1./Band); % add period threshold
+            if isfield(CriteriaSet, 'PeriodNeg') && ~isempty(CriteriaSet.PeriodNeg) && CriteriaSet.PeriodNeg
+                CriteriaSet.PeriodNeg = sort(1./Band);
+            end
 
             % find bursts
             [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints);
@@ -83,15 +85,15 @@ for idxBand = 1:numel(BandLabels)
             AllBursts = cat_structs(AllBursts, BurstsSubset);
         end
     end
-    disp(['Finished ', BandLabels{idxBand}])
+    disp(['Finished burst detection for ', BandLabels{idxBand}])
 end
 
 % Here we remove duplicate burst detections, by picking a single burst from
 % those overlapping in time, detected with the different criteria.
-% We do this by selecting the longest burst among every set of overlapping 
+% We do this by selecting the longest burst among every set of overlapping
 % ones and discarding the others.
-% Additionally, if any of the shorter bursts last more than the minimum 
-% number of cycles outside of the longest burst, then these will be 
+% Additionally, if any of the shorter bursts last more than the minimum
+% number of cycles outside of the longest burst, then these will be
 % cropped into their own short burst.
 MinCyclesPerBurst = [CriteriaSets.MinCyclesPerBurst];
 MinCyclesPerBurst = min(MinCyclesPerBurst);

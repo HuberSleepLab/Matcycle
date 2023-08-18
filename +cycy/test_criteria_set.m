@@ -2,7 +2,9 @@ function Bursts = test_criteria_set(DataBroadband, SampleRate, NarrowbandRange, 
 % runs burst detection with a single narrowband range and criteria set to
 % see how the criteria are doing
 
-% CriteriaSet.PeriodNeg = sort(1./NarrowbandRange);
+if isfield(CriteriaSet, 'PeriodNeg') && ~isempty(CriteriaSet.PeriodNeg) && CriteriaSet.PeriodNeg
+    CriteriaSet.PeriodNeg = sort(1./NarrowbandRange);
+end
 
 % filter data
 DataNarrowband = cycy.utils.highpass_filter(DataBroadband, SampleRate, NarrowbandRange(1)); % if you want, you can specify other aspects of the filter; see function
@@ -16,6 +18,9 @@ AugmentedCycles = cycy.measure_cycle_properties(DataBroadband, Cycles, SampleRat
 % detect bursts
 [Bursts, Diagnostics] = cycy.aggregate_cycles_into_bursts(AugmentedCycles, CriteriaSet);
 
+if isempty(Bursts)
+    return
+end
 
 cycy.plot.cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
     AugmentedCycles, CriteriaSet, Bursts);
