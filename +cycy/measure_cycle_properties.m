@@ -159,18 +159,34 @@ function Cycle = measure_reversal_ratio(Cycle, ChannelBroadband)
 % respective edge, such that 0 indicates a single sub-peak is as tall as
 % the main cycle, and 1 indicates that the signal is completely monotonic
 
+if Cycle.PeaksCount == 1
+    Cycle.ReversalRatio = 1;
+    return
+end
+
 FallingEdgeAmplitude = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
 RisingEdgeAmplitude = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
 
-% largest falling deflection during rising edge
 RisingEdge = ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx);
-TurnPoints = [2 diff(sign(diff(RisingEdge))) -2];
+FallingEdge = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx);
+
+if numel(RisingEdge)<3 || numel(FallingEdge)<3
+    Cycle.ReversalRatio = 1;
+    return
+end
+
+% largest falling deflection during rising edge
+TurnPoints = [0 diff(sign(diff(RisingEdge))) -0];
 Troughs = RisingEdge(TurnPoints > 1);
 Peaks = RisingEdge(TurnPoints <-1);
-RisingEdgeMaxReversal = max(Peaks(1:end-1)-Troughs(2:end));
 
+try
+RisingEdgeMaxReversal = max(Peaks(1:end-1)-Troughs(2:end));
+catch
+    a=2
+end
 % largest rising deflection during falling edge
-FallingEdge = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx);
+
 TurnPoints = [-2 diff(sign(diff(FallingEdge))) 2];
 Troughs = FallingEdge(TurnPoints > 1);
 Peaks = FallingEdge(TurnPoints <-1);
