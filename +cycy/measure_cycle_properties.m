@@ -3,8 +3,14 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 % but relative to the negative peaks rather than positive peaks.
 % NOTE: all fieldnames should start lowercase, so I know later on that they
 % come from here.
-
+%
 % Part of Matcycle 2022, by Sophia Snipes.
+
+% identify 
+[LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
+[DeflectionsIndexes, DeflectionsAmplitude] = measure_deflection_amplitudes( ...
+    ChannelBroadband, Cycles, LocalMinima, LocalMaxima);
+
 for idxCycle = 1:numel(Cycles)
 
     CurrCycle = Cycles(idxCycle);
@@ -28,7 +34,7 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_reversal_ratio(CurrCycle, ChannelBroadband);
+    CurrCycle = measure_reversal_ratio(CurrCycle, DeflectionsAmplitude, DeflectionsIndexes);
 
     if idxCycle == 1
         AugmentedCyclesFirstPass = CurrCycle;
@@ -66,6 +72,32 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
+
+function [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband)
+
+DiffChannel = diff(ChannelBroadband);
+LocalMinima = [false, DiffChannel(1:end-1) > 0 & DiffChannel(2:end) <= 0];
+LocalMaxima = [false, DiffChannel(1:end-1) < 0 & DiffChannel(2:end) >= 0];
+end
+
+function [DeflectionsIndexes, DeflectionsAmplitude] = measure_deflection_amplitudes( ...
+    ChannelBroadband, Cycles, LocalMinima, LocalMaxima)
+% measure the change in amplitude between each peak and trough in the
+% signal.
+
+Deflections = LocalMinima | LocalMaxima;
+Deflections([1 end]) = 1; % include edges
+Deflections([Cycles.NegPeakIdx]) = 1; % include cycle edges, for when they are not actually peaks, but cut the cycle en route
+Deflections([Cycles.PrevPosPeakIdx]) = 1;
+Deflections([Cycles.NextPosPeakIdx]) = 1; % redundantish from previous, but better safe
+DeflectionsAmplitude = diff(ChannelBroadband(Deflections));
+DeflectionsIndexes = find(Deflections);
+DeflectionsIndexes(1) = []; % remove first point
+end
+
+
+%%%%%%%%%%%%%%%%%%%
+%%% single cycle functions
 
 function Cycle = count_extra_peaks(Cycle, ChannelBroadband)
 CycleSignal = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NextPosPeakIdx);
@@ -153,51 +185,33 @@ Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRis
 Cycle.MonotonicityInAmplitude = max(0, Monotonicity);
 end
 
-function Cycle = measure_reversal_ratio(Cycle, ChannelBroadband)
-% this the proportion of the longest segment either rising during the
-% falling edge or falling during the rising edge, relative to its
-% respective edge, such that 0 indicates a single sub-peak is as tall as
-% the main cycle, and 1 indicates that the signal is completely monotonic
+function Cycle = measure_reversal_ratio(Cycle, ReversalsAmplitude, ReversalIndexes)
 
-if Cycle.PeaksCount == 1
-    Cycle.ReversalRatio = 1;
-    return
-end
+% falling edge reversals
+MaxRisingReversal = max(ReversalsAmplitude( ...
+    ReversalIndexes > Cycle.PrevPosPeakIdx & ...
+    ReversalIndexes <= Cycle.NegPeakIdx & ...
+    ReversalsAmplitude > 0));
+FallingEdge = abs(Cycle.VoltagePrevPos-Cycle.VoltageNeg);
+FallingEdgeReversalRatio = (FallingEdge-abs(MaxRisingReversal))/FallingEdge;
 
-FallingEdgeAmplitude = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
-RisingEdgeAmplitude = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
+% rising edge reversals
+MaxFallingReversal = min(ReversalsAmplitude( ...
+    ReversalIndexes > Cycle.NegPeakIdx & ...
+    ReversalIndexes <= Cycle.NextPosPeakIdx & ...
+    ReversalsAmplitude < 0));
+RisingEdge = abs(Cycle.VoltageNextPos-Cycle.VoltageNeg);
+RisingEdgeReversalRatio = (RisingEdge-abs(MaxFallingReversal))/RisingEdge;
 
-RisingEdge = ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx);
-FallingEdge = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx);
+Cycle.ReversalRatio = min([FallingEdgeReversalRatio, RisingEdgeReversalRatio]);
 
-if numel(RisingEdge)<3 || numel(FallingEdge)<3
-    Cycle.ReversalRatio = 1;
-    return
-end
-
-% largest falling deflection during rising edge
-TurnPoints = [0 diff(sign(diff(RisingEdge))) -0];
-Troughs = RisingEdge(TurnPoints > 1);
-Peaks = RisingEdge(TurnPoints <-1);
-
-try
-RisingEdgeMaxReversal = max(Peaks(1:end-1)-Troughs(2:end));
-catch
-    a=2
-end
-% largest rising deflection during falling edge
-
-TurnPoints = [-2 diff(sign(diff(FallingEdge))) 2];
-Troughs = FallingEdge(TurnPoints > 1);
-Peaks = FallingEdge(TurnPoints <-1);
-FallingEdgeMaxReversal = max(Peaks(2:end)-Troughs(1:end-1));
-
-Cycle.ReversalRatio = min([(RisingEdgeAmplitude-RisingEdgeMaxReversal)/RisingEdgeAmplitude ...
-    (FallingEdgeAmplitude-FallingEdgeMaxReversal)/FallingEdgeAmplitude]);
 if Cycle.ReversalRatio < 0
     Cycle.ReversalRatio = 0;
+elseif isempty(Cycle.ReversalRatio)
+    Cycle.ReversalRatio = 1;
 end
 end
+
 
 
 
