@@ -72,7 +72,7 @@ function [Starts, Ends] = find_streaks(BoolArray, MinSamples)
 % identify starts and ends that make up streaks
 % BinArray is ones and zeros, and tries to find streaks of ones
 
-Starts = find(diff(BoolArray) == 1);
+Starts = find([0 diff(BoolArray) == 1]);
 Ends = find(diff(BoolArray) == -1);
 
 if isempty(Starts) || isempty(Ends)
