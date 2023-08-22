@@ -54,7 +54,6 @@ for idxCycle = 2:numel(AugmentedCyclesFirstPass)-1
     PrevCycle = AugmentedCyclesFirstPass(idxCycle-1);
     NextCycle = AugmentedCyclesFirstPass(idxCycle+1);
 
-    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
     CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle);
     CurrCycle = measure_shape_consistency(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
@@ -232,21 +231,6 @@ end
 
 %%%%%%%%%%%%%%%%
 %%% Functions for second for loop
-
-function CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% Returns a boolean, if the negative peak is prominent with respects to the
-% two neighboring negative cycles.
-
-MidpointFallingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
-Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
-[~, FallingEdgeCrossings] = detect_crossings(Cycle1Signal, MidpointFallingEdge);
-
-MidpointRisingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
-Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
-[RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
-
-CurrCycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
-end
 
 function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle)
 PrevPeriod = CurrCycle.NegPeakIdx-PrevCycle.NegPeakIdx;
