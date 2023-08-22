@@ -6,8 +6,11 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-% Get all cycle amplitudes
-Cycles = measure_amplitudes(Cycles, ChannelBroadband);
+% Get all properties that can easily be conducted on vectors, by converting
+% the struct into a table and back
+CycleTable = struct2table(Cycles);
+CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
+Cycles = table2struct(CycleTable);
 
 % data for measure_reversal_ratio; finds the amplitude of all the segments
 % in the signal where there's a change in direction, to determine how much
@@ -34,9 +37,9 @@ for idxCycle = 1:numel(Cycles)
 
     CurrCycle = retrieve_peak_voltages(CurrCycle, ChannelBroadband);
     CurrCycle = is_true_peak(CurrCycle);
-    CurrCycle = count_extra_peaks(CurrCycle, ChannelBroadband);
+    CurrCycle = count_extra_peaks(CurrCycle, DeflectionsAmplitude, ...
+        PrevPosPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
     CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
-    CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
     CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
     CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
@@ -83,17 +86,13 @@ end
 %%%%%%%%%%%%%%%%%%%%
 %%% array-level functions
 
-function Cycles = measure_amplitudes(Cycles, ChannelBroadband)
+function CycleTable = measure_amplitudes(CycleTable, ChannelBroadband)
 
-PositiveVoltages = (ChannelBroadband([Cycles.PrevPosPeakIdx]) + ChannelBroadband([Cycles.NextPosPeakIdx]))/2;
-NegativeVoltages = ChannelBroadband([Cycles.NegPeakIdx]);
+PositiveVoltages = (ChannelBroadband(CycleTable.PrevPosPeakIdx) + ChannelBroadband(CycleTable.NextPosPeakIdx))/2;
+NegativeVoltages = ChannelBroadband(CycleTable.NegPeakIdx);
 Amplitudes = PositiveVoltages-NegativeVoltages;
 
-% Use arrayfun to apply the operation and update the struct
-Cycles = arrayfun(@(Cycles, Amplitudes) setfield(Cycles, 'Amplitude2', Amplitudes), Cycles, Amplitudes);
-% Table = struct2table(Cycles);
-% Table.Amplitudes = Amplitudes';
-% Cycles = table2struct(Table);
+CycleTable.Amplitude = Amplitudes';
 
 end
 
@@ -132,15 +131,11 @@ end
 %%%%%%%%%%%%%%%%%%%
 %%% single cycle functions
 
-function Cycle = count_extra_peaks(Cycle, ChannelBroadband)
-CycleSignal = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NextPosPeakIdx);
-Cycle.PeaksCount = nnz(diff(sign(diff(CycleSignal))) > 1);
+function Cycle = count_extra_peaks(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NextPosPeakIdx)
+Deflections = DeflectionsAmplitude(PrevPosPeakIdx:NextPosPeakIdx);
+Cycle.PeaksCount2 = nnz(Deflections>0);
 end
 
-function Cycle = measure_amplitude(Cycle, ChannelBroadband)
-Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
-    - ChannelBroadband(Cycle.NegPeakIdx);
-end
 
 function Cycle = retrieve_peak_voltages(Cycle, ChannelBroadband)
 Cycle.VoltagePrevPos = ChannelBroadband(Cycle.PrevPosPeakIdx);
@@ -217,6 +212,7 @@ Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRis
 
 Cycle.MonotonicityInAmplitude = max(0, Monotonicity);
 end
+
 
 function Cycle = measure_reversal_ratio(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NegPeakIdx, NextPosPeakIdx)
 
