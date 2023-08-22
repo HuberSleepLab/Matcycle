@@ -41,7 +41,6 @@ for idxCycle = 1:numel(Cycles)
         PrevPosPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
     CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
     CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, DeflectionsAmplitude, ...
         PrevPosPeakIndexes(idxCycle), NegPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
@@ -91,12 +90,14 @@ CycleTable.VoltageNeg = ChannelBroadband(CycleTable.NegPeakIdx)';
 CycleTable.VoltageNextPos = ChannelBroadband(CycleTable.NextPosPeakIdx)';
 end
 
+
 function CycleTable = measure_amplitudes(CycleTable, ChannelBroadband)
 PositiveVoltages = (ChannelBroadband(CycleTable.PrevPosPeakIdx) + ChannelBroadband(CycleTable.NextPosPeakIdx))/2;
 NegativeVoltages = ChannelBroadband(CycleTable.NegPeakIdx);
 Amplitudes = PositiveVoltages-NegativeVoltages;
 CycleTable.Amplitude = Amplitudes';
 end
+
 
 function CycleTable = measure_flanks(CycleTable, ChannelBroadband)
 CycleTable.FallingFlankAmplitude = ChannelBroadband(CycleTable.PrevPosPeakIdx)' - ChannelBroadband(CycleTable.NegPeakIdx)';
@@ -179,13 +180,6 @@ else
 end
 end
 
-function Cycle = measure_flank_consistency(Cycle, ChannelBroadband)
-
-FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
-RisingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
-
-Cycle.FlankConsistency = min(FallingEdge/RisingEdge, RisingEdge/FallingEdge);
-end
 
 function Cycle = measure_monotonicity_in_time(Cycle, ChannelBroadband)
 
