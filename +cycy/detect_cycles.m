@@ -61,17 +61,17 @@ for idxPeak = 1:PeaksCount
 
     %%% find positive peaks
     [~, RelativePosPeakIdx] = max(ChannelBroadband(...
-        RisingEdgeZeroCrossings(idxPeak):FallingEdgeZeroCrossings(idxPeak)));
+        RisingEdgeZeroCrossings(idxPeak)+1:FallingEdgeZeroCrossings(idxPeak))); % shift start by 1 so can't be same value as previous neg cycle
     
-    PosPeaks(idxPeak) = RelativePosPeakIdx + RisingEdgeZeroCrossings(idxPeak) - 1;
+    PosPeaks(idxPeak) = RelativePosPeakIdx + RisingEdgeZeroCrossings(idxPeak);
 
 
     %%% find negative peaks
     % The signal always ends with a positive peak, so we stop one short
     if idxPeak < PeaksCount
         [~, RelativeNegPeakIdx] = min(ChannelBroadband(...
-            FallingEdgeZeroCrossings(idxPeak):RisingEdgeZeroCrossings(idxPeak+1)));
+            FallingEdgeZeroCrossings(idxPeak)+1:RisingEdgeZeroCrossings(idxPeak+1)));
         
-        NegPeaks(idxPeak) = RelativeNegPeakIdx + FallingEdgeZeroCrossings(idxPeak) - 1;
+        NegPeaks(idxPeak) = RelativeNegPeakIdx + FallingEdgeZeroCrossings(idxPeak);
     end
 end
