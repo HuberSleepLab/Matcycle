@@ -30,7 +30,6 @@ for idxCycle = 1:numel(Cycles)
 
     CurrCycle = count_extra_peaks(CurrCycle, DeflectionsAmplitude, ...
         PrevPosPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
-    CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, DeflectionsAmplitude, ...
         PrevPosPeakIndexes(idxCycle), NegPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
@@ -103,7 +102,7 @@ CycleTable.PeriodPos = (CycleTable.NextPosPeakIdx - CycleTable.PrevPosPeakIdx)/S
 
 NextPeak = [CycleTable.NegPeakIdx(2:end); TimepointsCount];
 PrevPeak = [1; CycleTable.NegPeakIdx(1:end-1)];
-CycleTable.PeriodNeg2 = (NextPeak-PrevPeak)/2/SampleRate;
+CycleTable.PeriodNeg = (NextPeak-PrevPeak)/2/SampleRate;
 end
 
 
