@@ -1,4 +1,4 @@
-function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, SampleRate)
+function AugmentedCycles = measure_cycle_properties(ChannelBroadband, CycleTable, SampleRate)
 % Identifies various ways to characterize each peak. Based on Cole 2019,
 % but relative to the negative peaks rather than positive peaks.
 % NOTE: all fieldnames should start lowercase, so I know later on that they
@@ -8,7 +8,6 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 
 % Get all properties that can easily be conducted on vectors, by converting
 % the struct into a table and back
-CycleTable = struct2table(Cycles);
 CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband);
 CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
 CycleTable = measure_flanks(CycleTable, ChannelBroadband);
