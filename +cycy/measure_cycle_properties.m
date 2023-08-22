@@ -6,9 +6,16 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-% identify
+% Get all cycle amplitudes
+Cycles = measure_amplitudes(Cycles, ChannelBroadband);
+
+% data for measure_reversal_ratio; finds the amplitude of all the segments
+% in the signal where there's a change in direction, to determine how much
+% the largest segment goes in the "wrong" direction compared to the
+% expected increase or decrease in voltage for the rising and falling edges
+% of the cycle, respectively.
 [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
-[~, DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
+[DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
     ChannelBroadband, Cycles, LocalMinima, LocalMaxima);
 
 for idxCycle = 1:numel(Cycles)
@@ -73,6 +80,24 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
 
+%%%%%%%%%%%%%%%%%%%%
+%%% array-level functions
+
+function Cycles = measure_amplitudes(Cycles, ChannelBroadband)
+
+PositiveVoltages = (ChannelBroadband([Cycles.PrevPosPeakIdx]) + ChannelBroadband([Cycles.NextPosPeakIdx]))/2;
+NegativeVoltages = ChannelBroadband([Cycles.NegPeakIdx]);
+Amplitudes = PositiveVoltages-NegativeVoltages;
+
+% Use arrayfun to apply the operation and update the struct
+Cycles = arrayfun(@(Cycles, Amplitudes) setfield(Cycles, 'Amplitude2', Amplitudes), Cycles, Amplitudes);
+% Table = struct2table(Cycles);
+% Table.Amplitudes = Amplitudes';
+% Cycles = table2struct(Table);
+
+end
+
+
 function [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband)
 
 DiffChannel = diff(ChannelBroadband);
@@ -80,7 +105,7 @@ LocalMinima = [false, DiffChannel(1:end-1) > 0 & DiffChannel(2:end) <= 0];
 LocalMaxima = [false, DiffChannel(1:end-1) < 0 & DiffChannel(2:end) >= 0];
 end
 
-function [DeflectionsIndexes, DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = ...
+function [DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = ...
     measure_deflection_amplitudes(ChannelBroadband, Cycles, LocalMinima, LocalMaxima)
 % measure the change in amplitude between each peak and trough in the
 % signal.
@@ -91,8 +116,6 @@ Deflections([Cycles.NegPeakIdx]) = 1; % include cycle edges, for when they are n
 Deflections([Cycles.PrevPosPeakIdx]) = 1;
 Deflections([Cycles.NextPosPeakIdx]) = 1; % redundantish from previous, but better safe
 DeflectionsAmplitude = diff(ChannelBroadband(Deflections));
-DeflectionsIndexes = find(Deflections);
-DeflectionsIndexes(1) = []; % remove first point
 
 PrevPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.PrevPosPeakIdx]);
 NegPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.NegPeakIdx]);
