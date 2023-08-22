@@ -12,6 +12,7 @@ CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband);
 CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
 CycleTable = measure_flanks(CycleTable, ChannelBroadband);
 CycleTable = measure_periods(CycleTable, numel(ChannelBroadband), SampleRate);
+CycleTable = measure_amplitude_ramp(CycleTable);
 Cycles = table2struct(CycleTable);
 
 % data for measure_reversal_ratio; finds the amplitude of all the segments
@@ -106,6 +107,14 @@ CycleTable.PeriodNeg2 = (NextPeak-PrevPeak)/2/SampleRate;
 end
 
 
+function CycleTable = measure_amplitude_ramp(CycleTable)
+CycleTable.AmplitudeRamp = zeros(size(CycleTable, 1), 1);
+CycleTable.AmplitudeRamp(CycleTable.VoltagePrevPos < CycleTable.VoltageNextPos) = 1;
+CycleTable.AmplitudeRamp(CycleTable.VoltagePrevPos > CycleTable.VoltageNextPos) = -1;
+end
+
+
+
 function [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband)
 DiffChannel = diff(ChannelBroadband);
 LocalMinima = [false, DiffChannel(1:end-1) > 0 & DiffChannel(2:end) <= 0];
@@ -143,23 +152,6 @@ end
 function Cycle = count_extra_peaks(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NextPosPeakIdx)
 Deflections = DeflectionsAmplitude(PrevPosPeakIdx:NextPosPeakIdx);
 Cycle.PeaksCount = nnz(Deflections>0);
-end
-
-
-function Cycle = measure_amplitude_ramp(Cycle, ChannelBroadband)
-% determines whether the rising edge is larger or smaller than the falling
-% edge.
-
-PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
-NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
-
-if PrevPosPeak < NextPosPeak
-    Cycle.AmplitudeRamp = 1;
-elseif PrevPosPeak > NextPosPeak
-    Cycle.AmplitudeRamp = -1;
-else
-    Cycle.AmplitudeRamp = 0;
-end
 end
 
 
