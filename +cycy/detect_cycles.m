@@ -18,6 +18,7 @@ for idxPeak = 1:NegPeaksCount
     Cycles(idxPeak).PrevPosPeakIdx = PosPeaks(idxPeak);
     Cycles(idxPeak).NextPosPeakIdx = PosPeaks(idxPeak+1);
 end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
@@ -43,6 +44,12 @@ end
 % Ensure that the last index is always a falling edge zero-crossing
 RisingEdgeCrossings = RisingEdgeCrossings(1:length(FallingEdgeCrossings));
 
+% remove any crossings that don't have any points inbetween
+SameIndex = RisingEdgeCrossings==FallingEdgeCrossings;
+RisingEdgeCrossings(SameIndex) = [];
+FallingEdgeCrossings(SameIndex) = [];
+end
+
 
 function [NegPeaks, PosPeaks] = detect_peaks(RisingEdgeZeroCrossings, ...
     FallingEdgeZeroCrossings, ChannelBroadband)
@@ -64,7 +71,7 @@ for idxPeak = 1:PeaksCount
         RisingEdgeZeroCrossings(idxPeak)+1:FallingEdgeZeroCrossings(idxPeak))); % shift start by 1 so can't be same value as previous neg cycle
     
     PosPeaks(idxPeak) = RelativePosPeakIdx + RisingEdgeZeroCrossings(idxPeak);
-
+   
 
     %%% find negative peaks
     % The signal always ends with a positive peak, so we stop one short
@@ -74,4 +81,5 @@ for idxPeak = 1:PeaksCount
         
         NegPeaks(idxPeak) = RelativeNegPeakIdx + FallingEdgeZeroCrossings(idxPeak);
     end
+end
 end
