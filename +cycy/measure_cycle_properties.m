@@ -12,6 +12,7 @@ CycleTable = struct2table(Cycles);
 CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband);
 CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
 CycleTable = measure_flanks(CycleTable, ChannelBroadband);
+CycleTable = measure_periods(CycleTable, numel(ChannelBroadband), SampleRate);
 Cycles = table2struct(CycleTable);
 
 % data for measure_reversal_ratio; finds the amplitude of all the segments
@@ -26,20 +27,9 @@ Cycles = table2struct(CycleTable);
 for idxCycle = 1:numel(Cycles)
 
     CurrCycle = Cycles(idxCycle);
-    if idxCycle == 1
-        PrevCycle = [];
-    else
-        PrevCycle = Cycles(idxCycle-1);
-    end
-    if idxCycle == numel(Cycles)
-        NextCycle = [];
-    else
-        NextCycle = Cycles(idxCycle+1);
-    end
 
     CurrCycle = count_extra_peaks(CurrCycle, DeflectionsAmplitude, ...
         PrevPosPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
-    CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
     CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, DeflectionsAmplitude, ...
@@ -108,6 +98,14 @@ CycleTable.FlankConsistency = min([CycleTable.FallingFlankAmplitude./CycleTable.
 end
 
 
+function CycleTable = measure_periods(CycleTable, TimepointsCount, SampleRate)
+CycleTable.PeriodPos = (CycleTable.NextPosPeakIdx - CycleTable.PrevPosPeakIdx)/SampleRate;
+
+NextPeak = [CycleTable.NegPeakIdx(2:end); TimepointsCount];
+PrevPeak = [1; CycleTable.NegPeakIdx(1:end-1)];
+CycleTable.PeriodNeg2 = (NextPeak-PrevPeak)/2/SampleRate;
+end
+
 
 function [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband)
 DiffChannel = diff(ChannelBroadband);
@@ -146,21 +144,6 @@ end
 function Cycle = count_extra_peaks(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NextPosPeakIdx)
 Deflections = DeflectionsAmplitude(PrevPosPeakIdx:NextPosPeakIdx);
 Cycle.PeaksCount = nnz(Deflections>0);
-end
-
-
-function CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate)
-CurrCycle.PeriodPos = (CurrCycle.NextPosPeakIdx - CurrCycle.PrevPosPeakIdx)/SampleRate;
-
-if isempty(PrevCycle)
-    CurrCycle.PeriodNeg = (NextCycle.NegPeakIdx - CurrCycle.NegPeakIdx)/SampleRate;
-elseif isempty(NextCycle)
-    CurrCycle.PeriodNeg = (CurrCycle.NegPeakIdx - PrevCycle.NegPeakIdx)/SampleRate;
-else
-    CurrCycle.PeriodNeg = (NextCycle.NegPeakIdx - PrevCycle.NegPeakIdx)/2/SampleRate;
-end
-
-CurrCycle.Frequency = 1/CurrCycle.PeriodNeg;
 end
 
 
