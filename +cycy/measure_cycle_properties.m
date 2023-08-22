@@ -6,9 +6,9 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, Sa
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-% identify 
+% identify
 [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
-[DeflectionsIndexes, DeflectionsAmplitude] = measure_deflection_amplitudes( ...
+[~, DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
     ChannelBroadband, Cycles, LocalMinima, LocalMaxima);
 
 for idxCycle = 1:numel(Cycles)
@@ -34,7 +34,8 @@ for idxCycle = 1:numel(Cycles)
     CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_reversal_ratio(CurrCycle, DeflectionsAmplitude, DeflectionsIndexes);
+    CurrCycle = measure_reversal_ratio(CurrCycle, DeflectionsAmplitude, ...
+        PrevPosPeakIndexes(idxCycle), NegPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
 
     if idxCycle == 1
         AugmentedCyclesFirstPass = CurrCycle;
@@ -80,8 +81,8 @@ LocalMinima = [false, DiffChannel(1:end-1) > 0 & DiffChannel(2:end) <= 0];
 LocalMaxima = [false, DiffChannel(1:end-1) < 0 & DiffChannel(2:end) >= 0];
 end
 
-function [DeflectionsIndexes, DeflectionsAmplitude] = measure_deflection_amplitudes( ...
-    ChannelBroadband, Cycles, LocalMinima, LocalMaxima)
+function [DeflectionsIndexes, DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = ...
+    measure_deflection_amplitudes(ChannelBroadband, Cycles, LocalMinima, LocalMaxima)
 % measure the change in amplitude between each peak and trough in the
 % signal.
 
@@ -93,8 +94,18 @@ Deflections([Cycles.NextPosPeakIdx]) = 1; % redundantish from previous, but bett
 DeflectionsAmplitude = diff(ChannelBroadband(Deflections));
 DeflectionsIndexes = find(Deflections);
 DeflectionsIndexes(1) = []; % remove first point
+
+PrevPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.PrevPosPeakIdx]);
+NegPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.NegPeakIdx]);
+NextPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.NextPosPeakIdx]);
 end
 
+function ReversalIndexes = map_cycle_to_reversal_indexes(Deflections, CycleIndexes)
+Indexes = zeros(size(Deflections));
+Indexes(CycleIndexes) = 1;
+Indexes = Indexes(Deflections);
+ReversalIndexes = find(Indexes == 1)-1; % shift by one since first delfection index is removed later
+end
 
 %%%%%%%%%%%%%%%%%%%
 %%% single cycle functions
@@ -185,21 +196,27 @@ Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRis
 Cycle.MonotonicityInAmplitude = max(0, Monotonicity);
 end
 
-function Cycle = measure_reversal_ratio(Cycle, ReversalsAmplitude, ReversalIndexes)
+function Cycle = measure_reversal_ratio(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NegPeakIdx, NextPosPeakIdx)
 
 % falling edge reversals
-MaxRisingReversal = max(ReversalsAmplitude( ...
-    ReversalIndexes > Cycle.PrevPosPeakIdx & ...
-    ReversalIndexes <= Cycle.NegPeakIdx & ...
-    ReversalsAmplitude > 0));
+FallingDeflections = DeflectionsAmplitude(PrevPosPeakIdx+1:NegPeakIdx); % don't include the PrevPosPeakIdx
+MaxRisingReversal = max(FallingDeflections);
+if MaxRisingReversal < 0
+    MaxRisingReversal = [];
+end
+
 FallingEdge = abs(Cycle.VoltagePrevPos-Cycle.VoltageNeg);
 FallingEdgeReversalRatio = (FallingEdge-abs(MaxRisingReversal))/FallingEdge;
 
+
 % rising edge reversals
-MaxFallingReversal = min(ReversalsAmplitude( ...
-    ReversalIndexes > Cycle.NegPeakIdx & ...
-    ReversalIndexes <= Cycle.NextPosPeakIdx & ...
-    ReversalsAmplitude < 0));
+RisingDeflections = DeflectionsAmplitude(NegPeakIdx+1:NextPosPeakIdx);
+MaxFallingReversal = min(RisingDeflections);
+
+if MaxFallingReversal > 0
+    MaxFallingReversal = [];
+end
+
 RisingEdge = abs(Cycle.VoltageNextPos-Cycle.VoltageNeg);
 RisingEdgeReversalRatio = (RisingEdge-abs(MaxFallingReversal))/RisingEdge;
 
@@ -211,9 +228,6 @@ elseif isempty(Cycle.ReversalRatio)
     Cycle.ReversalRatio = 1;
 end
 end
-
-
-
 
 
 %%%%%%%%%%%%%%%%
