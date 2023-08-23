@@ -1,6 +1,6 @@
-function [Bursts, Diagnostics] = aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints)
+function [Bursts, Diagnostics] = aggregate_cycles_into_bursts(CycleTable, CriteriaSet, KeepTimepoints)
 arguments
-    Cycles
+    CycleTable
     CriteriaSet
     KeepTimepoints = []
 end
@@ -35,17 +35,17 @@ CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
 
 % gather peaks based on single peak property requirements
 [CyclesMeetCriteria, Diagnostics] = cycy.detect_cycles_that_meet_criteria( ...
-    Cycles, CriteriaSet, KeepTimepoints);
+    CycleTable, CriteriaSet, KeepTimepoints);
 
 % check when all criterias are met
 AcceptedCycles = all(CyclesMeetCriteria, 1);
 
 % special cases
-AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, CriteriaSet,...
+AcceptedCycles = extend_burst_by_amplitude_consistency(CycleTable, CriteriaSet,...
     CyclesMeetCriteria, AcceptedCycles);
 
 
-AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
+AcceptedCycles = extend_burst_by_period_consistency(CycleTable, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles);
 
 
@@ -59,7 +59,7 @@ if isempty(Starts) || isempty(Ends)
     return
 end
 
-Bursts = convert_bursts_to_struct(Cycles, Starts, Ends);
+Bursts = convert_bursts_to_struct(CycleTable, Starts, Ends);
 end
 
 
@@ -99,18 +99,18 @@ Starts = Starts+1; % adjust indexing
 end
 
 
-function AcceptedCycles = extend_burst_by_amplitude_consistency(Cycles, CriteriaSet, ...
+function AcceptedCycles = extend_burst_by_amplitude_consistency(CycleTable, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles)
 % if the edge of a burst would be excluded just because of amplitude
 % consistency, include it instead.
 
 if isfield(CriteriaSet, 'AmplitudeConsistency')
-    CriteriaLabels = cycy.utils.get_criteria_labels(Cycles, CriteriaSet);
+    CriteriaLabels = cycy.utils.get_criteria_labels(CycleTable, CriteriaSet);
 
     idxCriteria = find(strcmp(CriteriaLabels, 'AmplitudeConsistency'));
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
 
-    Ramp = [Cycles.AmplitudeRamp]; % whether amplitude of burst is increasing or decreasing
+    Ramp = CycleTable.AmplitudeRamp; % whether amplitude of burst is increasing or decreasing
     [Starts, Ends]  = find_streaks(AcceptedCycles, CriteriaSet.MinCyclesPerBurst);
 
     for S = Starts(:)' % just make sure it's a row vector
@@ -135,13 +135,13 @@ end
 end
 
 
-function AcceptedCycles = extend_burst_by_period_consistency(Cycles, CriteriaSet, ...
+function AcceptedCycles = extend_burst_by_period_consistency(CycleTable, CriteriaSet, ...
     CyclesMeetCriteria, AcceptedCycles)
 % if the edge of a burst would be excluded just because of period
 % consistency, include it instead.
 
 if isfield(CriteriaSet, 'PeriodConsistency')
-    CriteriaLabels = cycy.utils.get_criteria_labels(Cycles, CriteriaSet);
+    CriteriaLabels = cycy.utils.get_criteria_labels(CycleTable, CriteriaSet);
 
     idxCriteria = find(strcmp(CriteriaLabels, 'PeriodConsistency'));
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
@@ -154,9 +154,9 @@ end
 end
 
 
-function Bursts = convert_bursts_to_struct(Cycles, Starts, Ends)
+function Bursts = convert_bursts_to_struct(CycleTable, Starts, Ends)
 
-CyclePropertyLabels = fieldnames(Cycles);
+CyclePropertyLabels = CycleTable.Properties.VariableNames;
 
 Bursts = struct();
 for idxBurst = 1:numel(Starts)
@@ -165,14 +165,14 @@ for idxBurst = 1:numel(Starts)
     Bursts(idxBurst).CycleIndexes = CycleIndexes;
 
     %%% transfer all info about the individual peaks
-    for Label = CyclePropertyLabels'
-        AllCyclesProperties = [Cycles(CycleIndexes).(Label{1})];
+    for Label = CyclePropertyLabels
+        AllCyclesProperties = [CycleTable.(Label{1})(CycleIndexes)];
         Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
     end
 
     %%% get properties of the burst itself
-    Bursts(idxBurst).Start = Cycles(CycleIndexes(1)-1).PrevPosPeakIdx;
-    Bursts(idxBurst).End =  Bursts(idxBurst).NextPosPeakIdx(end);
+    Bursts(idxBurst).Start = CycleTable.PrevPosPeakIdx(CycleIndexes(1)-1);
+    Bursts(idxBurst).End = Bursts(idxBurst).NextPosPeakIdx(end); % not sure why this is different from start...
     Bursts(idxBurst).BurstFrequency = 1/mean(Bursts(idxBurst).PeriodNeg);
     Bursts(idxBurst).DurationPoints = Bursts(idxBurst).End - Bursts(idxBurst).Start;
 end

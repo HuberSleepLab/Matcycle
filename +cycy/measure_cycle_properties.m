@@ -1,4 +1,4 @@
-function AugmentedCycles = measure_cycle_properties(ChannelBroadband, CycleTable, SampleRate)
+function CycleTable = measure_cycle_properties(ChannelBroadband, CycleTable, SampleRate)
 % Identifies various ways to characterize each peak. Based on Cole 2019,
 % but relative to the negative peaks rather than positive peaks.
 % NOTE: all fieldnames should start lowercase, so I know later on that they
@@ -30,11 +30,6 @@ CycleTable = measure_monotonicity_in_amplitude(CycleTable, DeflectionsAmplitude,
 CycleTable = measure_period_consistency(CycleTable, numel(ChannelBroadband));
 CycleTable = measure_amplitude_consistency(CycleTable);
 CycleTable = measure_shape_consistency(CycleTable, ChannelBroadband);
-AugmentedCyclesFirstPass = table2struct(CycleTable);
-
-
-% remove edge peaks that are empty
-AugmentedCycles = AugmentedCyclesSecondPass;
 end
 
 

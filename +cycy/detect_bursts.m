@@ -61,15 +61,15 @@ for idxBand = 1:numel(BandLabels)
             CriteriaSet = CriteriaSets(idxCriteriaSet);
 
             % find all cycles in a given band
-            Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
-            Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
+            CycleTable = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
+            CycleTable = cycy.measure_cycle_properties(SignChannelBroadband, CycleTable, SampleRate);
 
             if isfield(CriteriaSet, 'PeriodNeg') && ~isempty(CriteriaSet.PeriodNeg) && CriteriaSet.PeriodNeg
                 CriteriaSet.PeriodNeg = sort(1./Band);
             end
 
             % find bursts
-            [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints);
+            [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(CycleTable, CriteriaSet, KeepTimepoints);
 
             % add metadata
             Metadata = struct();
