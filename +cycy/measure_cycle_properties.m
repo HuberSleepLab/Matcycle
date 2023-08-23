@@ -257,20 +257,26 @@ ChannelBroadband = -ChannelBroadband; % flip so that later when looking at area 
 
 for idxCycle = 2:CycleCount-1
 
-    [PrevCycleShape, PrevNegIndex] = cycle_shape(ChannelBroadband, StartCycles(idxCycle-1), PeakCycles(idxCycle-1), EndCycles(idxCycle-1));
-    [CurrCycleShape, CurrNegIndex] = cycle_shape(ChannelBroadband, StartCycles(idxCycle), PeakCycles(idxCycle), EndCycles(idxCycle));
-    [NextCycleShape, NextNegIndex] = cycle_shape(ChannelBroadband, StartCycles(idxCycle+1), PeakCycles(idxCycle+1), EndCycles(idxCycle+1));
+    % identify current cycle
+    [CurrCycleShape, StartDistance, EndDistance] = cycle_shape(ChannelBroadband, ...
+        StartCycles(idxCycle), PeakCycles(idxCycle), EndCycles(idxCycle));
 
-    DifferencePrev(idxCycle) = compare_shape(CurrCycleShape, PrevCycleShape, CurrNegIndex, PrevNegIndex);
-    DifferenceNext(idxCycle) = compare_shape(CurrCycleShape, NextCycleShape, CurrNegIndex, NextNegIndex);
+    % identify neighboring cycles, with same dimentions as current cycle
+    PrevCycleShape = cycle_shape(ChannelBroadband, ...
+        PeakCycles(idxCycle-1)-StartDistance, PeakCycles(idxCycle-1), PeakCycles(idxCycle-1)+EndDistance);
+    NextCycleShape = cycle_shape(ChannelBroadband, ...
+        PeakCycles(idxCycle+1)-StartDistance, PeakCycles(idxCycle+1), PeakCycles(idxCycle+1)+EndDistance);
+
+    DifferencePrev(idxCycle) = compare_shape(CurrCycleShape, PrevCycleShape);
+    DifferenceNext(idxCycle) = compare_shape(CurrCycleShape, NextCycleShape);
 
 end
 
-CycleTable.ShapeConsistency = (DifferenceNext+DifferencePrev)/2;
+CycleTable.ShapeConsistency = min([DifferenceNext, DifferencePrev], [], 2);
 end
 
 
-function [CycleShape, NegIndex] = cycle_shape(ChannelBroadband, StartCycle, PeakCycle, EndCycle)
+function [CycleShape, StartDistance, EndDistance] = cycle_shape(ChannelBroadband, StartCycle, PeakCycle, EndCycle)
 % gets each cycle from the data, normalizing the amplitude
 
 CycleShape = ChannelBroadband(StartCycle:EndCycle);
@@ -280,22 +286,14 @@ Min = min(CycleShape);
 Max = max(CycleShape);
 CycleShape = (CycleShape-Min)./(Max-Min);
 
-NegIndex = PeakCycle-StartCycle; % needed to align start to peak
+StartDistance = PeakCycle-StartCycle; % needed to align start to peak
+EndDistance = EndCycle-PeakCycle;
 end
 
 
-function Difference = compare_shape(CurrCycleShape, NeighborCycleShape, ...
-    CurrNegIndex, NeighborNegIndex)
-
-% cut to same size
-LeftEdge = min(CurrNegIndex, NeighborNegIndex);
-RightEdge = min(numel(CurrCycleShape)-CurrNegIndex, numel(NeighborCycleShape)-NeighborNegIndex);
-CurrCycleShape = CurrCycleShape(CurrNegIndex-LeftEdge+1:CurrNegIndex+RightEdge);
-NeighborCycleShape = NeighborCycleShape(NeighborNegIndex-LeftEdge+1:NeighborNegIndex+RightEdge);
-
+function Difference = compare_shape(CurrCycleShape, NeighborCycleShape)
 Difference = (sum(CurrCycleShape)-sum(abs(NeighborCycleShape-CurrCycleShape)))/sum(CurrCycleShape);
-
-if Difference<0
+if Difference < 0
     Difference = 0;
 end
 end
