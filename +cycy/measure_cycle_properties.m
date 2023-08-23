@@ -204,7 +204,7 @@ for idxCycle = 1:CycleCount
     % monotonicity
     IncreaseDuringFallingEdge = sum(RisingReversals, 'omitnan');
     DecreaseDuringRisingEdge = sum(abs(FallingReversals), 'omitnan');
-    MonotonicityInAmplitude(idxCycle) = (Amplitudes(idxCycle) - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/Amplitudes(idxCycle);
+    MonotonicityInAmplitude(idxCycle) = (abs(Amplitudes(idxCycle)) - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/abs(Amplitudes(idxCycle));
 
     if MonotonicityInAmplitude(idxCycle) < 0
         MonotonicityInAmplitude(idxCycle) = 0;
@@ -236,9 +236,10 @@ function CycleTable = measure_amplitude_consistency(CycleTable)
 Amp1 = [CycleTable.Amplitude(2:end); 0];
 Amp2 = CycleTable.Amplitude;
 Amp3 = [0; CycleTable.Amplitude(1:end-1)];
-CycleTable.AmplitudeConsistency = min([Amp1./Amp2, Amp2./Amp1, Amp2./Amp3, Amp3./Amp2], [], 2);
+AmplitudeConsistency = min([Amp1./Amp2, Amp2./Amp1, Amp2./Amp3, Amp3./Amp2], [], 2);
+AmplitudeConsistency(AmplitudeConsistency<0) = 0;
+CycleTable.AmplitudeConsistency = AmplitudeConsistency;
 end
-
 
 
 function CycleTable = measure_shape_consistency(CycleTable, ChannelBroadband)
