@@ -6,15 +6,6 @@ function AugmentedCycles = measure_cycle_properties(ChannelBroadband, CycleTable
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
-% Get all properties that can easily be conducted on vectors, by converting
-% the struct into a table and back
-CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband);
-CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
-CycleTable = measure_flanks(CycleTable, ChannelBroadband);
-CycleTable = measure_periods(CycleTable, numel(ChannelBroadband), SampleRate);
-CycleTable = measure_amplitude_ramp(CycleTable);
-Cycles = table2struct(CycleTable);
-
 % data for measure_reversal_ratio; finds the amplitude of all the segments
 % in the signal where there's a change in direction, to determine how much
 % the largest segment goes in the "wrong" direction compared to the
@@ -22,14 +13,24 @@ Cycles = table2struct(CycleTable);
 % of the cycle, respectively.
 [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
 [DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
-    ChannelBroadband, Cycles, LocalMinima, LocalMaxima);
+    ChannelBroadband, CycleTable, LocalMinima, LocalMaxima);
+
+
+% Get all properties that can easily be conducted on vectors, by converting
+% the struct into a table and back
+CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband);
+CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
+CycleTable = measure_flanks(CycleTable, ChannelBroadband);
+CycleTable = measure_periods(CycleTable, numel(ChannelBroadband), SampleRate);
+CycleTable = measure_amplitude_ramp(CycleTable);
+CycleTable = count_extra_peaks(CycleTable, DeflectionsAmplitude, PrevPosPeakIndexes, NextPosPeakIndexes);
+Cycles = table2struct(CycleTable);
+
 
 for idxCycle = 1:numel(Cycles)
 
     CurrCycle = Cycles(idxCycle);
 
-    CurrCycle = count_extra_peaks(CurrCycle, DeflectionsAmplitude, ...
-        PrevPosPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
     CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, DeflectionsAmplitude, ...
         PrevPosPeakIndexes(idxCycle), NegPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
@@ -122,20 +123,20 @@ end
 
 
 function [DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = ...
-    measure_deflection_amplitudes(ChannelBroadband, Cycles, LocalMinima, LocalMaxima)
+    measure_deflection_amplitudes(ChannelBroadband, CycleTable, LocalMinima, LocalMaxima)
 % measure the change in amplitude between each peak and trough in the
 % signal.
 
 Deflections = LocalMinima | LocalMaxima;
 Deflections([1 end]) = 1; % include edges
-Deflections([Cycles.NegPeakIdx]) = 1; % include cycle edges, for when they are not actually peaks, but cut the cycle en route
-Deflections([Cycles.PrevPosPeakIdx]) = 1;
-Deflections([Cycles.NextPosPeakIdx]) = 1; % redundantish from previous, but better safe
+Deflections(CycleTable.NegPeakIdx) = 1; % include cycle edges, for when they are not actually peaks, but cut the cycle en route
+Deflections(CycleTable.PrevPosPeakIdx) = 1;
+Deflections(CycleTable.NextPosPeakIdx) = 1; % redundantish from previous, but better safe
 DeflectionsAmplitude = diff(ChannelBroadband(Deflections));
 
-PrevPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.PrevPosPeakIdx]);
-NegPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.NegPeakIdx]);
-NextPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, [Cycles.NextPosPeakIdx]);
+PrevPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, CycleTable.PrevPosPeakIdx);
+NegPeakIndexes = map_cycle_to_reversal_indexes(Deflections, CycleTable.NegPeakIdx);
+NextPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, CycleTable.NextPosPeakIdx);
 end
 
 function ReversalIndexes = map_cycle_to_reversal_indexes(Deflections, CycleIndexes)
@@ -145,14 +146,18 @@ Indexes = Indexes(Deflections);
 ReversalIndexes = find(Indexes == 1)-1; % shift by one since first delfection index is removed later
 end
 
-%%%%%%%%%%%%%%%%%%%
-%%% single cycle functions
 
-function Cycle = count_extra_peaks(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NextPosPeakIdx)
-Deflections = DeflectionsAmplitude(PrevPosPeakIdx:NextPosPeakIdx);
-Cycle.PeaksCount = nnz(Deflections>0);
+function CycleTable = count_extra_peaks(CycleTable, DeflectionsAmplitude, PrevPosPeakIdx, NextPosPeakIdx)
+PeaksCount = zeros(size(CycleTable, 1), 1);
+for idxCycle = 1:numel(PrevPosPeakIdx)
+    Deflections = DeflectionsAmplitude(PrevPosPeakIdx(idxCycle):NextPosPeakIdx(idxCycle));
+    PeaksCount(idxCycle) = nnz(Deflections>0);
+end
 end
 
+
+%%%%%%%%%%%%%%%%%%%
+%%% single cycle functions
 
 function Cycle = measure_monotonicity_in_time(Cycle, ChannelBroadband)
 
