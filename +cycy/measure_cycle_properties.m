@@ -167,18 +167,18 @@ Ends =  CycleTable.NextPosPeakIdx;
 
 % get the differential of the signal, to see which segments increase and
 % decrease
-ChannelDiff = [0 diff(ChannelBroadband)];
+ChannelDiff = diff(ChannelBroadband);
 
 for idxCycle = 1:CycleCount
 
-Neg = NegPoints(idxCycle); % since its used twice, I just make it a variable
-FallingEdgeDiff = ChannelDiff(Starts(idxCycle):Neg);
-RisingEdgeDiff = ChannelDiff(Neg:Ends(idxCycle));
+    Neg = NegPoints(idxCycle); % since its used twice, I just make it a variable
+    FallingEdgeDiff = ChannelDiff(Starts(idxCycle):Neg-1);
+    RisingEdgeDiff = ChannelDiff(Neg:Ends(idxCycle)-1);
 
-if ~(numel(FallingEdgeDiff) < 3 || numel(RisingEdgeDiff) < 3) % if there are enough points
-    MonotonicityInTime(idxCycle) = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
-        numel([FallingEdgeDiff, RisingEdgeDiff]);
-end
+    if ~(numel(FallingEdgeDiff) < 3 || numel(RisingEdgeDiff) < 3) % if there are enough points
+        MonotonicityInTime(idxCycle) = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
+            numel([FallingEdgeDiff, RisingEdgeDiff]);
+    end
 end
 
 CycleTable.MonotonicityInTime = MonotonicityInTime;
