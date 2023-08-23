@@ -60,6 +60,13 @@ while any(~Visited)
     OverlapStarts = Starts >= Start & Starts < End & ~Visited;
     OverlapEnds = Ends > Start & Ends <= End & ~Visited;
 
+    if isempty(OverlapStarts) || ~any(OverlapStarts)
+        Bursts(LongestBurst).debugUniqueCriteria = 1;
+        continue
+    else
+         Bursts(LongestBurst).debugUniqueCriteria = 0;
+    end
+
     % move their starts and ends to the outside of the large burst.
     Starts(OverlapStarts) = End;
     Ends(OverlapEnds) = Start;
