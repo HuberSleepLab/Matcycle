@@ -148,7 +148,7 @@ function PropertyLabels = select_properties_between_0_1(CycleTable)
 AllPropertyLabels = CycleTable.Properties.VariableNames;
 AllPropertyLabels(contains(AllPropertyLabels, {'PeriodNeg', 'PeriodPos'})) = [];
 PropertyLabels = {};
-for Property = AllPropertyLabels'
+for Property = AllPropertyLabels
     Values = CycleTable.(Property{1});
     if all(Values<=1 & Values>=0)
         PropertyLabels = cat(2, PropertyLabels, Property);
