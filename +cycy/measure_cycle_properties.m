@@ -161,7 +161,7 @@ end
 function CycleTable = measure_monotonicity_in_amplitude(CycleTable, DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes)
 % find the amplitudes of the segments that go in the "wrong" direction
 % relative to the cycle (e.g. rising in the falling edge). ReversalRatio is
-% the ratio of the largest reversal to the change in amplitude, and
+% the ratio of the largest reversal to the change relative to the smallest flank, and
 % MonotonicityInAmplitude is the sum of all reversals relative to the
 % signal amplitude.
 
@@ -172,6 +172,7 @@ ReversalRatios = MonotonicityInAmplitude;
 
 FallingEdges = CycleTable.FallingFlankAmplitude;
 RisingEdges = CycleTable.RisingFlankAmplitude;
+SmallestEdges = min([FallingEdges, RisingEdges], [], 2);
 Amplitudes = CycleTable.Amplitude;
 
 FallingDeflections = DeflectionsAmplitude;
@@ -181,17 +182,12 @@ RisingDeflections(DeflectionsAmplitude<0) = nan;
 
 for idxCycle = 1:CycleCount
 
-    % falling edge reversals
     RisingReversals = RisingDeflections(PrevPosPeakIndexes(idxCycle)+1:NegPeakIndexes(idxCycle));
-    MaxRisingReversal = max(RisingReversals);
-    FallingEdgeReversalRatio = (abs(FallingEdges(idxCycle))-abs(MaxRisingReversal))/abs(FallingEdges(idxCycle));
-
-    % rising edge reversals
     FallingReversals = FallingDeflections(NegPeakIndexes(idxCycle)+1:NextPosPeakIndexes(idxCycle));
-    MaxFallingReversal = min(FallingReversals);
-    RisingEdgeReversalRatio = (abs(RisingEdges(idxCycle))-abs(MaxFallingReversal))/abs(RisingEdges(idxCycle));
+    MaxReversal = max([RisingReversals, abs(FallingReversals)]);
 
-    ReversalRatio = min([FallingEdgeReversalRatio, RisingEdgeReversalRatio]);
+    SmallestEdge = abs(SmallestEdges(idxCycle));
+    ReversalRatio = (SmallestEdge-MaxReversal)/SmallestEdge;
 
     if isnan(ReversalRatio) || isempty(ReversalRatio)
         ReversalRatios(idxCycle) = 1;
