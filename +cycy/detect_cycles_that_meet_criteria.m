@@ -18,7 +18,7 @@ for idxCriteria = 1:numel(CriteriaLabels)
 
     Criteria = CriteriaLabels{idxCriteria};
     Threshold = CriteriaSet.(Criteria);
-    CycleProperty = [CycleTable.(Criteria)];
+    CycleProperty = CycleTable.(Criteria);
 
     if numel(Threshold) == 1 % a scalar is provided
         isMet = CycleProperty >= Threshold;
@@ -35,7 +35,7 @@ end
 % ignore cycles with a peak that is not included in KeepTimepoints
 if ~isempty(KeepTimepoints)
     KeepTimepoints = find(KeepTimepoints);
-    Peak_Points = [CycleTable.NegPeakIdx];
+    Peak_Points = CycleTable.NegPeakIdx;
     isMet = ismember(Peak_Points, KeepTimepoints);
     CyclesMeetCriteria = cat(2, CyclesMeetCriteria, isMet);
     Diagnostics.Noise = nnz(~isMet);

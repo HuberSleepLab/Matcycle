@@ -189,7 +189,7 @@ Burst.ClusterStarts = [Bursts(AggregatedBurstIndexes).Start];
 Burst.ClusterEnds = [Bursts(AggregatedBurstIndexes).End];
 Burst.ClusterCycleCounts = [Bursts(AggregatedBurstIndexes).CyclesCount];
 Burst.ClusterSigns = [Bursts(AggregatedBurstIndexes).Sign];
-Burst.ClusterFrequency = [Bursts(AggregatedBurstIndexes).Frequency];
+Burst.ClusterFrequency = [Bursts(AggregatedBurstIndexes).BurstFrequency];
 
 % summarize cycle information about aggregated bursts
 Burst.ClusterAmplitude = zeros(1, numel(AggregatedBurstIndexes));

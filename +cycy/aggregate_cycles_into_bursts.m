@@ -38,7 +38,7 @@ CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
     CycleTable, CriteriaSet, KeepTimepoints);
 
 % check when all criterias are met
-AcceptedCycles = all(CyclesMeetCriteria, 1);
+AcceptedCycles = all(CyclesMeetCriteria, 2);
 
 % special cases
 AcceptedCycles = extend_burst_by_amplitude_consistency(CycleTable, CriteriaSet,...
@@ -72,7 +72,7 @@ function [Starts, Ends] = find_streaks(BoolArray, MinSamples)
 % identify starts and ends that make up streaks
 % BinArray is ones and zeros, and tries to find streaks of ones
 
-Starts = find([0 diff(BoolArray) == 1]);
+Starts = find([0; diff(BoolArray) == 1]);
 Ends = find(diff(BoolArray) == -1);
 
 if isempty(Starts) || isempty(Ends)
@@ -166,7 +166,7 @@ for idxBurst = 1:numel(Starts)
 
     %%% transfer all info about the individual peaks
     for Label = CyclePropertyLabels
-        AllCyclesProperties = [CycleTable.(Label{1})(CycleIndexes)];
+        AllCyclesProperties = [CycleTable.(Label{1})(CycleIndexes)]';
         Bursts(idxBurst).(Label{1}) = AllCyclesProperties;
     end
 

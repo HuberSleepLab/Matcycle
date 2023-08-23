@@ -11,6 +11,7 @@ function CycleTable = measure_cycle_properties(ChannelBroadband, CycleTable, Sam
 % the largest segment goes in the "wrong" direction compared to the
 % expected increase or decrease in voltage for the rising and falling edges
 % of the cycle, respectively.
+% Everything that looks weird was done for speed!
 [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
 [DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
     ChannelBroadband, CycleTable, LocalMinima, LocalMaxima);
@@ -58,8 +59,12 @@ function CycleTable = measure_flanks(CycleTable, ChannelBroadband)
 CycleTable.FallingFlankAmplitude = ChannelBroadband(CycleTable.PrevPosPeakIdx)' - ChannelBroadband(CycleTable.NegPeakIdx)';
 CycleTable.RisingFlankAmplitude = ChannelBroadband(CycleTable.NextPosPeakIdx)' - ChannelBroadband(CycleTable.NegPeakIdx)';
 
-CycleTable.FlankConsistency = min([CycleTable.FallingFlankAmplitude./CycleTable.RisingFlankAmplitude, ...
+FlankConsistency = min([CycleTable.FallingFlankAmplitude./CycleTable.RisingFlankAmplitude, ...
     CycleTable.RisingFlankAmplitude./CycleTable.FallingFlankAmplitude], [], 2);
+
+FlankConsistency(FlankConsistency<0) = 0;
+
+CycleTable.FlankConsistency = FlankConsistency;
 end
 
 
@@ -179,12 +184,12 @@ for idxCycle = 1:CycleCount
     % falling edge reversals
     RisingReversals = RisingDeflections(PrevPosPeakIndexes(idxCycle)+1:NegPeakIndexes(idxCycle));
     MaxRisingReversal = max(RisingReversals);
-    FallingEdgeReversalRatio = (FallingEdges(idxCycle)-abs(MaxRisingReversal))/FallingEdges(idxCycle);
+    FallingEdgeReversalRatio = (abs(FallingEdges(idxCycle))-abs(MaxRisingReversal))/abs(FallingEdges(idxCycle));
 
     % rising edge reversals
     FallingReversals = FallingDeflections(NegPeakIndexes(idxCycle)+1:NextPosPeakIndexes(idxCycle));
     MaxFallingReversal = min(FallingReversals);
-    RisingEdgeReversalRatio = (RisingEdges(idxCycle)-abs(MaxFallingReversal))/RisingEdges(idxCycle);
+    RisingEdgeReversalRatio = (abs(RisingEdges(idxCycle))-abs(MaxFallingReversal))/abs(RisingEdges(idxCycle));
 
     ReversalRatio = min([FallingEdgeReversalRatio, RisingEdgeReversalRatio]);
 
@@ -197,8 +202,8 @@ for idxCycle = 1:CycleCount
     end
 
     % monotonicity
-    IncreaseDuringFallingEdge = sum(RisingReversals);
-    DecreaseDuringRisingEdge = sum(abs(FallingReversals));
+    IncreaseDuringFallingEdge = sum(RisingReversals, 'omitnan');
+    DecreaseDuringRisingEdge = sum(abs(FallingReversals), 'omitnan');
     MonotonicityInAmplitude(idxCycle) = (Amplitudes(idxCycle) - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/Amplitudes(idxCycle);
 
     if MonotonicityInAmplitude(idxCycle) < 0
