@@ -279,6 +279,10 @@ end
 function [CycleShape, StartDistance, EndDistance] = cycle_shape(ChannelBroadband, StartCycle, PeakCycle, EndCycle)
 % gets each cycle from the data, normalizing the amplitude
 
+if StartCycle<1 || EndCycle > numel(ChannelBroadband)
+    CycleShape = nan(1, EndCycle-StartCycle+1);
+    return
+end
 CycleShape = ChannelBroadband(StartCycle:EndCycle);
 
 % normalize between 0 and 1

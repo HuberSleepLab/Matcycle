@@ -94,8 +94,6 @@ remove = Streaks < MinSamples;
 
 Starts(remove) = [];
 Ends(remove) = [];
-
-Starts = Starts+1; % adjust indexing
 end
 
 
