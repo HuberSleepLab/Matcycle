@@ -24,14 +24,13 @@ CycleTable = measure_flanks(CycleTable, ChannelBroadband);
 CycleTable = measure_periods(CycleTable, numel(ChannelBroadband), SampleRate);
 CycleTable = measure_amplitude_ramp(CycleTable);
 CycleTable = count_extra_peaks(CycleTable, DeflectionsAmplitude, PrevPosPeakIndexes, NextPosPeakIndexes);
+CycleTable = measure_monotonicity_in_time(CycleTable, ChannelBroadband);
 Cycles = table2struct(CycleTable);
 
 
 for idxCycle = 1:numel(Cycles)
 
     CurrCycle = Cycles(idxCycle);
-
-    CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
     CurrCycle = measure_monotonicity_in_amplitude(CurrCycle, DeflectionsAmplitude, ...
         PrevPosPeakIndexes(idxCycle), NegPeakIndexes(idxCycle), NextPosPeakIndexes(idxCycle));
 
@@ -156,21 +155,37 @@ end
 end
 
 
-%%%%%%%%%%%%%%%%%%%
-%%% single cycle functions
 
-function Cycle = measure_monotonicity_in_time(Cycle, ChannelBroadband)
+function CycleTable = measure_monotonicity_in_time(CycleTable, ChannelBroadband)
 
-FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
-RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
+CycleCount = size(CycleTable, 1);
+MonotonicityInTime = zeros(CycleCount, 1);
 
-if numel(FallingEdgeDiff) < 2 || numel(RisingEdgeDiff) < 2
-    Cycle.MonotonicityInTime = 0;
-else
-    Cycle.MonotonicityInTime = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
+Starts = CycleTable.PrevPosPeakIdx;
+NegPoints = CycleTable.NegPeakIdx;
+Ends =  CycleTable.NextPosPeakIdx;
+
+% get the differential of the signal, to see which segments increase and
+% decrease
+ChannelDiff = [0 diff(ChannelBroadband)];
+
+for idxCycle = 1:CycleCount
+
+Neg = NegPoints(idxCycle); % since its used twice, I just make it a variable
+FallingEdgeDiff = ChannelDiff(Starts(idxCycle):Neg);
+RisingEdgeDiff = ChannelDiff(Neg:Ends(idxCycle));
+
+if ~(numel(FallingEdgeDiff) < 3 || numel(RisingEdgeDiff) < 3) % if there are enough points
+    MonotonicityInTime(idxCycle) = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
         numel([FallingEdgeDiff, RisingEdgeDiff]);
 end
 end
+
+CycleTable.MonotonicityInTime = MonotonicityInTime;
+end
+
+%%%%%%%%%%%%%%%%%%%
+%%% single cycle functions
 
 
 function Cycle = measure_monotonicity_in_amplitude(Cycle, DeflectionsAmplitude, PrevPosPeakIdx, NegPeakIdx, NextPosPeakIdx)
