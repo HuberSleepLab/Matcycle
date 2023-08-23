@@ -1,6 +1,14 @@
-function Bursts = test_criteria_set(DataBroadband, SampleRate, NarrowbandRange, CriteriaSet)
+function Bursts = test_criteria_set(DataBroadband, SampleRate, NarrowbandRange, CriteriaSet, Plots)
 % runs burst detection with a single narrowband range and criteria set to
 % see how the criteria are doing
+% plots should be 3 
+arguments
+DataBroadband
+SampleRate
+NarrowbandRange
+CriteriaSet
+Plots = [true true true];
+end
 
 if isfield(CriteriaSet, 'PeriodNeg') && ~isempty(CriteriaSet.PeriodNeg) && CriteriaSet.PeriodNeg
     CriteriaSet.PeriodNeg = sort(1./NarrowbandRange);
@@ -24,6 +32,16 @@ end
 
 cycy.plot.cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
     AugmentedCycles, CriteriaSet, Bursts);
+
+if Plots(1)
 cycy.plot.criteriaset_diagnostics(Diagnostics)
+end
+
+if Plots(2)
 figure
 cycy.plot.power_without_bursts(DataBroadband, SampleRate, Bursts)
+end
+
+if Plots(3)
+cycy.plot.properties_distributions(AugmentedCycles);
+end
