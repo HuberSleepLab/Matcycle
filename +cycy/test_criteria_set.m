@@ -20,28 +20,33 @@ DataNarrowband = cycy.utils.lowpass_filter(DataNarrowband, SampleRate, Narrowban
 
 
 % detect cycles
-Cycles = cycy.detect_cycles(DataBroadband, DataNarrowband);
-AugmentedCycles = cycy.measure_cycle_properties(DataBroadband, Cycles, SampleRate);
+CycleTable = cycy.detect_cycles(DataBroadband, DataNarrowband);
+AugmentedCycles = cycy.measure_cycle_properties(DataBroadband, CycleTable, SampleRate);
 
 % detect bursts
 [Bursts, Diagnostics] = cycy.aggregate_cycles_into_bursts(AugmentedCycles, CriteriaSet);
 
-if isempty(Bursts)
-    return
-end
-
-cycy.plot.cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
-    AugmentedCycles, CriteriaSet, Bursts);
 
 if Plots(1)
 cycy.plot.criteriaset_diagnostics(Diagnostics)
 end
 
 if Plots(2)
+cycy.plot.properties_distributions(AugmentedCycles);
+end
+
+if isempty(Bursts)
+    figure
+    [PowerBroadband, Frequencies] = cycy.utils.compute_power(DataBroadband, SampleRate);
+    cycy.plot.power_spectrum(PowerBroadband, Frequencies, true, true, [], cycy.utils.pick_colors(1, '', 'blue'));
+    return
+end
+
+cycy.plot.cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
+    AugmentedCycles, CriteriaSet, Bursts);
+
+if Plots(3)
 figure
 cycy.plot.power_without_bursts(DataBroadband, SampleRate, Bursts)
 end
 
-if Plots(3)
-cycy.plot.properties_distributions(AugmentedCycles);
-end

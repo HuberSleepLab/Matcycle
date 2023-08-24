@@ -254,8 +254,6 @@ StartCycles = CycleTable.PrevPosPeakIdx;
 PeakCycles = CycleTable.NegPeakIdx;
 EndCycles = CycleTable.NextPosPeakIdx;
 
-ChannelBroadband = -ChannelBroadband; % flip so that later when looking at area under the curve, its positive.
-
 for idxCycle = 2:CycleCount-1
 
     % identify current cycle
@@ -268,8 +266,9 @@ for idxCycle = 2:CycleCount-1
     NextCycleShape = cycle_shape(ChannelBroadband, ...
         PeakCycles(idxCycle+1)-StartDistance, PeakCycles(idxCycle+1), PeakCycles(idxCycle+1)+EndDistance);
 
-    DifferencePrev(idxCycle) = corr(CurrCycleShape', PrevCycleShape');
-    DifferenceNext(idxCycle) = corr(CurrCycleShape', NextCycleShape');
+    Correlations = corrcoef([PrevCycleShape', CurrCycleShape', NextCycleShape']);
+    DifferencePrev(idxCycle) = Correlations(1, 2);
+    DifferenceNext(idxCycle) = Correlations(3, 2);
 end
 
 ShapeConsistency = min([DifferenceNext, DifferencePrev], [], 2);

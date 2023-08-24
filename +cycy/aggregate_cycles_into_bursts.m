@@ -33,6 +33,13 @@ end
 % remove thresholds that are empty
 CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
 
+if isempty(fieldnames(CriteriaSet))
+    Bursts = [];
+    Diagnostics = [];
+    warning('no criteria left')
+    return
+end
+
 % gather peaks based on single peak property requirements
 [CyclesMeetCriteria, Diagnostics] = cycy.detect_cycles_that_meet_criteria( ...
     CycleTable, CriteriaSet, KeepTimepoints);
