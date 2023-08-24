@@ -154,6 +154,11 @@ for idxCycle = 1:CycleCount
     end
 end
 
+% shift distribution so values between 0.5 and 1 are now between 0 and 1
+% since you need as many points going in the "right" direction as wrong
+% direction to reach the destination.
+MonotonicityInTime = (MonotonicityInTime-0.5)/0.5;
+MonotonicityInTime(MonotonicityInTime<0) = 0;
 CycleTable.MonotonicityInTime = MonotonicityInTime;
 end
 
@@ -263,12 +268,13 @@ for idxCycle = 2:CycleCount-1
     NextCycleShape = cycle_shape(ChannelBroadband, ...
         PeakCycles(idxCycle+1)-StartDistance, PeakCycles(idxCycle+1), PeakCycles(idxCycle+1)+EndDistance);
 
-    DifferencePrev(idxCycle) = compare_shape(CurrCycleShape, PrevCycleShape);
-    DifferenceNext(idxCycle) = compare_shape(CurrCycleShape, NextCycleShape);
-
+    DifferencePrev(idxCycle) = corr(CurrCycleShape', PrevCycleShape');
+    DifferenceNext(idxCycle) = corr(CurrCycleShape', NextCycleShape');
 end
 
-CycleTable.ShapeConsistency = min([DifferenceNext, DifferencePrev], [], 2);
+ShapeConsistency = min([DifferenceNext, DifferencePrev], [], 2);
+ShapeConsistency(ShapeConsistency<0) = 0;
+CycleTable.ShapeConsistency = ShapeConsistency;
 end
 
 
@@ -289,17 +295,5 @@ CycleShape = (CycleShape-Min)./(Max-Min);
 StartDistance = PeakCycle-StartCycle; % needed to align start to peak
 EndDistance = EndCycle-PeakCycle;
 end
-
-
-function Difference = compare_shape(CurrCycleShape, NeighborCycleShape)
-Difference = (sum(CurrCycleShape)-sum(abs(NeighborCycleShape-CurrCycleShape)))/sum(CurrCycleShape);
-if Difference < 0
-    Difference = 0;
-end
-end
-
-
-
-
 
 
