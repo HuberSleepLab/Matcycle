@@ -96,7 +96,7 @@ if Ends(end) < Starts(end)
 end
 
 % select streaks that have the minimum number of cycles
-Streaks = Ends-Starts;
+Streaks = Ends-Starts+1;
 remove = Streaks < MinSamples;
 
 Starts(remove) = [];
