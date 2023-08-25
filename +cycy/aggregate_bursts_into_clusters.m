@@ -6,6 +6,12 @@ function BurstClusters = aggregate_bursts_into_clusters(Bursts, EEGBroadband, Mi
 % SingleChannelBursts is to keep track of which bursts are removed in this
 % process.
 
+if isempty(Bursts)
+    warning('no bursts to cluster')
+    BurstClusters = [];
+    return
+end
+
 [ChannelCount, ~] = size(EEGBroadband.data);
 BurstsCount = numel(Bursts);
 
