@@ -6,7 +6,7 @@ function BurstClusters = aggregate_bursts_into_clusters(Bursts, EEGBroadband, Mi
 % SingleChannelBursts is to keep track of which bursts are removed in this
 % process.
 
-if isempty(Bursts)
+if isempty(fieldnames(Bursts))
     warning('no bursts to cluster')
     BurstClusters = [];
     return
@@ -85,6 +85,7 @@ end
 
 %%%
 function [BurstsSorted, SortedBurstIndexes] = sort_bursts_by_length(Bursts)
+
 Starts = [Bursts.Start];
 Ends = [Bursts.End];
 
