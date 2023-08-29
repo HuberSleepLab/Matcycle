@@ -8,7 +8,7 @@ arguments
     Colors =  cycy.utils.pick_colors(size(Power, 1));
 end
 
-
+hold on
 for idxPower = 1:size(Power, 1)
     plot(Frequencies, Power(idxPower, :), 'LineWidth', 2, 'Color', Colors(idxPower, :))
 end
