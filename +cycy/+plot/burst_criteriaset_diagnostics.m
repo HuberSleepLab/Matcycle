@@ -31,7 +31,7 @@ end
 % end
 
 
-figure('Units','normalized', 'Position', [0 0 1 .4])
+figure('Units','normalized', 'Position', [0 0 .3 .3])
 subplot(1, 2, 1)
 bar(categorical(Labels), Total)
 title('Total bursts by criteria set')
