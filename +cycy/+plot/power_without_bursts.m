@@ -1,5 +1,12 @@
-function power_without_bursts(DataBroadband, SampleRate, Bursts)
+function power_without_bursts(DataBroadband, SampleRate, Bursts, CleanTimepoints)
+arguments
+DataBroadband
+SampleRate
+Bursts
+CleanTimepoints = ones(size(DataBroadband));
+end
 
+DataBroadband(CleanTimepoints) = nan;
 
 % plot power spectrum of channel
 [PowerBroadband, Frequencies] = cycy.utils.compute_power(DataBroadband, SampleRate);
