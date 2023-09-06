@@ -4,7 +4,7 @@ clear
 clc
 close all
 
-load("C:\Users\colas\Code\Matcycle\example_data\EEGbroadband_fulltime.mat", "EEGbroadband")
+load("G:\Sara\Matlab\GIT\GitHub\Matcycle\example_data\EEGbroadband_fulltime.mat", "EEGbroadband")
 DataBroadband = EEGbroadband.data(3, :);
 SampleRate = EEGbroadband.srate;
 t = linspace(0, numel(DataBroadband)/SampleRate, numel(DataBroadband));
