@@ -1,10 +1,10 @@
 function cycles_and_criteria(DataBroadband, SampleRate, DataNarrowband, ...
-    Cycles, CriteriaSet, Bursts, KeepTimepoints)
+    CycleTable, CriteriaSet, Bursts, KeepTimepoints)
 arguments
     DataBroadband
     SampleRate (1,1)
     DataNarrowband = [];
-    Cycles = [];
+    CycleTable = [];
     CriteriaSet = [];
     Bursts = [];
     KeepTimepoints = true(1, numel(DataBroadband));
@@ -21,7 +21,7 @@ end
 % KeepTimepoints will mask timepoints that were considered noise.
 
 t = linspace(0, numel(DataBroadband)/SampleRate, numel(DataBroadband));
-
+CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
 
 if isempty(CriteriaSet)
     figure('Units','normalized','OuterPosition',[0 0 1 .25])
@@ -51,10 +51,10 @@ if ~isempty(DataNarrowband)
 end
 
 % peaks
-if ~isempty(Cycles)
-    scatter(t([Cycles.PrevPosPeakIdx]), DataBroadband([Cycles.PrevPosPeakIdx]), 10, ...
+if ~isempty(CycleTable)
+    scatter(t(CycleTable.PrevPosPeakIdx), DataBroadband(CycleTable.PrevPosPeakIdx), 10, ...
         'filled', 'MarkerFaceColor', [.8 .8 .8], 'HandleVisibility','off')
-    scatter(t([Cycles.NegPeakIdx]), DataBroadband([Cycles.NegPeakIdx]), 10, ...
+    scatter(t(CycleTable.NegPeakIdx), DataBroadband(CycleTable.NegPeakIdx), 10, ...
         'filled', 'MarkerFaceColor', 'k', 'HandleVisibility', 'off')
 end
 
@@ -75,13 +75,13 @@ end
 %%% plot criteria used to detect bursts
 
 % criteria with values between 0 and 1
-[CriteriaLabels, AbridgedCriteriaSet] = select_criteria_between_0_1(Cycles, CriteriaSet);
+[CriteriaLabels, AbridgedCriteriaSet] = select_criteria_between_0_1(CycleTable, CriteriaSet);
 
-CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, AbridgedCriteriaSet, ...
+CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(CycleTable, AbridgedCriteriaSet, ...
     KeepTimepoints);
 
 ax2 = subplot(SubplotCount, 1, 2);
-plot_criteria(t, Cycles, CriteriaLabels, CyclesMeetCriteria)
+plot_criteria(t, CycleTable, CriteriaLabels, CyclesMeetCriteria)
 ylim([0 1])
 title('Applied critiera')
 
@@ -92,22 +92,27 @@ if isfield(CriteriaSet, 'PeriodNeg')
 PeriodCriteria.PeriodNeg = CriteriaSet.PeriodNeg;
 else
     PeriodCriteria = [];
+    PeriodLegend = {'PeriodNeg'};
 end
 
 if isfield(CriteriaSet, 'PeriodPos')
 PeriodCriteria.PeriodPos = CriteriaSet.PeriodPos;
 end
 
-CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(Cycles, PeriodCriteria, ...
+if ~isempty(PeriodCriteria)
+    PeriodLegend = fieldnames(PeriodCriteria);
+end
+
+CyclesMeetCriteria = cycy.detect_cycles_that_meet_criteria(CycleTable, PeriodCriteria, ...
     KeepTimepoints);
-plot_criteria(t, Cycles, fieldnames(PeriodCriteria), CyclesMeetCriteria)
+plot_criteria(t, CycleTable, PeriodLegend, CyclesMeetCriteria)
 title('Period')
 
 %%% plot properties that weren't used as criteria
 ax4 = subplot(SubplotCount, 1, 4);
-PropertyLabels = select_properties_between_0_1(Cycles);
+PropertyLabels = select_properties_between_0_1(CycleTable);
 PropertyLabels(contains(PropertyLabels, CriteriaLabels)) = [];
-plot_criteria(t, Cycles, PropertyLabels, false(numel(PropertyLabels), numel(Cycles)))
+plot_criteria(t, CycleTable, PropertyLabels, false(numel(PropertyLabels), numel(CycleTable)))
 title('Unused criteria')
 
 linkaxes([ax1,ax2],'x');
@@ -120,15 +125,15 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Functions
 
-function [CriteriaLabels, AbridgedCriteraSet] = select_criteria_between_0_1(Cycles, CriteriaSet)
-AllCriteriaLabels = cycy.utils.get_criteria_labels(Cycles, CriteriaSet);
+function [CriteriaLabels, AbridgedCriteraSet] = select_criteria_between_0_1(CycleTable, CriteriaSet)
+AllCriteriaLabels = cycy.utils.get_criteria_labels(CycleTable, CriteriaSet);
 
 AllCriteriaLabels(contains(AllCriteriaLabels, {'PeriodNeg', 'PeriodPos'})) = [];
 CriteriaLabels = {};
 AbridgedCriteraSet = struct();
 
 for Criteria = AllCriteriaLabels'
-    Values = [Cycles.(Criteria{1})];
+    Values = CycleTable.(Criteria{1});
 
     if all(Values<=1 & Values>=0)
         CriteriaLabels = cat(2, CriteriaLabels, Criteria);
@@ -139,12 +144,12 @@ for Criteria = AllCriteriaLabels'
 end
 end
 
-function PropertyLabels = select_properties_between_0_1(Cycles)
-AllPropertyLabels = fieldnames(Cycles);
+function PropertyLabels = select_properties_between_0_1(CycleTable)
+AllPropertyLabels = CycleTable.Properties.VariableNames;
 AllPropertyLabels(contains(AllPropertyLabels, {'PeriodNeg', 'PeriodPos'})) = [];
 PropertyLabels = {};
-for Property = AllPropertyLabels'
-    Values = [Cycles.(Property{1})];
+for Property = AllPropertyLabels
+    Values = CycleTable.(Property{1});
     if all(Values<=1 & Values>=0)
         PropertyLabels = cat(2, PropertyLabels, Property);
     end
@@ -153,7 +158,7 @@ end
 end
 
 
-function plot_criteria(t, Cycles, CriteriaLabels, CyclesMeetCriteria)
+function plot_criteria(t, CyclesTable, CriteriaLabels, CyclesMeetCriteria)
 
 if isempty(CriteriaLabels)
     return
@@ -164,12 +169,12 @@ Colors = cycy.utils.pick_colors(numel(CriteriaLabels));
 
 hold on
 for idxCriteria = 1:numel(CriteriaLabels)
-    CycleProperties = [Cycles.(CriteriaLabels{idxCriteria})];
+    CycleProperties = CyclesTable.(CriteriaLabels{idxCriteria});
 
-    plot(t([Cycles.NegPeakIdx]), CycleProperties, 'o-', 'Color', Colors(idxCriteria, :), 'LineWidth', 1.5)
+    plot(t(CyclesTable.NegPeakIdx), CycleProperties, 'o-', 'Color', Colors(idxCriteria, :), 'LineWidth', 1.5)
     
-    Keep = CyclesMeetCriteria(idxCriteria, :);
-    scatter(t([Cycles(Keep).NegPeakIdx]), CycleProperties(Keep), ...
+    Keep = CyclesMeetCriteria(:, idxCriteria);
+    scatter(t(CyclesTable.NegPeakIdx(Keep)), CycleProperties(Keep), ...
         'filled', 'MarkerFaceColor', Colors(idxCriteria, :), 'HandleVisibility','off')
 end
 

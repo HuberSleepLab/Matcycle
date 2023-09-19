@@ -1,5 +1,5 @@
 function Cycles = detect_cycles(ChannelBroadband, ChannelNarrowband)
-% detects all cycles in the channel, returned as a struct. A cycle goes
+% detects all cycles in the channel, returned as a table. A cycle goes
 % from positive to positive peak, and includes 1 negative peak.
 %
 % Part of Matcycle 2022, by Sophia Snipes.
@@ -10,13 +10,10 @@ function Cycles = detect_cycles(ChannelBroadband, ChannelNarrowband)
 [NegPeaks, PosPeaks] = detect_peaks(RisingEdgeZeroCrossings, ...
     FallingEdgeZeroCrossings, ChannelBroadband);
 
-
-NegPeaksCount = numel(NegPeaks);
-Cycles = struct();
-for idxPeak = 1:NegPeaksCount
-    Cycles(idxPeak).NegPeakIdx = NegPeaks(idxPeak);
-    Cycles(idxPeak).PrevPosPeakIdx = PosPeaks(idxPeak);
-    Cycles(idxPeak).NextPosPeakIdx = PosPeaks(idxPeak+1);
+Cycles = table();
+Cycles.NegPeakIdx = NegPeaks';
+Cycles.PrevPosPeakIdx = PosPeaks(1:end-1)';
+Cycles.NextPosPeakIdx = PosPeaks(2:end)';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,6 +40,12 @@ end
 % Ensure that the last index is always a falling edge zero-crossing
 RisingEdgeCrossings = RisingEdgeCrossings(1:length(FallingEdgeCrossings));
 
+% remove any crossings that don't have any points inbetween
+SameIndex = RisingEdgeCrossings==FallingEdgeCrossings;
+RisingEdgeCrossings(SameIndex) = [];
+FallingEdgeCrossings(SameIndex) = [];
+end
+
 
 function [NegPeaks, PosPeaks] = detect_peaks(RisingEdgeZeroCrossings, ...
     FallingEdgeZeroCrossings, ChannelBroadband)
@@ -61,17 +64,18 @@ for idxPeak = 1:PeaksCount
 
     %%% find positive peaks
     [~, RelativePosPeakIdx] = max(ChannelBroadband(...
-        RisingEdgeZeroCrossings(idxPeak):FallingEdgeZeroCrossings(idxPeak)));
+        RisingEdgeZeroCrossings(idxPeak)+1:FallingEdgeZeroCrossings(idxPeak))); % shift start by 1 so can't be same value as previous neg cycle
     
-    PosPeaks(idxPeak) = RelativePosPeakIdx + RisingEdgeZeroCrossings(idxPeak) - 1;
-
+    PosPeaks(idxPeak) = RelativePosPeakIdx + RisingEdgeZeroCrossings(idxPeak);
+   
 
     %%% find negative peaks
     % The signal always ends with a positive peak, so we stop one short
     if idxPeak < PeaksCount
         [~, RelativeNegPeakIdx] = min(ChannelBroadband(...
-            FallingEdgeZeroCrossings(idxPeak):RisingEdgeZeroCrossings(idxPeak+1)));
+            FallingEdgeZeroCrossings(idxPeak)+1:RisingEdgeZeroCrossings(idxPeak+1)));
         
-        NegPeaks(idxPeak) = RelativeNegPeakIdx + FallingEdgeZeroCrossings(idxPeak) - 1;
+        NegPeaks(idxPeak) = RelativeNegPeakIdx + FallingEdgeZeroCrossings(idxPeak);
     end
+end
 end

@@ -7,6 +7,8 @@ arguments
     Overlap (1, 1) {mustBePositive, mustBeLessThanOrEqual(Overlap, 1)} = .5;
 end
 
+Data(:, isnan(sum(Data, 1))) = [];
+
 % FFT
 nfft = 2^nextpow2(WindowLength*SampleRate);
 noverlap = round(nfft*Overlap);

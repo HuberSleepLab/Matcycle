@@ -18,16 +18,6 @@ end
 %
 % CriteriaSets is a struct array that can contain different parameters
 % for detecting bursts.
-% The fields can include:
-% - isProminent: whether peak sticks out relative to neighboring signal
-% - truePeak: whether the min value is actually the minimum in the range
-% - periodConsistency: whether the period is consistent left and right
-% - periodMeanConsistency: mean of the above
-% - ampConsistency: TODO
-% - efficiency: TODO
-% - efficiencyAdj: TODO
-% - monotonicity: TODO
-% - flankConsistency: TODO
 %
 % NarrowbandRanges is a struct with each field a different band corresponding to
 % the relevant bands, and the edges of that band [LowCutoff, HighCutoff].
@@ -61,17 +51,19 @@ for idxBand = 1:numel(BandLabels)
             CriteriaSet = CriteriaSets(idxCriteriaSet);
 
             % find all cycles in a given band
-            Cycles = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
-            Cycles = cycy.measure_cycle_properties(SignChannelBroadband, Cycles, SampleRate);
+            CycleTable = cycy.detect_cycles(SignChannelBroadband, SignChannelNarrowband);
+            CycleTable = cycy.measure_cycle_properties(SignChannelBroadband, CycleTable, SampleRate);
 
-            CriteriaSet.PeriodNeg = sort(1./Band); % add period threshold
+            if isfield(CriteriaSet, 'PeriodNeg') && ~isempty(CriteriaSet.PeriodNeg) && CriteriaSet.PeriodNeg
+                CriteriaSet.PeriodNeg = sort(1./Band);
+            end
 
             % find bursts
-            [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(Cycles, CriteriaSet, KeepTimepoints);
+            [BurstsSubset, ~] = cycy.aggregate_cycles_into_bursts(CycleTable, CriteriaSet, KeepTimepoints);
 
             % add metadata
             Metadata = struct();
-            Metadata.Band = BandLabels(idxBand);
+            Metadata.Band = BandLabels{idxBand};
             Metadata.ChannelIndex = ChannelIndex;
             Metadata.ChannelIndexLabel = indexes2labels(ChannelIndex, EEGBroadband.chanlocs);
             Metadata.Sign = Sign;
@@ -83,14 +75,15 @@ for idxBand = 1:numel(BandLabels)
             AllBursts = cat_structs(AllBursts, BurstsSubset);
         end
     end
+    disp(['Finished burst detection for ', BandLabels{idxBand}])
 end
 
 % Here we remove duplicate burst detections, by picking a single burst from
 % those overlapping in time, detected with the different criteria.
-% We do this by selecting the longest burst among every set of overlapping 
+% We do this by selecting the longest burst among every set of overlapping
 % ones and discarding the others.
-% Additionally, if any of the shorter bursts last more than the minimum 
-% number of cycles outside of the longest burst, then these will be 
+% Additionally, if any of the shorter bursts last more than the minimum
+% number of cycles outside of the longest burst, then these will be
 % cropped into their own short burst.
 MinCyclesPerBurst = [CriteriaSets.MinCyclesPerBurst];
 MinCyclesPerBurst = min(MinCyclesPerBurst);

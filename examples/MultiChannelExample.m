@@ -25,20 +25,8 @@ NarrowbandRanges.Theta = [4 8];
 NarrowbandRanges.ThetaAlpha = [6 10];
 NarrowbandRanges.Alpha = [8 12];
 NarrowbandRanges.LowSigma = [10 14];
+EEGNarrowbands = cycy.filter_eeg_narrowbands(EEGbroadband, NarrowbandRanges);
 
-BandLabels = fieldnames(NarrowbandRanges);
-
-% create a struct array the same as the broadband data, but containing all
-% the filtered data.
-EEGnarrowbands = EEGbroadband;
-for idxBand = 1:numel(BandLabels)
-    EEGnarrowbands(idxBand) = EEGbroadband;
-    EEGnarrowbands(idxBand).data = cycy.utils.highpass_filter(EEGnarrowbands(idxBand).data, ...
-        SampleRate, NarrowbandRanges.(BandLabels{idxBand})(1));
-
-      EEGnarrowbands(idxBand).data = cycy.utils.lowpass_filter(EEGnarrowbands(idxBand).data, ...
-        SampleRate, NarrowbandRanges.(BandLabels{idxBand})(2));
-end
 
 
 %% Detect bursts
@@ -62,11 +50,12 @@ CriteriaSets(1).MinCyclesPerBurst = 4; % all the above criteria have to be met f
 CriteriaSets(2).isTruePeak = 1; % excludes edge cases in which the negative "peak" is actually the same as one of the positive "peaks"
 CriteriaSets(2).VoltageNeg = [-100 0]; % make sure all negative peaks are actually negative values. N.B. thresholds by default need the value to be greater than the criteria; so need to provide a range for negative values
 CriteriaSets(2).Amplitude = 30; % if you want, you can actually set an amplitude threshold; I recommend either none or a really small value
+CriteriaSets(1).MonotonicityInAmplitude = 0.5;
 CriteriaSets(2).MinCyclesPerBurst = 3; % all the above criteria have to be met for this many cycles in a row
 
 % detect bursts
 RunParallel = false; % if there's a lot of data, channels can be run in parallel
-Bursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGnarrowbands, NarrowbandRanges, ...
+Bursts = cycy.detect_bursts_all_channels(EEGbroadband, EEGNarrowbands, NarrowbandRanges, ...
     CriteriaSets, RunParallel);
 
 % plot
@@ -84,11 +73,19 @@ BurstClusters = cycy.aggregate_bursts_into_clusters(Bursts, EEGbroadband, MinFre
 
 %% plot final output
 
-cycy.plot.plot_all_bursts(EEGbroadband, 20, BurstClusters, 'CriteriaSetIndex');
+cycy.plot.plot_all_bursts(EEGbroadband, 20, BurstClusters, 'Band');
 % the second input is the scale for the EEG; 20 is good for high-density
 % clean wake data; use larger numbers for higher-amplitudes or fewer
 % channels.
 
 
+%% plot bursts removed when aggregating
 
+KeptBursts = [BurstClusters.ClusterBurstsIdx];
+All = true(1, numel(Bursts));
+All(KeptBursts) = false;
+
+% All = false(1, numel(Bursts));
+% All(KeptBursts) = true;
+cycy.plot.plot_all_bursts(EEGbroadband, 20, Bursts(All), 'Band');
 

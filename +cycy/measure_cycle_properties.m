@@ -1,193 +1,298 @@
-function AugmentedCycles = measure_cycle_properties(ChannelBroadband, Cycles, SampleRate)
+function CycleTable = measure_cycle_properties(ChannelBroadband, CycleTable, SampleRate)
 % Identifies various ways to characterize each peak. Based on Cole 2019,
 % but relative to the negative peaks rather than positive peaks.
 % NOTE: all fieldnames should start lowercase, so I know later on that they
 % come from here.
-
+%
 % Part of Matcycle 2022, by Sophia Snipes.
-for idxCycle = 1:numel(Cycles)
 
-    CurrCycle = Cycles(idxCycle);
-    if idxCycle == 1
-        PrevCycle = [];
-    else
-        PrevCycle = Cycles(idxCycle-1);
-    end
-    if idxCycle == numel(Cycles)
-        NextCycle = [];
-    else
-        NextCycle = Cycles(idxCycle+1);
-    end
+% data for measure_reversal_ratio; finds the amplitude of all the segments
+% in the signal where there's a change in direction, to determine how much
+% the largest segment goes in the "wrong" direction compared to the
+% expected increase or decrease in voltage for the rising and falling edges
+% of the cycle, respectively.
+% Everything that looks weird was done for speed!
+[LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
+[DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
+    ChannelBroadband, CycleTable, LocalMinima, LocalMaxima);
 
-    CurrCycle = retrieve_peak_voltages(CurrCycle, ChannelBroadband);
-    CurrCycle = is_true_peak(CurrCycle);
-    CurrCycle = count_extra_peaks(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate);
-    CurrCycle = measure_amplitude(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_amplitude_ramp(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_flank_consistency(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_monotonicity_in_time(CurrCycle, ChannelBroadband);
-    CurrCycle = measure_monotonicity_in_voltage(CurrCycle, ChannelBroadband);
 
-    if idxCycle == 1
-        AugmentedCyclesFirstPass = CurrCycle;
-    else
-        AugmentedCyclesFirstPass(idxCycle) = CurrCycle;
-    end
-end
-
-%%%
-
-% This is a separate for loop for determining properties that require
-% the properties of the next cycle to already be calculated.
-AugmentedCyclesSecondPass = struct();
-for idxCycle = 2:numel(AugmentedCyclesFirstPass)-1
-    CurrCycle = AugmentedCyclesFirstPass(idxCycle);
-    PrevCycle = AugmentedCyclesFirstPass(idxCycle-1);
-    NextCycle = AugmentedCyclesFirstPass(idxCycle+1);
-
-    CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband);
-    CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle);
-    CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle);
-
-    if idxCycle == 2
-        AugmentedCyclesSecondPass = CurrCycle;
-    else
-        AugmentedCyclesSecondPass(idxCycle-1) = CurrCycle;
-    end
-end
-
-% remove edge peaks that are empty
-AugmentedCycles = AugmentedCyclesSecondPass;
+% Get all properties that can easily be conducted on vectors, by converting
+% the struct into a table and back
+CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband);
+CycleTable = measure_amplitudes(CycleTable, ChannelBroadband);
+CycleTable = measure_flanks(CycleTable, ChannelBroadband);
+CycleTable = measure_periods(CycleTable, numel(ChannelBroadband), SampleRate);
+CycleTable = measure_amplitude_ramp(CycleTable);
+CycleTable = count_extra_peaks(CycleTable, DeflectionsAmplitude, PrevPosPeakIndexes, NextPosPeakIndexes);
+CycleTable = measure_monotonicity_in_time(CycleTable, ChannelBroadband);
+CycleTable = measure_monotonicity_in_amplitude(CycleTable, DeflectionsAmplitude, ...
+    PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes);
+CycleTable = measure_period_consistency(CycleTable, numel(ChannelBroadband));
+CycleTable = measure_amplitude_consistency(CycleTable);
+CycleTable = measure_shape_consistency(CycleTable, ChannelBroadband);
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% functions
 
-function Cycle = count_extra_peaks(Cycle, ChannelBroadband)
-CycleSignal = ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NextPosPeakIdx);
-Cycle.PeaksCount = nnz(diff(sign(diff(CycleSignal))) > 1);
-end
+%%%%%%%%%%%%%%%%%%%%
+%%% array-level functions
 
-function Cycle = measure_amplitude(Cycle, ChannelBroadband)
-Cycle.Amplitude = mean(ChannelBroadband([Cycle.PrevPosPeakIdx, Cycle.NextPosPeakIdx])) ...
-    - ChannelBroadband(Cycle.NegPeakIdx);
-end
-
-function Cycle = retrieve_peak_voltages(Cycle, ChannelBroadband)
-Cycle.VoltagePrevPos = ChannelBroadband(Cycle.PrevPosPeakIdx);
-Cycle.VoltageNeg = ChannelBroadband(Cycle.NegPeakIdx);
-Cycle.VoltageNextPos = ChannelBroadband(Cycle.NextPosPeakIdx);
-end
-
-function Cycle = is_true_peak(Cycle)
-Cycle.isTruePeak = Cycle.VoltageNeg < Cycle.VoltagePrevPos & ...
-    Cycle.VoltageNeg < Cycle.VoltageNextPos;
-end
-
-function CurrCycle = measure_periods(PrevCycle, CurrCycle, NextCycle, SampleRate)
-CurrCycle.PeriodPos = (CurrCycle.NextPosPeakIdx - CurrCycle.PrevPosPeakIdx)/SampleRate;
-
-if isempty(PrevCycle)
-    CurrCycle.PeriodNeg = (NextCycle.NegPeakIdx - CurrCycle.NegPeakIdx)/SampleRate;
-elseif isempty(NextCycle)
-    CurrCycle.PeriodNeg = (CurrCycle.NegPeakIdx - PrevCycle.NegPeakIdx)/SampleRate;
-else
-    CurrCycle.PeriodNeg = (NextCycle.NegPeakIdx - PrevCycle.NegPeakIdx)/2/SampleRate;
-end
-
-CurrCycle.Frequency = 1/CurrCycle.PeriodNeg;
+function CycleTable = retrieve_peak_voltages(CycleTable, ChannelBroadband)
+CycleTable.VoltagePrevPos = ChannelBroadband(CycleTable.PrevPosPeakIdx)';
+CycleTable.VoltageNeg = ChannelBroadband(CycleTable.NegPeakIdx)';
+CycleTable.VoltageNextPos = ChannelBroadband(CycleTable.NextPosPeakIdx)';
 end
 
 
-function Cycle = measure_amplitude_ramp(Cycle, ChannelBroadband)
-% determines whether the rising edge is larger or smaller than the falling
-% edge.
-
-PrevPosPeak = ChannelBroadband(Cycle.PrevPosPeakIdx);
-NextPosPeak = ChannelBroadband(Cycle.NextPosPeakIdx);
-
-if PrevPosPeak < NextPosPeak
-    Cycle.AmplitudeRamp = 1;
-elseif PrevPosPeak > NextPosPeak
-    Cycle.AmplitudeRamp = -1;
-else
-    Cycle.AmplitudeRamp = 0;
-end
-end
-
-function Cycle = measure_flank_consistency(Cycle, ChannelBroadband)
-
-FallingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.PrevPosPeakIdx]));
-RisingEdge = diff(ChannelBroadband([Cycle.NegPeakIdx, Cycle.NextPosPeakIdx]));
-
-Cycle.FlankConsistency = min(FallingEdge/RisingEdge, RisingEdge/FallingEdge);
-end
-
-function Cycle = measure_monotonicity_in_time(Cycle, ChannelBroadband)
-
-FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
-RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
-
-if numel(FallingEdgeDiff) < 2 || numel(RisingEdgeDiff) < 2
-    Cycle.MonotonicityInTime = 0;
-else
-    Cycle.MonotonicityInTime = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
-        numel([FallingEdgeDiff, RisingEdgeDiff]);
-end
-end
-
-function Cycle = measure_monotonicity_in_voltage(Cycle, ChannelBroadband)
-
-FallingEdgeDiff = diff(ChannelBroadband(Cycle.PrevPosPeakIdx:Cycle.NegPeakIdx));
-RisingEdgeDiff = diff(ChannelBroadband(Cycle.NegPeakIdx:Cycle.NextPosPeakIdx));
-
-IncreaseDuringFallingEdge = sum(abs(FallingEdgeDiff(FallingEdgeDiff>0)));
-DecreaseDuringRisingEdge = sum(abs(RisingEdgeDiff(RisingEdgeDiff<0)));
-
-Monotonicity = (Cycle.Amplitude - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/Cycle.Amplitude;
-
-Cycle.MonotonicityInAmplitude = max(0, Monotonicity);
-
-end
-
-%%%%%%%%%%%%%%%%
-%%% Functions for second for loop
-
-function CurrCycle = measure_prominence(PrevCycle, CurrCycle, NextCycle, ChannelBroadband)
-% Returns a boolean, if the negative peak is prominent with respects to the
-% two neighboring negative cycles.
-
-MidpointFallingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltagePrevPos-CurrCycle.VoltageNeg)/2;
-Cycle1Signal = ChannelBroadband(PrevCycle.NegPeakIdx:CurrCycle.NegPeakIdx);
-[~, FallingEdgeCrossings] = detect_crossings(Cycle1Signal, MidpointFallingEdge);
-
-MidpointRisingEdge = CurrCycle.VoltageNeg + (CurrCycle.VoltageNextPos-CurrCycle.VoltageNeg)/2;
-Cycle2Signal = ChannelBroadband(CurrCycle.NegPeakIdx:NextCycle.NegPeakIdx);
-[RisingEdgeCrossings, ~] = detect_crossings(Cycle2Signal, MidpointRisingEdge);
-
-CurrCycle.isProminent = numel(FallingEdgeCrossings) <= 1 & numel(RisingEdgeCrossings) <= 1;
-end
-
-function CurrCycle = measure_period_consistency(PrevCycle, CurrCycle, NextCycle)
-PrevPeriod = CurrCycle.NegPeakIdx-PrevCycle.NegPeakIdx;
-NextPeriod = NextCycle.NegPeakIdx-CurrCycle.NegPeakIdx;
-CurrCycle.PeriodConsistency = min([PrevPeriod/NextPeriod, NextPeriod/PrevPeriod]);
+function CycleTable = measure_amplitudes(CycleTable, ChannelBroadband)
+PositiveVoltages = (ChannelBroadband(CycleTable.PrevPosPeakIdx) + ChannelBroadband(CycleTable.NextPosPeakIdx))/2;
+NegativeVoltages = ChannelBroadband(CycleTable.NegPeakIdx);
+Amplitudes = PositiveVoltages-NegativeVoltages;
+CycleTable.Amplitude = Amplitudes';
 end
 
 
-function CurrCycle = measure_amplitude_consistency(PrevCycle, CurrCycle, NextCycle)
+function CycleTable = measure_flanks(CycleTable, ChannelBroadband)
+CycleTable.FallingFlankAmplitude = ChannelBroadband(CycleTable.PrevPosPeakIdx)' - ChannelBroadband(CycleTable.NegPeakIdx)';
+CycleTable.RisingFlankAmplitude = ChannelBroadband(CycleTable.NextPosPeakIdx)' - ChannelBroadband(CycleTable.NegPeakIdx)';
+
+FlankConsistency = min([CycleTable.FallingFlankAmplitude./CycleTable.RisingFlankAmplitude, ...
+    CycleTable.RisingFlankAmplitude./CycleTable.FallingFlankAmplitude], [], 2);
+
+FlankConsistency(FlankConsistency<0) = 0;
+
+CycleTable.FlankConsistency = FlankConsistency;
+end
+
+
+function CycleTable = measure_periods(CycleTable, TimepointsCount, SampleRate)
+CycleTable.PeriodPos = (CycleTable.NextPosPeakIdx - CycleTable.PrevPosPeakIdx)/SampleRate;
+
+NextPeak = [CycleTable.NegPeakIdx(2:end); TimepointsCount];
+PrevPeak = [1; CycleTable.NegPeakIdx(1:end-1)];
+CycleTable.PeriodNeg = (NextPeak-PrevPeak)/2/SampleRate;
+end
+
+
+function CycleTable = measure_amplitude_ramp(CycleTable)
+CycleTable.AmplitudeRamp = zeros(size(CycleTable, 1), 1);
+CycleTable.AmplitudeRamp(CycleTable.VoltagePrevPos < CycleTable.VoltageNextPos) = 1;
+CycleTable.AmplitudeRamp(CycleTable.VoltagePrevPos > CycleTable.VoltageNextPos) = -1;
+end
+
+
+
+function [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband)
+DiffChannel = diff(ChannelBroadband);
+LocalMinima = [false, DiffChannel(1:end-1) > 0 & DiffChannel(2:end) <= 0];
+LocalMaxima = [false, DiffChannel(1:end-1) < 0 & DiffChannel(2:end) >= 0];
+end
+
+
+function [DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = ...
+    measure_deflection_amplitudes(ChannelBroadband, CycleTable, LocalMinima, LocalMaxima)
+% measure the change in amplitude between each peak and trough in the
+% signal.
+
+Deflections = LocalMinima | LocalMaxima;
+Deflections([1 end]) = 1; % include edges
+Deflections(CycleTable.NegPeakIdx) = 1; % include cycle edges, for when they are not actually peaks, but cut the cycle en route
+Deflections(CycleTable.PrevPosPeakIdx) = 1;
+Deflections(CycleTable.NextPosPeakIdx) = 1; % redundantish from previous, but better safe
+DeflectionsAmplitude = diff(ChannelBroadband(Deflections));
+
+PrevPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, CycleTable.PrevPosPeakIdx);
+NegPeakIndexes = map_cycle_to_reversal_indexes(Deflections, CycleTable.NegPeakIdx);
+NextPosPeakIndexes = map_cycle_to_reversal_indexes(Deflections, CycleTable.NextPosPeakIdx);
+end
+
+function ReversalIndexes = map_cycle_to_reversal_indexes(Deflections, CycleIndexes)
+Indexes = zeros(size(Deflections));
+Indexes(CycleIndexes) = 1;
+Indexes = Indexes(Deflections);
+ReversalIndexes = find(Indexes == 1)-1; % shift by one since first delfection index is removed later
+end
+
+
+function CycleTable = count_extra_peaks(CycleTable, DeflectionsAmplitude, PrevPosPeakIdx, NextPosPeakIdx)
+PeaksCount = zeros(size(CycleTable, 1), 1);
+for idxCycle = 1:numel(PrevPosPeakIdx)
+    Deflections = DeflectionsAmplitude(PrevPosPeakIdx(idxCycle):NextPosPeakIdx(idxCycle));
+    PeaksCount(idxCycle) = nnz(Deflections>0);
+end
+end
+
+
+
+function CycleTable = measure_monotonicity_in_time(CycleTable, ChannelBroadband)
+% gives the ratio of how much of the signal during the cycle goes in the
+% "wrong" direction.
+
+CycleCount = size(CycleTable, 1);
+MonotonicityInTime = zeros(CycleCount, 1);
+
+Starts = CycleTable.PrevPosPeakIdx;
+NegPoints = CycleTable.NegPeakIdx;
+Ends =  CycleTable.NextPosPeakIdx;
+
+% get the differential of the signal, to see which segments increase and
+% decrease
+ChannelDiff = diff(ChannelBroadband);
+
+for idxCycle = 1:CycleCount
+
+    Neg = NegPoints(idxCycle); % since its used twice, I just make it a variable
+    FallingEdgeDiff = ChannelDiff(Starts(idxCycle):Neg-1);
+    RisingEdgeDiff = ChannelDiff(Neg:Ends(idxCycle)-1);
+
+    if ~(numel(FallingEdgeDiff) < 3 || numel(RisingEdgeDiff) < 3) % if there are enough points
+        MonotonicityInTime(idxCycle) = (nnz(FallingEdgeDiff < 0) + nnz(RisingEdgeDiff > 0)) / ...
+            numel([FallingEdgeDiff, RisingEdgeDiff]);
+    end
+end
+
+% shift distribution so values between 0.5 and 1 are now between 0 and 1
+% since you need as many points going in the "right" direction as wrong
+% direction to reach the destination.
+MonotonicityInTime = (MonotonicityInTime-0.5)/0.5;
+MonotonicityInTime(MonotonicityInTime<0) = 0;
+CycleTable.MonotonicityInTime = MonotonicityInTime;
+end
+
+
+function CycleTable = measure_monotonicity_in_amplitude(CycleTable, DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes)
+% find the amplitudes of the segments that go in the "wrong" direction
+% relative to the cycle (e.g. rising in the falling edge). ReversalRatio is
+% the ratio of the largest reversal to the change relative to the smallest flank, and
+% MonotonicityInAmplitude is the sum of all reversals relative to the
+% signal amplitude.
+
+CycleCount = size(CycleTable, 1);
+
+MonotonicityInAmplitude = zeros(CycleCount, 1);
+ReversalRatios = MonotonicityInAmplitude;
+
+FallingEdges = CycleTable.FallingFlankAmplitude;
+RisingEdges = CycleTable.RisingFlankAmplitude;
+SmallestEdges = min([FallingEdges, RisingEdges], [], 2);
+Amplitudes = CycleTable.Amplitude;
+
+FallingDeflections = DeflectionsAmplitude;
+FallingDeflections(DeflectionsAmplitude>0) = nan;
+RisingDeflections = DeflectionsAmplitude;
+RisingDeflections(DeflectionsAmplitude<0) = nan;
+
+for idxCycle = 1:CycleCount
+
+    RisingReversals = RisingDeflections(PrevPosPeakIndexes(idxCycle)+1:NegPeakIndexes(idxCycle));
+    FallingReversals = FallingDeflections(NegPeakIndexes(idxCycle)+1:NextPosPeakIndexes(idxCycle));
+    MaxReversal = max([RisingReversals, abs(FallingReversals)]);
+
+    SmallestEdge = abs(SmallestEdges(idxCycle));
+    ReversalRatio = (SmallestEdge-MaxReversal)/SmallestEdge;
+
+    if isnan(ReversalRatio) || isempty(ReversalRatio)
+        ReversalRatios(idxCycle) = 1;
+    elseif ReversalRatio < 0
+        ReversalRatios(idxCycle) = 0;
+    else
+        ReversalRatios(idxCycle) = ReversalRatio;
+    end
+
+    % monotonicity
+    IncreaseDuringFallingEdge = sum(RisingReversals, 'omitnan');
+    DecreaseDuringRisingEdge = sum(abs(FallingReversals), 'omitnan');
+    MonotonicityInAmplitude(idxCycle) = (abs(Amplitudes(idxCycle)) - (IncreaseDuringFallingEdge + DecreaseDuringRisingEdge))/abs(Amplitudes(idxCycle));
+
+    if MonotonicityInAmplitude(idxCycle) < 0
+        MonotonicityInAmplitude(idxCycle) = 0;
+    end
+end
+
+CycleTable.MonotonicityInAmplitude = MonotonicityInAmplitude;
+CycleTable.ReversalRatio = ReversalRatios;
+end
+
+
+function CycleTable = measure_period_consistency(CycleTable, TimepointsCount)
+
+NextPeak = [CycleTable.NegPeakIdx(2:end); TimepointsCount];
+CurrPeak = CycleTable.NegPeakIdx;
+PrevPeak = [1; CycleTable.NegPeakIdx(1:end-1)];
+
+PrevPeriod = CurrPeak-PrevPeak;
+NextPeriod = NextPeak-CurrPeak;
+
+CycleTable.PeriodConsistency = min([PrevPeriod./NextPeriod, NextPeriod./PrevPeriod], [], 2);
+
+end
+
+
+function CycleTable = measure_amplitude_consistency(CycleTable)
 % gets ratio of current cycle's amplitude relative to the neighbors, taking
 % smallest
-
-Amp1 = PrevCycle.Amplitude;
-Amp2 = CurrCycle.Amplitude;
-Amp3 = NextCycle.Amplitude;
-
-CurrCycle.AmplitudeConsistency = min([Amp1/Amp2, Amp2/Amp1, Amp2/Amp3, Amp3/Amp2]);
+Amp1 = [CycleTable.Amplitude(2:end); 0];
+Amp2 = CycleTable.Amplitude;
+Amp3 = [0; CycleTable.Amplitude(1:end-1)];
+AmplitudeConsistency = min([Amp1./Amp2, Amp2./Amp1, Amp2./Amp3, Amp3./Amp2], [], 2);
+AmplitudeConsistency(AmplitudeConsistency<0) = 0;
+CycleTable.AmplitudeConsistency = AmplitudeConsistency;
 end
 
 
+function CycleTable = measure_shape_consistency(CycleTable, ChannelBroadband)
+% matches cycles by negative peak, and sees how much their voltages differ.
+
+CycleCount = size(CycleTable, 1);
+DifferencePrev = zeros(CycleCount, 1);
+DifferenceNext = DifferencePrev;
+
+StartCycles = CycleTable.PrevPosPeakIdx;
+PeakCycles = CycleTable.NegPeakIdx;
+EndCycles = CycleTable.NextPosPeakIdx;
+
+for idxCycle = 2:CycleCount-1
+
+    % identify current cycle
+    [CurrCycleShape, StartDistance, EndDistance] = cycle_shape(ChannelBroadband, ...
+        StartCycles(idxCycle), PeakCycles(idxCycle), EndCycles(idxCycle));
+
+    % identify neighboring cycles, with same dimentions as current cycle
+    PrevCycleShape = cycle_shape(ChannelBroadband, ...
+        PeakCycles(idxCycle-1)-StartDistance, PeakCycles(idxCycle-1), PeakCycles(idxCycle-1)+EndDistance);
+    NextCycleShape = cycle_shape(ChannelBroadband, ...
+        PeakCycles(idxCycle+1)-StartDistance, PeakCycles(idxCycle+1), PeakCycles(idxCycle+1)+EndDistance);
+
+    Correlations = corrcoef([PrevCycleShape', CurrCycleShape', NextCycleShape']);
+    DifferencePrev(idxCycle) = Correlations(1, 2);
+    DifferenceNext(idxCycle) = Correlations(3, 2);
+end
+
+ShapeConsistency = min([DifferenceNext, DifferencePrev], [], 2);
+ShapeConsistency(ShapeConsistency<0) = 0;
+CycleTable.ShapeConsistency = ShapeConsistency;
+end
+
+
+function [CycleShape, StartDistance, EndDistance] = cycle_shape(ChannelBroadband, StartCycle, PeakCycle, EndCycle)
+% gets each cycle from the data, normalizing the amplitude
+
+if StartCycle<1 || EndCycle > numel(ChannelBroadband)
+    CycleShape = nan(1, EndCycle-StartCycle+1);
+    return
+end
+CycleShape = ChannelBroadband(StartCycle:EndCycle);
+
+% normalize between 0 and 1
+Min = min(CycleShape);
+Max = max(CycleShape);
+CycleShape = (CycleShape-Min)./(Max-Min);
+
+StartDistance = PeakCycle-StartCycle; % needed to align start to peak
+EndDistance = EndCycle-PeakCycle;
+end
 
 

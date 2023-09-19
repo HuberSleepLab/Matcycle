@@ -1,8 +1,16 @@
 function BurstClusters = aggregate_bursts_into_clusters(Bursts, EEGBroadband, MinFrequencyRange)
 % identifies bursts that occur at the same time that are actually the same
 % frequency, aggregates them together. Ignores bursts where there wasn't any overlap.
-
+%
 % Part of Matcycle 2022, by Sophia Snipes.
+% SingleChannelBursts is to keep track of which bursts are removed in this
+% process.
+
+if isempty(fieldnames(Bursts))
+    warning('no bursts to cluster')
+    BurstClusters = [];
+    return
+end
 
 [ChannelCount, ~] = size(EEGBroadband.data);
 BurstsCount = numel(Bursts);
@@ -27,6 +35,7 @@ for idxBurst = 1:BurstsCount
 
     % Identify bursts that overlap in time with the current burst
     OverlappingBurstIndexes = find_overlapping_windows(SortedStarts, SortedEnds, idxBurst);
+    OverlappingBurstIndexes(HasBeenEvaluated(OverlappingBurstIndexes)) = []; % skip ones already grouped
 
     % skip if no other channel showed a burst
     if isempty(OverlappingBurstIndexes)
@@ -61,6 +70,7 @@ for idxBurst = 1:BurstsCount
 
     % assemble new burst's info
     Burst = assemble_burst_metadata(BurstsSorted, AggregatedBurstIndexes, SortedBurstIndexes, ChannelCount, idxBurst);
+
     BurstClusters = cat_structs(BurstClusters, Burst);
 end
 
@@ -75,6 +85,7 @@ end
 
 %%%
 function [BurstsSorted, SortedBurstIndexes] = sort_bursts_by_length(Bursts)
+
 Starts = [Bursts.Start];
 Ends = [Bursts.End];
 
@@ -150,6 +161,7 @@ for idxOverlapper = 1:numel(OverlappingBurstIndexes)
     EndOverlap = min(Bursts(ReferenceIdx).End, FinalOverlappingEndTimes(idxOverlapper));
     Overlap_RefPeaks = ReferenceNegPeakIdx>=StartOverlap & ReferenceNegPeakIdx<=EndOverlap;
 
+
     % identify in reference the mean frequency of the overlapping segment
     ReferencePeriod = Bursts(ReferenceIdx).PeriodNeg;
     ReferenceFrequency = 1/mean(ReferencePeriod(Overlap_RefPeaks), 'omitnan');
@@ -162,11 +174,7 @@ for idxOverlapper = 1:numel(OverlappingBurstIndexes)
 
     % get frequency of overlapping segment in other burst
     OverlapperPeriod = Bursts(OverlappingBurstIndexes(idxOverlapper)).PeriodNeg;
-    try
     OverlapperFrequency = 1/mean(OverlapperPeriod(OverlappingOverlapperPeakIdx), 'omitnan');
-    catch
-        a=2
-    end
 
     % if frequency of overlapping burst is within range, keep
     if OverlapperFrequency >= FrequencyRange(1) && OverlapperFrequency <=FrequencyRange(2)
@@ -188,7 +196,9 @@ Burst.ClusterStarts = [Bursts(AggregatedBurstIndexes).Start];
 Burst.ClusterEnds = [Bursts(AggregatedBurstIndexes).End];
 Burst.ClusterCycleCounts = [Bursts(AggregatedBurstIndexes).CyclesCount];
 Burst.ClusterSigns = [Bursts(AggregatedBurstIndexes).Sign];
-Burst.ClusterFrequency = [Bursts(AggregatedBurstIndexes).Frequency];
+Burst.ClusterFrequency = [Bursts(AggregatedBurstIndexes).BurstFrequency];
+Burst.ClusterCriteriaSetIndexes = [Bursts(AggregatedBurstIndexes).CriteriaSetIndex];
+
 
 % summarize cycle information about aggregated bursts
 Burst.ClusterAmplitude = zeros(1, numel(AggregatedBurstIndexes));

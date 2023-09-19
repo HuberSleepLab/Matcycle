@@ -5,7 +5,7 @@ function Bursts = remove_overlapping_bursts(Bursts, MinCyclesPerBurst)
 
 % Part of Matcycle 2022, by Sophia Snipes.
 % TODO: only keep chopped off burst if larger than min cycles for that
-% criteriaset from which it originates. 
+% criteriaset from which it originates.
 
 if numel(fieldnames(Bursts)) == 0
     return
@@ -60,6 +60,13 @@ while any(~Visited)
     OverlapStarts = Starts >= Start & Starts < End & ~Visited;
     OverlapEnds = Ends > Start & Ends <= End & ~Visited;
 
+    if isempty(OverlapStarts) || ~any(OverlapStarts)
+        Bursts(LongestBurst).debugUniqueCriteria = 1;
+        continue
+    else
+         Bursts(LongestBurst).debugUniqueCriteria = 0;
+    end
+
     % move their starts and ends to the outside of the large burst.
     Starts(OverlapStarts) = End;
     Ends(OverlapEnds) = Start;
@@ -97,8 +104,8 @@ for idxBurst = 1:numel(Bursts)
     Bursts(idxBurst).End = End;
 
     % remove information about peaks no longer in burst
-    for Label = PropertyLabels'
-        if numel(Bursts(idxBurst).(Label{1})) == PeaksCountOriginal
+    for Label = PropertyLabels(:)'
+        if ~ischar(Bursts(idxBurst).(Label{1})) && numel(Bursts(idxBurst).(Label{1})) == PeaksCountOriginal
             Bursts(idxBurst).(Label{1}) = Bursts(idxBurst).(Label{1})(PeaksToKeep);
         end
     end

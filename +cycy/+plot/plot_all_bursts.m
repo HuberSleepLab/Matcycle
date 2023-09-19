@@ -1,96 +1,124 @@
-function plot_all_bursts(EEG, YGap, Bursts, ColorCode)
+function plot_all_bursts(EEG, YGap, Bursts, ColorCategory)
+arguments
+    EEG
+    YGap = 20;
+    Bursts = [];
+    ColorCategory = [];
+end
 % function to view bursts in the EEG
 % Type is either 'ICA' or 'EEG', and will appropriately plot the bursts
 % over the channels or the components, accordingly.
 % colorcode indicates based on which property to pick the colors.
-
 % Part of Matcycle 2022, by Sophia Snipes.
+% ColorCategory is the fieldname that you want to use to color code the
+% bursts.
 
-[~, nPnts] = size(EEG.data);
-t = linspace(0, nPnts/EEG.srate, nPnts);
-
-Data = EEG.data;
-DimsD = size(Data);
-
-Y = YGap*DimsD(1):-YGap:0;
-Y(end) = [];
 
 figure('Units','normalized', 'OuterPosition',[0 0 1 1])
 hold on
 
-%%% plot EEG
-Color = [.3 .3 .3];
-LW = .5;
+% plot broadband EEG data
+cycy.plot.eeg_data(EEG.data, EEG.srate, YGap, '', [.6 .6 .6])
 
-Data = Data+Y';
+% get colors for plotting
+[Colors, CategoryLabels] = pick_group_colors(Bursts, ColorCategory);
 
-plot(t, Data,  'Color', Color, 'LineWidth', LW, 'HandleVisibility','off')
+for idxCategory = 1:numel(CategoryLabels)
 
+    % selecy data for each color
+    if ischar(Bursts(1).(ColorCategory))|| iscell(Bursts(1).(ColorCategory))
+        Category = CategoryLabels{idxCategory};
+        BurstIndexes = strcmp({Bursts.(ColorCategory)}, Category);
+    else
+        Category = CategoryLabels(idxCategory);
+        BurstIndexes = [Bursts.(ColorCategory)]==Category;
+        Category = string(Category);
+    end
 
-%%% plot bursts
-if isempty(ColorCode)
-    Colors = 'b';
+    % get data for each burst category
+    [BurstMask, ReferenceMask] = mask_bursts(EEG.data, Bursts(BurstIndexes));
+
+    % plot bursts
+    if isempty(ReferenceMask)
+        cycy.plot.eeg_data(BurstMask, EEG.srate, YGap, Category, Colors(idxCategory, :), 1);
+    else
+        cycy.plot.eeg_data(BurstMask, EEG.srate, YGap, '', Colors(idxCategory, :));
+        cycy.plot.eeg_data(ReferenceMask, EEG.srate, YGap, Category, Colors(idxCategory, :), 2)
+    end
+end
+
+legend
+xlim(Bursts(1).Start/EEG.srate+[0 15])
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% functions
+
+function [BurstMask, ReferenceMask] = mask_bursts(EEGData, Bursts)
+% creates a matrix the size of the data in EEG, with values of the data
+% only during the bursts
+
+BurstMask = nan(size(EEGData));
+
+% identify location of bursts
+if isfield(Bursts, 'ClusterStart')
+    Starts = [Bursts.ClusterStarts];
+    Ends = [Bursts.ClusterEnds];
+    Channels = [Bursts.ClusterChannelIndexes];
 else
-    % get colors for all the types of burst
-
-    if ischar(Bursts(1).(ColorCode))
-        Groups = unique({Bursts.(ColorCode)});
-    else
-        Groups = unique([Bursts.(ColorCode)]);
-    end
-
-    if numel(Groups) <= 8
-        Colors = cycy.utils.pick_colors(numel(Groups));
-    elseif numel(Groups) <= 20
-        Colors = jet(numel(Groups));
-    else
-        Colors = rand(numel(Groups), 3);
-    end
-
+    Starts = [Bursts.Start];
+    Ends = [Bursts.End];
+    Channels = [Bursts.ChannelIndex];
 end
 
-for Indx_B = 1:numel(Bursts)
+% move data from EEG to mask
+for idxBursts = 1:numel(Starts)
+    BurstMask(Channels(idxBursts), Starts(idxBursts):Ends(idxBursts)) = ...
+        EEGData(Channels(idxBursts), Starts(idxBursts):Ends(idxBursts));
+end
 
-    B = Bursts(Indx_B);
+% create seperate mask just for reference channels when burst clusters are
+% provided, so that they can be made thicker
+if ~isfield(Bursts, 'ClusterStart')
+    ReferenceMask = [];
+    return
+end
 
-    if isfield(B, 'ClusterStart')
-        Start = B.ClusterStart;
-        End = B.ClusterEnd;
-    else
-        Start = B.Start;
-        End = B.End;
-    end
+ReferenceMask = nan(size(EEGData));
 
+RefStarts = [Bursts.Start];
+RefEnds = [Bursts.End];
+RefChannels = [Bursts.ChannelIndex];
 
-    Ch = B.ChannelIndex;
-    if isfield(B, 'involved_ch')
-        AllCh = B.involved_ch;
-    elseif isfield(B, 'ClusterChannelIndexes')
-        AllCh = B.ClusterChannelIndexes;
-    else
-        AllCh = [];
-    end
-
-    Ch(Ch>DimsD(1)) = [];
-
-    if isempty(ColorCode)
-        C  = Colors;
-    else
-        C = Colors(ismember(Groups, B.(ColorCode)), :); % get appropriate color, and make it slightly translucent
-    end
-
-    % plot all channels involved
-    if ~isempty(AllCh)
-        Burst = EEG.data(AllCh, Start:End)+Y(AllCh)';
-        plot(t(Start:End), Burst', 'Color', C);
-    end
-
-    % plot main burst
-    Burst = EEG.data(Ch, Start:End)+Y(Ch);
-    plot(t(Start:End), Burst', 'Color', [C, .5], 'LineWidth', 2);
+for idxRefBursts = 1:numel(RefStarts)
+   ReferenceMask(RefChannels(idxRefBursts), RefStarts(idxRefBursts):RefEnds(idxRefBursts)) = ...
+        EEGData(RefChannels(idxRefBursts), RefStarts(idxRefBursts):RefEnds(idxRefBursts));
+end
 end
 
 
-xlim(Bursts(1).Start/EEG.srate+[0 20])
+function [Colors, CategoryLabels] = pick_group_colors(Bursts, ColorCategory)
 
-% TODO rename and check
+% default output
+if isempty(ColorCategory)
+    Colors = [0 0 0];
+    CategoryLabels = {};
+    return
+end
+
+% identify different category labels
+if ischar(Bursts(1).(ColorCategory))
+    CategoryLabels = unique({Bursts.(ColorCategory)});
+else
+    CategoryLabels = unique([Bursts.(ColorCategory)]);
+end
+
+% select colors
+if numel(CategoryLabels) <= 10
+    Colors = cycy.utils.pick_colors(numel(CategoryLabels));
+elseif numel(CategoryLabels) <= 20
+    Colors = jet(numel(CategoryLabels));
+else
+    Colors = rand(numel(CategoryLabels), 3);
+end
+end

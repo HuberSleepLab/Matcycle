@@ -16,12 +16,21 @@ For more details, see [Snipes et al. (2023)](https://doi.org/10.1016/j.isci.2023
   - run `addpath(fullfile({path}, 'Matcycle'))`
   - Using the GUI, in Home > Set path > add folder (N.B. don't use "add subfolers")
 
-### How to use
+
+#### requirements
+- Signal processing toolbox
+
+
+### How to run
 
 See example script [SingleBandExample.m](/examples/SingleBandExample.m) on how to apply burst detection on a single channel with a single set of criteria. See example script [MultiChannelExample.m](/examples/MultiChannelExample.m) to see how to apply multiple sets of burst criteria, multiple frequency bands of interest, to multiple channels.
 
 Matcycle is formatted as a MATLAB [package](https://ch.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html), so to the main call the main functions you use `cycy.{function}()`, and to call the support functions in the subfolders you use `cycy.{folder}.{function}()`. 
 
+### Parameters to set
+
+#### Filter ranges
+- upper limit of the broadband should be 4x the oscillatory frequency of interest
 
 # Glossary
 
@@ -45,3 +54,8 @@ Matcycle is formatted as a MATLAB [package](https://ch.mathworks.com/help/matlab
 - The path of folders should be called `ImportantDataDir`
 - The path of a file should be called `DataPath`
 - indexes should be `idxThisAndThat`
+- functions that plot things will be in `+plot` and functions that are only called by the main package functions but not meant to be called be the user will be saved in `private`.
+
+
+### TODO:
+- Switch to positive peak to be consistent with Cole2019?
