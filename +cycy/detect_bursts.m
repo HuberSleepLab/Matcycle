@@ -18,16 +18,6 @@ end
 %
 % CriteriaSets is a struct array that can contain different parameters
 % for detecting bursts.
-% The fields can include:
-% - isProminent: whether peak sticks out relative to neighboring signal
-% - truePeak: whether the min value is actually the minimum in the range
-% - periodConsistency: whether the period is consistent left and right
-% - periodMeanConsistency: mean of the above
-% - ampConsistency: TODO
-% - efficiency: TODO
-% - efficiencyAdj: TODO
-% - monotonicity: TODO
-% - flankConsistency: TODO
 %
 % NarrowbandRanges is a struct with each field a different band corresponding to
 % the relevant bands, and the edges of that band [LowCutoff, HighCutoff].
