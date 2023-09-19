@@ -262,9 +262,11 @@ for idxCycle = 2:CycleCount-1
 
     % identify neighboring cycles, with same dimentions as current cycle
     PrevCycleShape = cycle_shape(ChannelBroadband, ...
-        PeakCycles(idxCycle-1)-StartDistance, PeakCycles(idxCycle-1), PeakCycles(idxCycle-1)+EndDistance);
+        PeakCycles(idxCycle-1)-StartDistance, PeakCycles(idxCycle-1), ...
+        PeakCycles(idxCycle-1)+EndDistance);
     NextCycleShape = cycle_shape(ChannelBroadband, ...
-        PeakCycles(idxCycle+1)-StartDistance, PeakCycles(idxCycle+1), PeakCycles(idxCycle+1)+EndDistance);
+        PeakCycles(idxCycle+1)-StartDistance, PeakCycles(idxCycle+1), ...
+        PeakCycles(idxCycle+1)+EndDistance);
 
     Correlations = corrcoef([PrevCycleShape', CurrCycleShape', NextCycleShape']);
     DifferencePrev(idxCycle) = Correlations(1, 2);
