@@ -9,26 +9,15 @@ end
 nPoints = Duration*SampleRate;
 Frequencies = SampleRate*(0:(nPoints/2))/nPoints;
 
-Power = Slope*Frequencies(1:nPoints/2+1)+Intercept;
-% Phase = 2*pi*rand(1, numel(Power))-pi;
-% Phase = 2*pi*rand(1, numel(Power));
+% Power = Slope*Frequencies(1:nPoints/2+1)+Intercept;
+Power = Intercept+Slope*log(Frequencies(1:nPoints/2+1));
 
-% Complex = exp(Power).*(cos(Phase)+1i*sin(Phase));
-% Complex = exp(Power).*exp(1i*2*pi*rand(1, numel(Power)));
 Complex = exp(Power);
 Complex2 = cat(2, Complex, flip(Complex(2:end-1)));
 Complex2 = Complex2.*exp(1i*2*pi*rand(1, numel(Complex2)));
 Complex2(1) = 0;
-%
-% % generate fake 1/f curve in the frquency domain
-% c = linspace(1, fs, nPoints/2);
-% S = 1./c;
-% S(nPoints/2+1:nPoints)=flip(S);
-%
-% % scramble the phases (imaginary part) to add noise
-% S=S.*exp(1i*2*pi*rand(1, nPoints));
-% S(1)=0;
 
 % convert to time domain
-Signal = real(ifft(Complex2));
+Data = real(ifft(Complex2));
+t = linspace(0, Duration, nPoints);
 % figure;plot(Signal)
