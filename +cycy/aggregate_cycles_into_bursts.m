@@ -89,10 +89,18 @@ end
 % handle edgecase of starting mid-burst
 if Ends(1) < Starts(1)
     Ends(1) = [];
+    if isempty(Ends)
+        Starts = [];
+        return
+    end
 end
 
 if Ends(end) < Starts(end)
     Starts(end) = [];
+    if isempty(Starts)
+        Ends = [];
+        return
+    end
 end
 
 % select streaks that have the minimum number of cycles
@@ -152,8 +160,9 @@ if isfield(CriteriaSet, 'PeriodConsistency')
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
 
     % Get all the peaks adjacent to a burst that are excluded only for the period
+    
     [Starts, Ends]  = find_streaks(AcceptedCycles, CriteriaSet.MinCyclesPerBurst);
-    NewEdges = intersect(find(ExcludedCycles), [Starts-1, Ends+1]);
+        NewEdges = intersect(find(ExcludedCycles), [Starts-1, Ends+1]);
     AcceptedCycles(NewEdges) = 1;
 end
 end
