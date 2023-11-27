@@ -23,7 +23,7 @@ nTimepoints = numel(Time);
 nTimepointsWindow = WindowLength*SampleRate;
 
 % edges of the sliding windows used to calculate power
-Starts = round(Time*SampleRate-WindowLength/2+1);
+Starts = round(Time*SampleRate-SampleRate*WindowLength/2+1);
 StartofStarts = find(Starts>0, 1, 'first'); % starts after half window length since it averages before and after
 
 Ends = round(Starts+WindowLength*SampleRate)-1;
