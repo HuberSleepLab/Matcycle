@@ -23,4 +23,12 @@ Filter = cycy.utils.cache_function_output(@designfilt, 'highpassfir', ...
     'SampleRate', SampleRate, ...
     'DesignMethod', DesignMethod);
 
-FiltData = filtfilt(Filter, double(Data'))'; % make sure data is double; EEGLAB sometimes gives singles
+% skip any rows that have NaN values
+NaNRows = any(isnan(Data), 2);
+FiltData = nan(size(Data));
+Data(NaNRows, :) = [];
+
+% apply filter
+FData = filtfilt(Filter, double(Data'))'; % make sure data is double; EEGLAB sometimes gives singles
+FiltData(~NaNRows, :) = FData;
+
