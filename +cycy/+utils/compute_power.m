@@ -1,6 +1,9 @@
 function [Power, Freqs] = compute_power(Data, SampleRate, WindowLength, Overlap)
-% Data is a Ch x t matrix.
-% Power is a Ch x Freqs matrix.
+% Data is a channel x time marix matrix. SampleRate is a single value in
+% Hz, WindowLength is a single value in seconds, overlap is a ratio from 0
+% to 1.
+% e.g.:  [Power, Frequencies] = compute_power(Data, fs, 4, 0.5);
+% Power is a Channel x Frequency matrix.
 arguments
     Data
     SampleRate (1, 1) {mustBePositive}

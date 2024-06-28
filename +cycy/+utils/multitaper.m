@@ -1,9 +1,9 @@
 function [Spectrum, Frequencies, Time] = multitaper(Data, SampleRate, WindowLength, MovingWindowSampleRate)
 arguments
-    Data
+    Data % ch x time
     SampleRate
     WindowLength = .5; % in seconds
-    MovingWindowSampleRate = .02;
+    MovingWindowSampleRate = .02; % in seconds
 end
 % function to create a timexfrequency plot for visualizing data. Based on
 % Mike X Cohen's example code
