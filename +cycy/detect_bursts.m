@@ -42,6 +42,9 @@ AllBursts = struct();
 for idxBand = 1:numel(BandLabels)
     Band = NarrowbandRanges.(BandLabels{idxBand});
     ChannelNarrowband = EEGNarrowbands(idxBand).data(ChannelIndex, :);
+    if all(isnan(ChannelNarrowband))
+        continue
+    end
 
     for Sign = Signs
         SignChannelBroadband = ChannelBroadband*Sign;

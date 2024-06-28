@@ -5,7 +5,7 @@ arguments
     tMax
     PlotType = 'imagesc';
     FreqRange = [1 40];
-    ColorAxisLimits = [min(Data), max(Data)];
+    ColorAxisLimits = [min(Data(:)), max(Data(:))];
     Levels = 40;
 end
 % Data is Freqs x time
