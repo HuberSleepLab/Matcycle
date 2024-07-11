@@ -4,6 +4,8 @@ function [Power, Freqs] = compute_power(Data, SampleRate, WindowLength, Overlap)
 % to 1.
 % e.g.:  [Power, Frequencies] = compute_power(Data, fs, 4, 0.5);
 % Power is a Channel x Frequency matrix.
+%
+% From Matcycle, Snipes 2023.
 arguments
     Data
     SampleRate (1, 1) {mustBePositive}
