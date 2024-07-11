@@ -9,6 +9,8 @@ if isfield(Bursts, 'ClusterStart')
     Starts = [Bursts.ClusterStarts];
     Ends = [Bursts.ClusterEnds];
     Channels = [Bursts.ClusterChannelIndexes];
+elseif ~isfield(Bursts, 'Start')
+    return
 else
     Starts = [Bursts.Start];
     Ends = [Bursts.End];
