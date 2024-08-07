@@ -13,7 +13,7 @@ Frequencies = SampleRate * (0:(nPoints/2)) / nPoints;
 logFrequencies = log10(Frequencies);
 
 LogPower = Intercept + Slope * logFrequencies;
-LogPower(1) = 0; % Set the DC component to zero
+LogPower(1:dsearchn(Frequencies', .5)) = LogPower(dsearchn(Frequencies', 40)); % Set the DC component to zero
 
 % Convert power to amplitude
 Power = 10.^(LogPower); % Convert dB to linear scale

@@ -70,13 +70,24 @@ set(gca, 'YScale', 'log', 'XScale', 'log');
 
 %%
 
-
-[Data, t] = cycy.utils.simulate_aperiodic_eeg(-1.5, 0, 50, SampleRate);
+[Data, t] = cycy.utils.simulate_aperiodic_eeg(-0.5, 0, 50, SampleRate);
 
 fData = cycy.utils.highpass_filter(Data, SampleRate, 0.8, 0.4, 'equiripple', 1, 80);
 fData = cycy.utils.lowpass_filter(fData, SampleRate, 40, 45);
 
+
+[Periodic, ~] = cycy.utils.simulate_periodic_eeg(numel(Data)/SampleRate, SampleRate, 10, 20, 1, .3);
+
+sumData = fData + Periodic;
+
 figure('Units','centimeters', 'position', [0 0 40 5])
-plot(t, fData)
+plot(t, sumData)
 xlim([0 20])
 ylim([-100 100])
+
+
+figure
+[Power, Freqs] = cycy.utils.compute_power_fft(sumData, SampleRate);
+PowerSmooth = cycy.utils.smooth_spectrum(Power, Freqs, SmoothSpan);
+plot(Freqs, PowerSmooth)
+set(gca, 'YScale', 'log', 'XScale', 'log');
