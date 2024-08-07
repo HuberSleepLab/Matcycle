@@ -15,8 +15,8 @@ fs = EEG.srate;
 % calculate power
 WelchWindow = 4;
 Overlap = 0.5;
-[Power, Frequencies] = cycy.utils.compute_power(EEGData, fs, WelchWindow, Overlap);
-% [Power, Frequencies] = cycy.utils.compute_power_fft(EEGData, fs);
+% [Power, Frequencies] = cycy.utils.compute_power(EEGData, fs, WelchWindow, Overlap);
+[Power, Frequencies] = cycy.utils.compute_power_fft(EEGData, fs);
 
 % % smooth data for better fooof
 SmoothSpan = 2;
@@ -42,7 +42,11 @@ Slope = -FooofModel.aperiodic_params(2);
 Intercept = FooofModel.aperiodic_params(1);
 [Data, t] = cycy.utils.simulate_aperiodic_eeg(Slope, Intercept, Duration, fs);
 
+
+
 %%
+[Data, t] = cycy.utils.simulate_aperiodic_eeg(-1, 2, Duration, fs);
+
 
 % filter
 fData = cycy.utils.highpass_filter(Data, EEG.srate, 0.5, 0.2);
@@ -52,15 +56,19 @@ fData = cycy.utils.lowpass_filter(fData, EEG.srate, 40, 45);
 figure;
 hold on
 % plot(t, Data)
-plot(T, fData)
-xlim([0 10])
+plot(t, fData)
+xlim([0 20])
 
 %%
-[Power, Frequencies] = cycy.utils.compute_power(fData, EEG.srate, WelchWindow, Overlap);
-PowerSmooth = cycy.utils.smooth_spectrum(Power', Frequencies, SmoothSpan);
 
 figure
 hold on
-cycy.plot.power_spectrum(PowerSmoothOriginal', Frequencies, true, true)
+[Power, Frequencies] = cycy.utils.compute_power(EEGData, fs, WelchWindow, Overlap);
+PowerSmooth = cycy.utils.smooth_spectrum(Power, Frequencies, SmoothSpan);
+cycy.plot.power_spectrum(PowerSmooth', Frequencies, true, true)
+
+
+[Power, Frequencies] = cycy.utils.compute_power(fData, EEG.srate, WelchWindow, Overlap);
+PowerSmooth = cycy.utils.smooth_spectrum(Power, Frequencies, SmoothSpan);
 cycy.plot.power_spectrum(PowerSmooth', Frequencies, true, true)
 legend({'Original', 'Artificial'})
