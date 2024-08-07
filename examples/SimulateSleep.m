@@ -43,7 +43,7 @@ Duration = WelchWindowLength;
 Slope = -FooofModel.aperiodic_params(2);
 % Intercept = log(PowerSmooth(dsearchn(Frequencies', 1)));
 Intercept = FooofModel.aperiodic_params(1);
-[Data, t] = cycy.utils.simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate);
+[Data, t] = cycy.sim.simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate);
 
 fData = cycy.utils.highpass_filter(Data, SampleRate, 0.8, 0.4, 'equiripple', 1, 80);
 fData = cycy.utils.lowpass_filter(fData, SampleRate, 40, 45);
@@ -76,7 +76,7 @@ fData = cycy.utils.highpass_filter(Data, SampleRate, 0.8, 0.4, 'equiripple', 1, 
 fData = cycy.utils.lowpass_filter(fData, SampleRate, 40, 45);
 
 
-[Periodic, ~] = cycy.utils.simulate_periodic_eeg(numel(Data)/SampleRate, SampleRate, 10, 20, 1, .3);
+[Periodic, ~] = cycy.sim.simulate_periodic_eeg(numel(Data)/SampleRate, SampleRate, 10, 20, 1, .3);
 
 sumData = fData + Periodic;
 
