@@ -6,7 +6,7 @@ load('D:\Data\LSM\Preprocessed\Clean\Waves\Sleep\P15_Sleep_NightPre_Welch.mat')
 
 Data = EEG.data;
 SampleRate = EEG.srate;
-WelchWindowLength = 50;
+WelchWindowLength = 4;
 WelchOverlap = 0.5;
 SmoothSpan = 2;
 
@@ -36,7 +36,6 @@ plot(FreqsOld, log10(PowerSmoothOld))
 FooofModel = fooof(FreqsOld, PowerSmoothOld, [1 40], struct(), true);
 
 
-Duration = WelchWindowLength;
 
 %%
 % calculate slopes
@@ -59,7 +58,7 @@ hold on
 plot(FreqsOld, PowerSmoothOld)
 
 
-[Power, Freqs] = cycy.utils.compute_power_fft(fData, SampleRate);
+[Power, Freqs] = cycy.utils.compute_power(fData, SampleRate, WelchWindowLength, WelchOverlap);
 PowerSmooth = cycy.utils.smooth_spectrum(Power, Freqs, SmoothSpan);
 plot(Freqs, PowerSmooth)
 legend({'Original', 'Artificial'})
