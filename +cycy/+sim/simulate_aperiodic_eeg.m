@@ -1,10 +1,18 @@
-function [Data, t] = simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate)
+function [Data, t] = simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate, WelchWindow)
 arguments
     Slope = -2;
     Intercept = 2;
     Duration = 30; % seconds
     SampleRate = 250;
+    WelchWindow = Duration;
 end
+
+% intercept is adjusted for the length of the signal relative to the FOOOF
+% output, which is typically supplied with power over shorter windows. So
+% if power was calculated over 4 s windows, and now we're creating a 20
+% second data snippet that emulates that power spectrum, the FFT slope is
+% going to be 5 times higher amplitude.
+Intercept = Intercept - log10(Duration/WelchWindow); 
 
 nPoints = Duration * SampleRate;
 Frequencies = SampleRate * (0:(nPoints/2)) / nPoints;
