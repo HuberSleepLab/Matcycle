@@ -1,4 +1,4 @@
-function [Data, t] = simulate_periodic_eeg(Duration, SampleRate, CenterFrequency, BurstAmplitude, BurstDuration, BurstDensity, Plot)
+function [Data, t] = simulate_periodic_eeg(CenterFrequency, BurstAmplitude, BurstDuration, BurstDensity, Duration, SampleRate, Plot)
 arguments
     Duration = 10;
     SampleRate = 250;
@@ -20,11 +20,17 @@ end
 % Plot will plot the signal and power spectrum.
 %
 % from Matcycle, Snipes, 2024
+ 
 
 % set up blank signal
 nPoints = Duration*SampleRate;
 t = linspace(0, Duration, nPoints);
 Data = zeros(size(t));
+
+if BurstDensity==1
+   Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
+    return
+end
 
 % set up a single burst's signal
 nPointsBurst = BurstDuration*SampleRate;
@@ -36,7 +42,7 @@ Burst = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*tBurst);
 % points in this range, and then the difference between these points are
 % going to be the gaps.
 nBursts = floor(nPoints*BurstDensity/nPointsBurst);
-Gaps = randperm(nPoints*(1-BurstDensity), nBursts+1);
+Gaps = randperm(round(nPoints*(1-BurstDensity)), nBursts+1);
 nPointsGaps = diff(sort(Gaps));
 
 % place bursts in signal
