@@ -1,11 +1,11 @@
-function [Data, t] = simulate_periodic_eeg(CenterFrequency, BurstAmplitude, BurstDuration, BurstDensity, Duration, SampleRate, Plot)
+function [Data, t] = simulate_periodic_eeg(CenterFrequency, BurstAmplitude, BurstDensity, BurstDuration, Duration, SampleRate, Plot)
 arguments
-    Duration = 10;
-    SampleRate = 250;
     CenterFrequency = 10;
     BurstAmplitude = 20;
-    BurstDuration = 1;
     BurstDensity = .5;
+    BurstDuration = 1;
+    Duration = 10;
+    SampleRate = 250;
     Plot = false;
 end
 % [Data, t] = simulate_periodic_eeg(Duration, SampleRate, CenterFrequency, BurstAmplitude, BurstDuration, BurstDensity, Plot)
@@ -20,7 +20,7 @@ end
 % Plot will plot the signal and power spectrum.
 %
 % from Matcycle, Snipes, 2024
- 
+
 
 % set up blank signal
 nPoints = Duration*SampleRate;
@@ -28,7 +28,7 @@ t = linspace(0, Duration, nPoints);
 Data = zeros(size(t));
 
 if BurstDensity==1
-   Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
+    Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
     return
 end
 
