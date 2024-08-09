@@ -32,8 +32,8 @@ hold on
 plot(FreqsOld, log10(PowerSmoothOld))
 % set(gca, 'yscale', 'log', 'xscale', 'log')
 
-
-FooofModel = fooof(FreqsOld, PowerSmoothOld, [1 40], struct(), true);
+%%
+FooofModel = fooof(FreqsOld, PowerSmoothOld, [.8 40], struct(), true);
 
 
 

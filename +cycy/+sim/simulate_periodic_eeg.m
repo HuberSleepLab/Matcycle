@@ -30,6 +30,8 @@ Data = zeros(size(t));
 if BurstDensity==1
     Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
     return
+elseif BurstDensity>1
+    error('Burst density has to be between 0 and 1')
 end
 
 % set up a single burst's signal

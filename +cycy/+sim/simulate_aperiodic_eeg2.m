@@ -1,4 +1,4 @@
-function [Signal, t] = simulate_aperiodic_eeg(Exponent, Offset, Duration, SampleRate, WelchWindow)
+function [Signal, t] = simulate_aperiodic_eeg2(Exponent, Offset, Duration, SampleRate, WelchWindow)
 arguments
     Exponent = 2;
     Offset = 2;
@@ -36,39 +36,30 @@ end
 % windows, then the offset needs to be adjusted to account for the
 % difference in length.
 Offset = Offset - log10(Duration/WelchWindow); 
-Exponent = -abs(Exponent); % FOOOF outputs slopes as positive values, some people might provide negative; this is safe
-% Exponent = abs(Exponent); % FOOOF outputs slopes as positive values, some people might provide negative; this is safe
-
+Exponent = abs(Exponent); % FOOOF outputs slopes as positive values, some people might provide negative; this is safe
 
 nPoints = Duration * SampleRate;
 Frequencies = SampleRate * (0:(nPoints/2)) / nPoints;
 
-% Calculate the power spectrum
-logFrequencies = log10(Frequencies);
 
-LogPower = Offset + Exponent * logFrequencies;
-LogPower(1:dsearchn(Frequencies', .2)) = LogPower(end); % Set the DC component to zero
+Power = Offset-log10(Frequencies.^Exponent);
+Power(1:dsearchn(Frequencies', .2)) = Power(end); % Set the DC component to zero
 
-% Convert power to amplitude
-Power = 10.^(LogPower); % Convert to linear scale
-
-% Power = Offset-log10(Frequencies.^Exponent);
 
 % DEBUG
 figure
 % plot(Frequencies, Power, 'LineWidth',2)
+Power = 10.^Power;
 plot(Frequencies, Power, 'LineWidth',2)
-% set(gca, 'YScale', 'log', 'XScale', 'log');
+set(gca, 'YScale', 'log', 'XScale', 'log');
 title('simulated power')
 
 % Generate complex spectrum to randomize phase
-% Complex = Power;
-% Complex = (sqrt(Power/2)) .* exp(1i * 2 * pi * rand(1, numel(Frequencies)));
 Complex = (sqrt(Power/2)) .* exp(1i * 2 * pi * rand(1, numel(Frequencies)));
 Complex2 = [Complex, conj(Complex(end-1:-1:2))];
 
+
 % Convert to time domain
-% Signal = real(ifft(Complex2, 'symmetric') * nPoints); % Scale by nPoints to correct magnitude
 Signal = ifft(Complex2, 'symmetric') * nPoints; % Scale by nPoints to correct magnitude
 
 
@@ -79,4 +70,3 @@ t = linspace(0, Duration, nPoints);
 hold on
 [Power, Frequencies] = cycy.utils.compute_power_fft(Signal, SampleRate);
 plot(Frequencies, Power, ':', 'LineWidth',2, 'Color','r')
-A=1
