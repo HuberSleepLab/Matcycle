@@ -35,21 +35,24 @@ end
 % offsets/exponents are usually derived from averaging power over smaller
 % windows, then the offset needs to be adjusted to account for the
 % difference in length.
-Offset = Offset - log10(Duration/WelchWindow); 
+% Offset = Offset/(Duration/WelchWindow); 
+Offset = Offset-log10(Duration);
 Exponent = abs(Exponent); % FOOOF outputs slopes as positive values, some people might provide negative; this is safe
 
 nPoints = Duration * SampleRate;
+if mod(nPoints, 2) ~= 0 % if number is odd
+    nPoints = nPoints-1;
+end
 Frequencies = SampleRate * (0:(nPoints/2)) / nPoints;
 
 
 Power = Offset-log10(Frequencies.^Exponent);
 Power(1:dsearchn(Frequencies', .2)) = Power(end); % Set the DC component to zero
 
-
-% % DEBUG
-% figure
-% % plot(Frequencies, Power, 'LineWidth',2)
 Power = 10.^Power;
+
+% % % DEBUG
+% figure
 % plot(Frequencies, Power, 'LineWidth',2)
 % set(gca, 'YScale', 'log', 'XScale', 'log');
 % title('simulated power')
@@ -66,7 +69,8 @@ Signal = ifft(Complex2, 'symmetric') * nPoints; % Scale by nPoints to correct ma
 % Generate time vector
 t = linspace(0, Duration, nPoints);
 
-% % DEBUG
+% % % DEBUG
 % hold on
 % [Power, Frequencies] = cycy.utils.compute_power_fft(Signal, SampleRate);
 % plot(Frequencies, Power, ':', 'LineWidth',2, 'Color','r')
+

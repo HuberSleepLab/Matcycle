@@ -24,6 +24,12 @@ end
 
 % set up blank signal
 nPoints = Duration*SampleRate;
+
+% only have even number of points (because aperiodic signal goes wonky?)
+if mod(nPoints, 2) ~= 0 % if number is odd
+    nPoints = nPoints-1;
+end
+
 t = linspace(0, Duration, nPoints);
 Data = zeros(size(t));
 
@@ -35,7 +41,7 @@ elseif BurstDensity>1
 end
 
 % set up a single burst's signal
-nPointsBurst = BurstDuration*SampleRate;
+nPointsBurst = floor(BurstDuration*SampleRate);
 tBurst = linspace(0, BurstDuration, nPointsBurst);
 Burst = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*tBurst);
 
@@ -44,6 +50,10 @@ Burst = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*tBurst);
 % points in this range, and then the difference between these points are
 % going to be the gaps.
 nBursts = floor(nPoints*BurstDensity/nPointsBurst);
+if nBursts == 0 || isnan(nBursts)
+    return
+end
+
 Gaps = randperm(round(nPoints*(1-BurstDensity)), nBursts+1);
 nPointsGaps = diff(sort(Gaps));
 
