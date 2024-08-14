@@ -1,10 +1,9 @@
-function [Signal, t] = simulate_aperiodic_eeg2(Exponent, Offset, Duration, SampleRate, WelchWindow)
+function [Signal, t] = simulate_aperiodic_eeg(Exponent, Offset, Duration, SampleRate)
 arguments
     Exponent = 2;
     Offset = 2;
     Duration = 30; % seconds
     SampleRate = 250;
-    WelchWindow = Duration;
 end
 %  [Data, t] = simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate, WelchWindow)
 % 
@@ -15,10 +14,9 @@ end
 % Inputs:
 % - Exponent is the slope of the aperiodic signal. Wake is typically around
 % 1, and NREM 3 is around 3. 
-% - Offset is the overall power the aperiodic signal, and it highly depends
-% on the duration of the signal used to calculate the power spectrum. If
-% pwelch was used, this will depend on the window length (usually 4 s) and
-% not the total duration of the signal.
+% - Offset is the overall power the aperiodic signal, and it depends
+% on the duration of the signal used to calculate the power spectrum.
+% Assumes offset comes from FOOOF, based on power calculated with pWelch.
 % - Duration is the duration of the desired output signal.
 % - SampleRate is the sample rate of the desired output signal (should be
 % the same as the sample rate from which the exponent/offset were derived)
