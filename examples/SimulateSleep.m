@@ -33,7 +33,7 @@ plot(FreqsOld, log10(PowerSmoothOld))
 % set(gca, 'yscale', 'log', 'xscale', 'log')
 
 %%
-FooofModel = fooof(FreqsOld, PowerSmoothOld, [.8 40], struct(), true);
+FooofModel = fooof(FreqsOld, PowerSmoothOld, [3 40], struct(), true);
 
 
 
@@ -42,27 +42,41 @@ FooofModel = fooof(FreqsOld, PowerSmoothOld, [.8 40], struct(), true);
 Slope = -FooofModel.aperiodic_params(2);
 % Intercept = log(PowerSmooth(dsearchn(Frequencies', 1)));
 Intercept = FooofModel.aperiodic_params(1);
+
+
+%%
+
+Slope = -2.1;
+Intercept = 2.5;
+
 [Data, t] = cycy.sim.simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate);
 
 fData = cycy.utils.highpass_filter(Data, SampleRate, 0.8, 0.4, 'equiripple', 1, 80);
 fData = cycy.utils.lowpass_filter(fData, SampleRate, 40, 45);
 
-% EEG2 = EEG;
-% EEG2.data = fData;
-% EEG2 = eeg_checkset(EEG2);
-%  EEG2 = pop_eegfiltnew(EEG2, 1);
-%  fData = EEG2.data;
-
-figure
-hold on
-plot(FreqsOld, PowerSmoothOld)
+EEG2 = EEG;
+EEG2.data = fData;
+EEG2 = eeg_checkset(EEG2);
+ EEG2 = pop_eegfiltnew(EEG2, 1);
+ fData = EEG2.data;
 
 
-[Power, Freqs] = cycy.utils.compute_power(fData, SampleRate, WelchWindowLength, WelchOverlap);
-PowerSmooth = cycy.utils.smooth_spectrum(Power, Freqs, SmoothSpan);
-plot(Freqs, PowerSmooth)
-legend({'Original', 'Artificial'})
-set(gca, 'YScale', 'log', 'XScale', 'log');
+figure('Units','centimeters','Position',[0 0 40 5])
+plot(t, Data)
+xlim([0 20])
+ylim([-100 100])
+xlabel('time(s)')
+
+% figure
+% hold on
+% plot(FreqsOld, PowerSmoothOld)
+% 
+% 
+% [Power, Freqs] = cycy.utils.compute_power(fData, SampleRate, WelchWindowLength, WelchOverlap);
+% PowerSmooth = cycy.utils.smooth_spectrum(Power, Freqs, SmoothSpan);
+% plot(Freqs, PowerSmooth)
+% legend({'Original', 'Artificial'})
+% set(gca, 'YScale', 'log', 'XScale', 'log');
 
 
 
