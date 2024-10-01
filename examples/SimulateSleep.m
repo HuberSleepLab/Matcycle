@@ -45,9 +45,9 @@ Intercept = FooofModel.aperiodic_params(1);
 
 
 %%
-
-Slope = -2.1;
-Intercept = 2.5;
+% 
+% Slope = -2.1;
+% Intercept = 2.5;
 
 [Data, t] = cycy.sim.simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate);
 
@@ -67,16 +67,17 @@ xlim([0 20])
 ylim([-100 100])
 xlabel('time(s)')
 
-% figure
-% hold on
-% plot(FreqsOld, PowerSmoothOld)
-% 
-% 
-% [Power, Freqs] = cycy.utils.compute_power(fData, SampleRate, WelchWindowLength, WelchOverlap);
-% PowerSmooth = cycy.utils.smooth_spectrum(Power, Freqs, SmoothSpan);
-% plot(Freqs, PowerSmooth)
-% legend({'Original', 'Artificial'})
-% set(gca, 'YScale', 'log', 'XScale', 'log');
+%%
+figure
+hold on
+plot(FreqsOld, PowerSmoothOld)
+
+
+[Power, Freqs] = cycy.utils.compute_power(fData, SampleRate, WelchWindowLength, WelchOverlap);
+PowerSmooth = cycy.utils.smooth_spectrum(Power, Freqs, SmoothSpan);
+plot(Freqs, PowerSmooth)
+legend({'Original', 'Artificial'})
+set(gca, 'YScale', 'log', 'XScale', 'log');
 
 
 
