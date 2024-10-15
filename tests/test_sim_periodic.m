@@ -113,6 +113,41 @@ disp(['Correctly sets duration'])
 
 
 
+%% Test_BurstDuration
+
+clc
+
+Durations = WeirdInputs;
+
+for Duration = Durations
+        disp(['Simulating: ', num2str(Duration)])
+
+    [Data, t] = cycy.sim.simulate_periodic_eeg( ...
+        DefaultCenterFrequency, ...
+        DefaultBurstAmplitude, ...
+        DefaultBurstDensity, ...
+        Duration, ...
+        DefaultDuration, ...
+        DefaultSampleRate, ...
+        Plot);
+
+    if isempty(Data)
+        continue
+    end
+
+    [Starts, Ends] = cycy.utils.data2windows(diff(Data)~=0);
+    Bursts = (Ends-Starts)/DefaultSampleRate;
+    MeasuredBurst = min(Bursts);
+
+    if MeasuredBurst < Duration - Duration*.01 || MeasuredBurst > Duration + Duration*.01
+        error(['Durations too small ' num2str(Duration), ' resulting in ', num2str(MeasuredBurst), ' points'])
+    end
+    disp(['Measured: ', num2str(mean(Bursts))])
+
+end
+disp(['Correctly sets duration'])
+
+
 
 
 %% Test_Duration

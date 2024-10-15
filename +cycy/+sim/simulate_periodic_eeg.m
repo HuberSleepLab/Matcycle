@@ -75,7 +75,7 @@ end
 nPointsBurst = floor(BurstDuration*SampleRate);
 nBursts = floor(nPoints*BurstDensity/nPointsBurst);
 if nBursts == 0 || isnan(nBursts)
-    warning('No bursts, likely data too short')
+    warning('No bursts, likely something too short')
     return
 end
 
