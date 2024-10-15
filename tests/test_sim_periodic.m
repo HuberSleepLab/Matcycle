@@ -14,7 +14,7 @@ DefaultDuration = 60;
 DefaultSampleRate = 400;
 Plot = false;
 
-WeirdInputs = [nan 0 .01 .1 1.3333, 3, 10 19.33333, 10.334566, pi, DefaultBurstDuration, DefaultDuration, 100 1000 10000, inf];
+WeirdInputs = [-10, -1, nan 0 .01 .1, .3, .5 .75 .9999, .000001, 1.3333, 3, 10 19.33333, 10.334566, pi, DefaultBurstDuration, DefaultDuration, 100 1000 10000, inf];
 
 
 %% Test_CenterFrequency
@@ -79,6 +79,37 @@ for Amplitude = Amplitudes
 end
 disp(['Correctly sets duration'])
 
+
+%% Test_Density
+
+clc
+Densities = WeirdInputs;
+
+for Density = Densities
+    [Data, t] = cycy.sim.simulate_periodic_eeg( ...
+        DefaultCenterFrequency, ...
+        DefaultBurstAmplitude, ...
+        Density, ...
+        DefaultBurstDuration, ...
+        DefaultDuration, ...
+        DefaultSampleRate, ...
+        Plot);
+
+    if isempty(Data)
+        continue
+    end
+
+    Empty = nnz(diff(Data)==0);
+    MeasuredDensity = 1-Empty/(numel(Data));
+
+    if MeasuredDensity < Density - Density*.001 || MeasuredDensity > Density + Density*.001
+        error(['Mismatched density ', num2str(Density)])
+    end
+
+    disp(['Completed ', num2str(Density), ', measured ', num2str(MeasuredDensity)])
+
+end
+disp(['Correctly sets duration'])
 
 
 

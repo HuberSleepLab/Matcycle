@@ -14,7 +14,7 @@ end
 % Duration in seconds
 % SampleRate
 % CenterFrequency is the frequency of the oscillation bursts
-% BurstAmplitude is peak to peak in microvolts.
+% BurstAmplitude is positive peak to negative peak in microvolts.
 % BurstDuration is how long each burst should be.
 % Burst density is the proportion of the signal that should have a burst.
 % Plot will plot the signal and power spectrum.
@@ -66,15 +66,16 @@ if BurstDensity==1
     t = linspace(0, Duration, nPoints);
     Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
     return
-elseif BurstDensity>1
+elseif not(BurstDensity<=1 && BurstDensity >= 0)
     warning('Burst density has to be between 0 and 1')
+    return
 end
 
 % check that there's enough data for the bursts
 nPointsBurst = floor(BurstDuration*SampleRate);
 nBursts = floor(nPoints*BurstDensity/nPointsBurst);
 if nBursts == 0 || isnan(nBursts)
-    warning('no actual bursts')
+    warning('No bursts, likely data too short')
     return
 end
 
@@ -92,12 +93,21 @@ Data = zeros(1, nPoints);
 tBurst = linspace(0, BurstDuration, nPointsBurst);
 Burst = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*tBurst);
 
+
+
 % randomize gaps to place between bursts
 % takes the remaining time not occupied by bursts, randomly identifies
 % points in this range, and then the difference between these points are
 % going to be the gaps.
+AvailableGapPoints = round(nPoints*(1-BurstDensity));
+if AvailableGapPoints < nBursts+1 % basically the burst density is close enough to 1 as to not count
+    t = linspace(0, Duration, nPoints);
+    Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
+    return
+else
+    Gaps = randperm(AvailableGapPoints, nBursts+1);
+end
 
-Gaps = randperm(round(nPoints*(1-BurstDensity)), nBursts+1);
 nPointsGaps = diff(sort(Gaps));
 
 % place bursts in signal
