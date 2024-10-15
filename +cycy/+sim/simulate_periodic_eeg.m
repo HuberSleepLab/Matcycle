@@ -52,7 +52,7 @@ if isnan(CenterFrequency) || CenterFrequency==0
     warning('Invalid center frequency')
     return
 
-elseif CenterFrequency >= SampleRate/2 % Nyquist rule is it has to be half, practically, should be 1/5th 
+elseif CenterFrequency >= SampleRate/2 % Nyquist rule is it has to be half, practically, should be 1/5th
     warning('Center frequency is too high for the chosen sample rate. Should be less than half it.')
     return
 elseif 1/CenterFrequency > BurstDuration
@@ -63,6 +63,7 @@ end
 
 % check that burst density is ok
 if BurstDensity==1
+    t = linspace(0, Duration, nPoints);
     Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
     return
 elseif BurstDensity>1
@@ -74,6 +75,12 @@ nPointsBurst = floor(BurstDuration*SampleRate);
 nBursts = floor(nPoints*BurstDensity/nPointsBurst);
 if nBursts == 0 || isnan(nBursts)
     warning('no actual bursts')
+    return
+end
+
+% check that there's at least 3 cycles in a burst
+if nPointsBurst < 3*(1/CenterFrequency)*SampleRate
+    warning('Burst duration is too short for center frequency. Should have at least 3 cycles')
     return
 end
 

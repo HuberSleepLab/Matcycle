@@ -14,21 +14,15 @@ DefaultDuration = 60;
 DefaultSampleRate = 400;
 Plot = false;
 
-WeirdInputs = [nan 0 .01 .1 1.3333, 10 19.33333, 10.334566, pi, DefaultBurstDuration, DefaultDuration, 100 1000 10000, inf];
+WeirdInputs = [nan 0 .01 .1 1.3333, 3, 10 19.33333, 10.334566, pi, DefaultBurstDuration, DefaultDuration, 100 1000 10000, inf];
 
 
 %% Test_CenterFrequency
 clc
 
 CenterFrequencies = WeirdInputs;
-DefaultSampleRate = 200;
-CenterFrequencies= 5:5:200;
 
-MF = nan(size(CenterFrequencies));
-
-Idx =0;
 for CF = CenterFrequencies
-    Idx = Idx+1;
 
     [Data, t] = cycy.sim.simulate_periodic_eeg( ...
         CF, ...
@@ -40,36 +34,52 @@ for CF = CenterFrequencies
         Plot);
 
     if isempty(Data)
-         disp(['No output for ', num2str(CF)])
+        disp(['No output for ', num2str(CF)])
         continue
     end
 
-    % identify all the sine wave peaks
-    Data2 = Data;
-    Data2([diff(Data)==0 false]) = nan;
-    [peak, locs] = findpeaks(abs(Data2), t);
-    remove = round(peak)~=max(round(peak)); % select only the max peaks, which correspond to the sine's tops
-    locs(remove) = [];
+    [Power, Freqs] = cycy.utils.compute_power(Data, DefaultSampleRate, 4, .5);
+    [~, peakIdx] = max(Power);
 
-    MeasuredFrequency = 1/(mode(diff(locs))*2);
-    % MF(Idx) = MeasuredFrequency;
+    MeasuredFrequency = Freqs(peakIdx);
 
-    % if MeasuredFrequency < CF-CF*.05 || MeasuredFrequency > CF+ CF*.05
-    %     error(['Incorrect center frequency for ', num2str(CF)])
-    % end
-        disp(['Completed ', num2str(CF), ', achieved ', num2str(MeasuredFrequency)])
-
-        [Power, Freqs] = cycy.utils.compute_power(Data, DefaultSampleRate, 10, .5);
-        [~, peakIdx] = max(Power);
-
-        MF(Idx) = Freqs(peakIdx);
-
-    % if ~isempty(Data)
-    %     error(['Incorrect burst frequency for center frequency of ', num2str(CF)])
-    % end
+    if MeasuredFrequency < CF-CF*.05 || MeasuredFrequency > CF+ CF*.05
+        error(['Incorrect center frequency for ', num2str(CF)])
+    end
+    disp(['Completed ', num2str(CF), ', achieved ', num2str(MeasuredFrequency)])
 end
 
 disp(['Correctly handles center frequencies'])
+
+
+
+%% Test_Amplitude
+
+clc
+Amplitudes = WeirdInputs;
+
+for Amplitude = Amplitudes
+    [Data, t] = cycy.sim.simulate_periodic_eeg( ...
+        DefaultCenterFrequency, ...
+        Amplitude, ...
+        DefaultBurstDensity, ...
+        DefaultBurstDuration, ...
+        DefaultDuration, ...
+        DefaultSampleRate, ...
+        Plot);
+
+    [peaks, locs] = findpeaks(abs(Data));
+    MeasuredAmplitude =  mode(abs(peaks)*2);
+    if  MeasuredAmplitude < Amplitude-Amplitude*.01 || MeasuredAmplitude > Amplitude+Amplitude*.01
+        error(['incorrect amplitudes for ', num2str(Amplitude)])
+    end
+
+    disp(['Completed ', num2str(Amplitude), ', measured ', num2str(MeasuredAmplitude)])
+
+end
+disp(['Correctly sets duration'])
+
+
 
 
 
@@ -97,4 +107,6 @@ for Duration = Durations
 
 end
 disp(['Correctly sets duration'])
+
+
 
