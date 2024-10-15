@@ -25,6 +25,7 @@ end
 % set up blank signal
 t = [];
 Data = [];
+
 nPoints = Duration*SampleRate;
 nPoints = round(nPoints);
 
@@ -48,7 +49,7 @@ else
 end
 
 % check that center frequency is ok
-if isnan(CenterFrequency) || CenterFrequency==0
+if isnan(CenterFrequency) || CenterFrequency<=0
     warning('Invalid center frequency')
     return
 
@@ -60,6 +61,11 @@ elseif 1/CenterFrequency > BurstDuration
     return
 end
 
+% check that amplitudes are ok
+if not(BurstAmplitude>=0)
+    warning('invalid burst amplitude')
+    return
+end
 
 % check that burst density is ok
 if BurstDensity==1
@@ -75,7 +81,9 @@ end
 nPointsBurst = floor(BurstDuration*SampleRate);
 nBursts = floor(nPoints*BurstDensity/nPointsBurst);
 if nBursts == 0 || isnan(nBursts)
-    warning('No bursts, likely something too short')
+    warning('No bursts')
+     t = linspace(0, Duration, nPoints);
+     Data = zeros(size(t));
     return
 end
 

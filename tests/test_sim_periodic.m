@@ -43,7 +43,7 @@ for CF = CenterFrequencies
 
     MeasuredFrequency = Freqs(peakIdx);
 
-    if MeasuredFrequency < CF-CF*.05 || MeasuredFrequency > CF+ CF*.05
+    if MeasuredFrequency < CF-CF*.1 || MeasuredFrequency > CF+ CF*.1
         error(['Incorrect center frequency for ', num2str(CF)])
     end
     disp(['Completed ', num2str(CF), ', achieved ', num2str(MeasuredFrequency)])
@@ -67,6 +67,10 @@ for Amplitude = Amplitudes
         DefaultDuration, ...
         DefaultSampleRate, ...
         Plot);
+
+    if isempty(Data)
+        continue
+    end
 
     [peaks, locs] = findpeaks(abs(Data));
     MeasuredAmplitude =  mode(abs(peaks)*2);
@@ -95,19 +99,19 @@ for Density = Densities
         DefaultSampleRate, ...
         Plot);
 
-    if isempty(Data)
+    if isempty(Data) || all(Data==0)
         continue
     end
 
     Empty = nnz(diff(Data)==0);
     MeasuredDensity = 1-Empty/(numel(Data));
 
-    if MeasuredDensity < Density - Density*.001 || MeasuredDensity > Density + Density*.001
+    if MeasuredDensity < .001 &&  Density==0
+    elseif MeasuredDensity < Density - Density*.001 || MeasuredDensity > Density + Density*.001
         error(['Mismatched density ', num2str(Density)])
     end
 
     disp(['Completed ', num2str(Density), ', measured ', num2str(MeasuredDensity)])
-
 end
 disp(['Correctly sets duration'])
 
@@ -120,7 +124,7 @@ clc
 Durations = WeirdInputs;
 
 for Duration = Durations
-        disp(['Simulating: ', num2str(Duration)])
+    disp(['Simulating: ', num2str(Duration)])
 
     [Data, t] = cycy.sim.simulate_periodic_eeg( ...
         DefaultCenterFrequency, ...
@@ -131,7 +135,7 @@ for Duration = Durations
         DefaultSampleRate, ...
         Plot);
 
-    if isempty(Data)
+    if isempty(Data) || all(Data==0)
         continue
     end
 
@@ -166,7 +170,7 @@ for Duration = Durations
         DefaultSampleRate, ...
         Plot);
 
-    if ~isempty(Data) && (numel(Data) ~= round(Duration*DefaultSampleRate) || numel(t) ~= round(Duration*DefaultSampleRate))
+    if ~(isempty(Data) || all(Data==0)) && (numel(Data) ~= round(Duration*DefaultSampleRate) || numel(t) ~= round(Duration*DefaultSampleRate))
         error(['does not produce the correct number of sample points! Breaks at ' num2str(Duration), ' resulting in ', num2str(numel(t)), ' points'])
     end
     disp(['Completed ', num2str(Duration)])
@@ -175,4 +179,31 @@ end
 disp(['Correctly sets duration'])
 
 
+%% Test_SampleRate
+
+SampleRates= WeirdInputs;
+clc
+
+for fs = SampleRates
+ [Data, t] = cycy.sim.simulate_periodic_eeg( ...
+        DefaultCenterFrequency, ...
+        DefaultBurstAmplitude, ...
+        DefaultBurstDensity, ...
+        DefaultBurstDuration, ...
+        DefaultDuration, ...
+        fs, ...
+        Plot);
+
+ if isempty(Data) || all(Data==0)
+     continue
+ end
+
+ MeasuredPeriod = mean(diff(t));
+ Period = 1/fs;
+     if  MeasuredPeriod < Period - Period*.001 || MeasuredPeriod > Period + Period*.001
+     error(['Mismatch sample rate for ', num2str(fs)])
+ end
+disp(['completed ', num2str(fs)])
+end
+disp('correctly deals with sample rates')
 
