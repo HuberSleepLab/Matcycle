@@ -33,6 +33,19 @@ end
 t = linspace(0, Duration, nPoints);
 Data = zeros(size(t));
 
+
+% raise exceptions if problematic inputs
+if nPoints==0
+    warning('Duration set to 0')
+    return
+elseif nPoints < BurstDuration*SampleRate
+    warning('Duration set to less than a single burst')
+    t = [];
+    Data = [];
+    return
+end
+
+
 if BurstDensity==1
     Data = (BurstAmplitude/2).*sin(2*pi*CenterFrequency*t);
     return
@@ -69,12 +82,15 @@ end
 
 
 if Plot
-    figure('Units','normalized', 'Position',[0 0 .4 .4])
+    figure('Units','normalized', 'Position',[0 0 .3 .15])
     subplot(1, 2 , 1)
     plot(t,Data)
-
+    xlabel('Time (s)')
+    box off
     [Power, Frequencies] = cycy.utils.compute_power(Data, SampleRate);
 
     subplot(1, 2, 2)
-    plot(Frequencies, Power)
+    plot(Frequencies, smooth(Frequencies, Power, 2))
+    xlabel('Frequency (Hz)')
+    box off
 end
