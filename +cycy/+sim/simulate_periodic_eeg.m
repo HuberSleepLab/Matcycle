@@ -21,29 +21,25 @@ end
 %
 % from Matcycle, Snipes, 2024
 
+    t = [];
+    Data = [];
 
 % set up blank signal
 nPoints = Duration*SampleRate;
 
 % only have even number of points (because aperiodic signal goes wonky?)
-if mod(nPoints, 2) ~= 0 % if number is odd
+if isnan(nPoints)
+    warning('invalid duration or sample rate')
+    return
+elseif nPoints < BurstDuration*SampleRate
+    warning('Duration set to less than a single burst')
+    return
+elseif mod(nPoints, 2) ~= 0 % if number is odd
     nPoints = nPoints-1;
 end
 
 t = linspace(0, Duration, nPoints);
-Data = zeros(size(t));
-
-
-% raise exceptions if problematic inputs
-if nPoints==0
-    warning('Duration set to 0')
-    return
-elseif nPoints < BurstDuration*SampleRate
-    warning('Duration set to less than a single burst')
-    t = [];
-    Data = [];
-    return
-end
+Data = zeros(1, nPoints);
 
 
 if BurstDensity==1
