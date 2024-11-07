@@ -32,11 +32,15 @@ end
 
 % remove thresholds that are empty
 CriteriaSet = cycy.utils.remove_empty_fields_from_struct(CriteriaSet);
+Bursts = [];
+Diagnostics = [];
 
 if isempty(fieldnames(CriteriaSet))
-    Bursts = [];
-    Diagnostics = [];
     warning('no criteria left')
+    return
+end
+
+if isempty(CycleTable)
     return
 end
 
@@ -62,7 +66,6 @@ AcceptedCycles = extend_burst_by_period_consistency(CycleTable, CriteriaSet, ...
 [Starts, Ends] = find_streaks(AcceptedCycles, CriteriaSet.MinCyclesPerBurst);
 
 if isempty(Starts) || isempty(Ends)
-    Bursts = [];
     return
 end
 
@@ -160,9 +163,9 @@ if isfield(CriteriaSet, 'PeriodConsistency')
     ExcludedCycles = is_only_exclusion_criteria(CyclesMeetCriteria, idxCriteria);
 
     % Get all the peaks adjacent to a burst that are excluded only for the period
-    
+
     [Starts, Ends]  = find_streaks(AcceptedCycles, CriteriaSet.MinCyclesPerBurst);
-        NewEdges = intersect(find(ExcludedCycles), [Starts-1, Ends+1]);
+    NewEdges = intersect(find(ExcludedCycles), [Starts-1, Ends+1]);
     AcceptedCycles(NewEdges) = 1;
 end
 end

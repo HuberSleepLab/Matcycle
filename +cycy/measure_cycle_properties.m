@@ -12,6 +12,11 @@ function CycleTable = measure_cycle_properties(ChannelBroadband, CycleTable, Sam
 % expected increase or decrease in voltage for the rising and falling edges
 % of the cycle, respectively.
 % Everything that looks weird was done for speed!
+
+if isempty(CycleTable)
+    return
+end
+
 [LocalMinima, LocalMaxima] = find_all_peaks(ChannelBroadband);
 [DeflectionsAmplitude, PrevPosPeakIndexes, NegPeakIndexes, NextPosPeakIndexes] = measure_deflection_amplitudes( ...
     ChannelBroadband, CycleTable, LocalMinima, LocalMaxima);
@@ -73,7 +78,11 @@ CycleTable.PeriodPos = (CycleTable.NextPosPeakIdx - CycleTable.PrevPosPeakIdx)/S
 
 NextPeak = [CycleTable.NegPeakIdx(2:end); TimepointsCount];
 PrevPeak = [1; CycleTable.NegPeakIdx(1:end-1)];
+try
 CycleTable.PeriodNeg = (NextPeak-PrevPeak)/2/SampleRate;
+catch
+    a=1
+end
 end
 
 

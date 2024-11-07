@@ -4,9 +4,14 @@ function Cycles = detect_cycles(ChannelBroadband, ChannelNarrowband)
 %
 % Part of Matcycle 2022, by Sophia Snipes.
 
+try
+    %%
 [RisingEdgeZeroCrossings, FallingEdgeZeroCrossings] = ...
     detect_zero_crossings(ChannelNarrowband);
 
+catch
+    a=1
+end
 [NegPeaks, PosPeaks] = detect_peaks(RisingEdgeZeroCrossings, ...
     FallingEdgeZeroCrossings, ChannelBroadband);
 
@@ -26,6 +31,13 @@ function [RisingEdgeCrossings, FallingEdgeCrossings] = detect_zero_crossings(Sig
 % Ensures that the first rising edge zero-crossing comes at an earlier
 % timepoint than the first falling-edge zero-crossing (ensures that the 
 % sequence starts with a positive cycle).
+
+% first check that there can be zero crossings
+if all(Signal > 0) || all(Signal < 0) || all(Signal==0)
+    RisingEdgeCrossings = [];
+    FallingEdgeCrossings = [];
+    return
+end
 
 [RisingEdgeCrossings, FallingEdgeCrossings] = detect_crossings(Signal, 0);
 
