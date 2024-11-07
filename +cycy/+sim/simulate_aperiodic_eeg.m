@@ -1,19 +1,20 @@
-function [Signal, t] = simulate_aperiodic_eeg(Exponent, Offset, Duration, SampleRate)
+function [Signal, t] = simulate_aperiodic_eeg(Exponent, Offset, Duration, SampleRate, Plot)
 arguments
     Exponent = 2;
     Offset = 2;
     Duration = 30; % seconds
     SampleRate = 250;
+    Plot = false;
 end
 %  [Data, t] = simulate_aperiodic_eeg(Slope, Intercept, Duration, SampleRate, WelchWindow)
-% 
+%
 % Creates an artificial EEG trace without any oscillations. Expects inputs
 % that are the typical outputs of the FOOOF algorithm. Defaults are
 % provided, so can be run just as [Data, t] = simulate_aperiodic_eeg().
 %
 % Inputs:
 % - Exponent is the slope of the aperiodic signal. Wake is typically around
-% 1, and NREM 3 is around 3. 
+% 1, and NREM 3 is around 3.
 % - Offset is the overall power the aperiodic signal, and it depends
 % on the duration of the signal used to calculate the power spectrum.
 % Assumes offset comes from FOOOF, based on power calculated with pWelch.
@@ -33,7 +34,7 @@ end
 % offsets/exponents are usually derived from averaging power over smaller
 % windows, then the offset needs to be adjusted to account for the
 % difference in length.
-% Offset = Offset/(Duration/WelchWindow); 
+% Offset = Offset/(Duration/WelchWindow);
 Offset = Offset-log10(Duration);
 Exponent = abs(Exponent); % FOOOF outputs slopes as positive values, some people might provide negative; this is safe
 
@@ -49,11 +50,12 @@ Power(1:dsearchn(Frequencies', .2)) = Power(end); % Set the DC component to zero
 
 Power = 10.^Power;
 
-% % % DEBUG
-% figure
-% plot(Frequencies, Power, 'LineWidth',2)
-% set(gca, 'YScale', 'log', 'XScale', 'log');
-% title('simulated power')
+if Plot
+    figure
+    plot(Frequencies, Power, 'LineWidth',2)
+    set(gca, 'YScale', 'log', 'XScale', 'log');
+    title('simulated power')
+end
 
 % Generate complex spectrum to randomize phase
 Complex = (sqrt(Power/2)) .* exp(1i * 2 * pi * rand(1, numel(Frequencies)));
@@ -67,8 +69,8 @@ Signal = ifft(Complex2, 'symmetric') * nPoints; % Scale by nPoints to correct ma
 % Generate time vector
 t = linspace(0, Duration, nPoints);
 
-% % % DEBUG
-% hold on
-% [Power, Frequencies] = cycy.utils.compute_power_fft(Signal, SampleRate);
-% plot(Frequencies, Power, ':', 'LineWidth',2, 'Color','r')
-
+if Plot
+    hold on
+    [Power, Frequencies] = cycy.utils.compute_power_fft(Signal, SampleRate);
+    plot(Frequencies, Power, ':', 'LineWidth',2, 'Color','r')
+end

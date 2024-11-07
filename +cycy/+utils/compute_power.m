@@ -20,6 +20,7 @@ nfft = 2^nextpow2(WindowLength*SampleRate);
 if nfft > size(Data, 2)
     nfft = size(Data, 2);
 end
+
 noverlap = round(nfft*Overlap);
 window = hanning(nfft);
 
