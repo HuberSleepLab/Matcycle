@@ -34,6 +34,7 @@ DataBurstless = DataBroadband(~isBurst);
 hold on
 cycy.plot.power_spectrum(PowerBroadband, Frequencies, true, true, [], cycy.utils.pick_colors(1, '', 'red'));
 
+legend({'Whole signal', 'Bursts', 'No bursts'})
 
 
 
