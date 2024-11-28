@@ -1,0 +1,56 @@
+# EEG related stuff
+.fdt
+.set
+.eeg
+.fig
+.log
+*.csv
+*.svg
+*.loc
+*.jpg
+
+scratchpad.*
+cache/
+
+# exceptions
+!All_Sentences.csv
+
+# Windows default autosave extension
+*.asv
+
+# OSX / *nix default autosave extension
+*.m~
+
+# Compiled MEX binaries (all platforms)
+*.mex*
+
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
+
+# Generated helpsearch folders
+helpsearch*/
+
+# Simulink code generation folders
+slprj/
+sccprj/
+
+# Matlab code generation folders
+codegen/
+
+# Simulink autosave extension
+*.autosave
+
+# Simulink cache files
+*.slxc
+
+# To keep
+!StandardChanlocs128.mat
+!Cz.mat
+generalFunctions/desktop.ini
+.Rproj.user
+Analysis/surfmesh.mat
+Analysis/surfmesh.mat
+!docs/*.jpg
+
+.cycy_cache_dont_add_to_git
