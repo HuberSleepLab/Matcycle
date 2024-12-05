@@ -6,7 +6,7 @@ Bursts
 CleanTimepoints = ones(size(DataBroadband));
 end
 
-DataBroadband(CleanTimepoints) = nan;
+DataBroadband(~CleanTimepoints) = nan;
 
 % plot power spectrum of channel
 [PowerBroadband, Frequencies] = cycy.utils.compute_power(DataBroadband, SampleRate);
