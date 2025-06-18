@@ -8,7 +8,7 @@ fs = EEG.srate;
 for Indx_B = 1:numel(Bursts)
 
     B = Bursts(Indx_B);
-    Wave = B.Sign*EEG.data(B.Channel, :);
+    Wave = B.Sign*EEG.data(B.ChannelIndex, :);
 
     % decay-rise symmetry (fraction of the halfperiod that is compsed of the
     % down slope)
