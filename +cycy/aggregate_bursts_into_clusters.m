@@ -214,6 +214,7 @@ for Indx_C = 1:numel(AggregatedBurstIndexes)
 end
 
 Burst.ClusterPeaks = ClusterPeaks;
+Burst.ClusterNChannels = numel(Burst.ClusterChannelIndexes);
 
 Burst.ClusterStart = min([Burst.ClusterStarts, Burst.Start]);
 Burst.ClusterEnd = max([Burst.ClusterEnds, Burst.End]);
