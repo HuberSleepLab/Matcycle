@@ -73,8 +73,11 @@ else
 end
 
 % select colors
-if numel(CategoryLabels) <= 10
+if numel(CategoryLabels) <= 4
     Colors = cycy.utils.pick_colors(numel(CategoryLabels));
+
+elseif numel(CategoryLabels) <= 8
+    Colors = cycy.utils.pick_colors(numel(CategoryLabels), 'rainbow');
 elseif numel(CategoryLabels) <= 20
     Colors = jet(numel(CategoryLabels));
 else
